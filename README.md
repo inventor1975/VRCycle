@@ -1,5 +1,7 @@
 # VRCycle — Lean 4 Formalisation of the VR Cycle
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20324240.svg)](https://doi.org/10.5281/zenodo.20324240)
+
 Formal verification in Lean 4 (v4.29.1) of **VR. A Formal System** — a minimal axiomatisation of arithmetic on three primitives {∅, →, t} and four axioms, proven equivalent to Peano Arithmetic.
 
 ## Preprints
