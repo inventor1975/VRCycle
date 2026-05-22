@@ -4,5 +4,5 @@
 -- each level is built strictly over the previous one.
 import VRCycle.Numbers.Integers
 import VRCycle.Numbers.Rationals
--- import VRCycle.Numbers.Reals      -- Stage 9
--- import VRCycle.Numbers.Complex    -- Stage 10
+import VRCycle.Numbers.Reals
+import VRCycle.Numbers.Complex

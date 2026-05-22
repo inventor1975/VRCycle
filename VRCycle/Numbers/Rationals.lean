@@ -673,22 +673,21 @@ def Theorem_III_6_RatVR_Rat : RatVRRatIso :=
 -- §III.4. Canonical Form (corollary of §III.6 isomorphism)
 -- ============================================================
 
--- §III.4. Каноническая форма.
--- Препринт: «Every fraction a ⊘ b can be brought to canonical form by making
+-- §III.4. Canonical form.
+-- Preprint: «Every fraction a ⊘ b can be brought to canonical form by making
 -- the denominator positive and reducing to lowest terms.»
--- Три компонента: (1) существование, (2) знаменатель > 0, (3) gcd = 1.
+-- Three components: (1) existence, (2) denominator > 0, (3) gcd = 1.
 --
--- Lean-формулировка: q = backwardQ (forwardQ q).
--- Каноничность скрыта в структуре Lean 4 Rat:
---   forwardQ q = r : Rat, где r.num/r.den уже в канонической форме
+-- Lean formulation: q = backwardQ (forwardQ q).
+-- Canonicity is hidden in the Lean 4 Rat structure:
+--   forwardQ q = r : Rat, where r.num/r.den is already in canonical form
 --   (r.den > 0, Rat.reduced : r.num.natAbs.Coprime r.den).
--- backwardQ переносит эти инварианты обратно: backward r.num ∅ backward ↑r.den.
+-- backwardQ transfers these invariants back: backward r.num ∅ backward ↑r.den.
 --
--- Свойства (1)–(3) препринта реализованы в этом свидетеле:
--- (1) существование: само равенство даёт свидетеля
--- (2) знаменатель > 0: r.den : ℕ с r.den ≠ 0, т.е. forward (backwardQ r).1.snd > 0
--- (3) взаимная простота: r.reduced : r.num.natAbs.Coprime r.den
--- Для явного обращения к (2) и (3) достаточно Rat.den_pos и Rat.reduced на (forwardQ q).
+-- Properties (1)–(3) from the preprint are witnessed by this equality:
+-- (1) existence: the equality itself provides the witness
+-- (2) denominator > 0: r.den : ℕ with r.den ≠ 0; use Rat.den_pos on (forwardQ q)
+-- (3) coprimality: r.reduced : r.num.natAbs.Coprime r.den; use Rat.reduced on (forwardQ q)
 theorem Theorem_III_4_CanonicalForm : ∀ q : ℚ_VR, q = backwardQ (forwardQ q) :=
   fun q => (forwardQ_left_inv q).symm
 
@@ -697,4 +696,5 @@ end VR.Numbers
 -- #print axioms VR.Numbers.Theorem_III_6_RatVR_Rat
 -- 'VR.Numbers.Theorem_III_6_RatVR_Rat' depends on axioms: [propext, Classical.choice, Quot.sound]
 -- #print axioms VR.Numbers.Theorem_III_4_CanonicalForm
--- 'VR.Numbers.Theorem_III_4_CanonicalForm' depends on axioms: [propext, Classical.choice, Quot.sound]
+-- 'VR.Numbers.Theorem_III_4_CanonicalForm' depends on axioms:
+--   [propext, Classical.choice, Quot.sound]

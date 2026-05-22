@@ -1,2 +1,2 @@
 -- VR-Sets (DOI 10.5281/zenodo.20303536)
--- Операциональная теория множеств
+-- Operational set theory

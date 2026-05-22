@@ -1,2 +1,2 @@
 -- VR-Forms (DOI 10.5281/zenodo.20313735)
--- Двухрегистровая система с формальными термами
+-- Two-register system with formal terms

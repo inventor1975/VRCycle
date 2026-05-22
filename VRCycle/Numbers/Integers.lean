@@ -103,35 +103,34 @@ theorem intEq_trans : ∀ e f g : IntExpr, intEq e f → intEq f g → intEq e g
 -- §II.2 + §II.6. Setoid and Quotient — ℤ_VR
 -- ============================================================
 
--- Quot.sound — стандартная аксиома ядра Lean 4:
+-- Quot.sound — standard Lean 4 kernel axiom:
 --   ∀ {α : Sort u} {r : α → α → Prop} {a b : α},
 --     r a b → Quot.mk r a = Quot.mk r b
--- То есть: если два элемента связаны отношением, их классы эквивалентности
--- равны как термы Quotient-типа.
+-- If two elements are related, their equivalence classes are equal as terms
+-- of the quotient type.
 --
--- Это единственная axiom-зависимость, которая появляется в цикле VR-Numbers
--- (PLAN.md, принцип 6). В отличие от Части I, где все теоремы axiom-free,
--- конструкция quotient-типов невозможна без Quot.sound:
--- без неё классы эквивалентности были бы различимы как термы,
--- что разрушило бы математическое содержание ℤ_VR.
+-- This is the only new axiom dependency that appears in VR-Numbers (beyond
+-- Part I, where all theorems are axiom-free). Quotient type construction is
+-- impossible without Quot.sound: without it, equivalence classes would be
+-- distinguishable as terms, destroying the mathematical content of ℤ_VR.
 --
--- Quot.sound — не Classical.choice и не propext. Это специфическая аксиома
--- quotient-конструкции, согласованная с конструктивной интерпретацией:
--- она не постулирует tertium non datur и не разрушает вычислимость.
+-- Quot.sound is neither Classical.choice nor propext. It is specific to
+-- quotient construction and compatible with a constructive interpretation:
+-- it does not postulate tertium non datur and does not break computability.
 
--- §II.2. Setoid: упаковываем intEq как Lean-отношение эквивалентности.
+-- §II.2. Setoid: packages intEq as a Lean equivalence relation.
 instance intEqSetoid : Setoid IntExpr where
   r     := intEq
   iseqv := ⟨intEq_refl,
              fun {a b} h   => intEq_symm  a b h,
              fun {a b c} h1 h2 => intEq_trans a b c h1 h2⟩
 
--- §II.6. ℤ_VR — тип классов эквивалентности выражений a ⊖ b.
--- Соответствует «set ℤ_VR of equivalence classes of expressions a ⊖ b»
--- из препринта §II.6.
+-- §II.6. ℤ_VR — the type of equivalence classes of expressions a ⊖ b.
+-- Corresponds to «set ℤ_VR of equivalence classes of expressions a ⊖ b»
+-- from the preprint §II.6.
 def IntVR : Type := Quotient intEqSetoid
 
--- Нотация ℤ_VR для соответствия препринту при формулировке теорем.
+-- Notation ℤ_VR to match the preprint when stating theorems.
 notation "ℤ_VR" => IntVR
 
 -- ============================================================
@@ -338,9 +337,9 @@ def isubQ : ℤ_VR → ℤ_VR → ℤ_VR :=
 -- §II.5. Embedding ℕ into ℤ_VR
 -- ============================================================
 
--- §II.5. Вложение ℕ в ℤ_VR.
--- Натуральное число n ↦ класс (n ⊖ ∅): неотрицательный целый n.
--- Операционная интерпретация: n остаётся n при переходе к разности n − 0.
+-- §II.5. Embedding ℕ into ℤ_VR.
+-- Natural number n maps to the class (n ⊖ ∅): non-negative integer n.
+-- Operational interpretation: n stays n when viewed as the difference n − 0.
 def embedN : VRObj → ℤ_VR :=
   fun n => Quotient.mk intEqSetoid (.mk n VRObj.void)
 
