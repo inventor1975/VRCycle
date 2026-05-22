@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20324240.svg)](https://doi.org/10.5281/zenodo.20324240)
 
-Formal verification in Lean 4 (v4.29.1) of **VR. A Formal System** — a minimal axiomatisation of arithmetic on three primitives {∅, →, t} and four axioms, proven equivalent to Peano Arithmetic.
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of four works formalising arithmetic, numbers, sets, and forms from three primitives {∅, →, t}.
 
 ## Preprints
 
@@ -91,13 +91,35 @@ Several results emerged that go beyond or clarify the preprint's claims:
 
 ## Axiom audit
 
-Every theorem in the file was checked with Lean's `#print axioms`. All 51 return:
+Every theorem was checked with Lean's `#print axioms`. The formalisation has a three-tier axiom structure:
+
+### Tier 1 — Axiom-free (VR. A Formal System, Parts I–II)
+
+All 51 theorems in `VRCycle/VR.lean` return:
 
 ```
 'VR.X' does not depend on any axioms
 ```
 
-The formalisation is **purely constructive** — no `Classical.choice`, no `propext`, no `Quot.sound`, no `sorry`. Proofs use only Lean's built-in computation rules and structural induction.
+Purely constructive: no `Classical.choice`, no `propext`, no `Quot.sound`. Proofs use only Lean's built-in computation rules and structural induction.
+
+### Tier 2 — `[propext, Quot.sound]` (VR-Numbers, ℤ_VR, §7–§8.8)
+
+Theorems in `VRCycle/Numbers/Integers.lean` depend on `[propext, Quot.sound]` only. `Classical.choice` is absent. Integer arithmetic (`Int.add`, `Int.mul`) is axiom-free in Lean 4 core; the remaining axioms enter through quotient construction of `ℤ_VR` and propositional equality.
+
+### Tier 3 — `[propext, Classical.choice, Quot.sound]` (VR-Numbers, ℚ_VR+, §8.9+)
+
+Theorems in `VRCycle/Numbers/Rationals.lean` from §8.9 onward depend on `Classical.choice`. This is a **structural property of Lean 4 core**, not a mathlib choice:
+
+```
+-- Lean 4 Core (no mathlib):
+#print axioms Rat.add  -- [propext, Classical.choice, Quot.sound]
+#print axioms Int.add  -- does not depend on any axioms
+```
+
+`Rat.add` and `Rat.mul` must normalise their results via `Nat.gcd`, producing a coprimality proof that depends on `Classical.choice`. This cannot be avoided by replacing individual lemmas: any theorem mentioning `+` or `*` on `ℚ` inherits `Classical.choice` from the target type itself.
+
+**The Classical-free boundary in VR-Numbers formalisation corresponds exactly to the transition from ℤ to ℚ** — from operations performed syntactically (`a + b` on `ℤ`) to operations requiring a canonical representative (gcd-reduction of `a/b` on `ℚ`). This is a formal observation about the correspondence between the "depths of operationality" (§VI.4) and axiom dependencies of the formalisation.
 
 <details>
 <summary>Complete #print axioms output (all 51 theorems)</summary>
@@ -194,13 +216,25 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 
 ## Status
 
-| Stage | Description | Status |
-|-------|-------------|--------|
-| 0 | Project setup | ✓ |
-| 1 | Primitives and axioms | ✓ |
-| 2 | Derived operators, Leibnizian identity | ✓ |
-| 3 | Von Neumann ordinals | ✓ |
-| 4 | Arithmetic operations | ✓ |
-| 5 | Peano equivalence (Theorem 11) | ✓ |
-| 6 | Publication | in progress |
-| 7–20 | VR-Numbers, VR-Sets, VR-Forms | planned |
+### VR. A Formal System
+
+| Stage | Description | Status | Axioms |
+|-------|-------------|--------|--------|
+| 0 | Project setup | ✓ | — |
+| 1 | Primitives and axioms | ✓ | none |
+| 2 | Derived operators, Leibnizian identity | ✓ | none |
+| 3 | Von Neumann ordinals | ✓ | none |
+| 4 | Arithmetic operations | ✓ | none |
+| 5 | Peano equivalence (Theorem 11) | ✓ | none |
+| 6 | Publication | ✓ | — |
+
+### VR-Numbers
+
+| Stage | Description | Status | Axioms |
+|-------|-------------|--------|--------|
+| 7 | ℤ_VR: integers as signed pairs over ℕ_VR | ✓ | `[propext, Quot.sound]` |
+| 8.1–8.8 | ℤ_VR operations, embedding, isomorphism ℤ_VR ≅ ℤ | ✓ | `[propext, Quot.sound]` |
+| 8.9 | ℚ_VR: rationals, isomorphism ℚ_VR ≅ ℚ | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 8.10 | Canonical form (§III.4) | in progress | `[propext, Classical.choice, Quot.sound]` |
+| 9 | ℝ_VR via Cauchy sequences | planned | — |
+| 10 | ℂ_VR | planned | — |
