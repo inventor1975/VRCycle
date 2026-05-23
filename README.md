@@ -117,6 +117,79 @@ A complete Lean 4 formalisation of **VR-Numbers**, Parts II–V. Operational sup
 
 ---
 
+### VR-Sets (`VRCycle/Sets/`)
+
+A complete Lean 4 formalisation of **VR-Sets** (DOI 10.5281/zenodo.20303536), Parts II–V,
+built on mathlib's `ZFSet = Quotient PSet.setoid`. The formalisation covers
+positive theorems (9 ZFC axioms), negative boundary results (ZFA provably absent),
+and formulations of open questions — a three-tier result structure new to the VR cycle.
+
+#### Foundation (`Sets/Foundation.lean`, Stages 1–2)
+
+- `OSet := ZFSet` — operational set type; `abbrev` so all mathlib ZFSet operations apply directly
+- `osetEmpty : OSet` — the empty set ∅ (Definition 2)
+- `notation a " ≡ " b` — operational identity (Definition 4); reduces to Lean `Eq` on OSet
+- `Lemma_II_1_Extensionality` — `∀ x, x ∈ a ↔ x ∈ b → a = b` via `ZFSet.ext`
+- `Lemma_II_2_UniquenessEmpty` — `∃! a, ∀ x, x ∉ a` via `ZFSet.notMem_empty`
+- `operationalDepth : OSet → Ordinal` — von Neumann rank (Definition V.3.5)
+- `Lemma_II_3_DepthEmpty` — `rank ∅ = 0`
+- `Lemma_II_3_DepthMono` — `b ∈ a → rank b < rank a` (induction instrument)
+
+#### ZF closure theorems (`Sets/ZF.lean`, Stages 3–8)
+
+Each theorem is a wrapper over the corresponding mathlib lemma on ZFSet.
+
+- `osetPair`, `Theorem_III_3_Pairing` — pairing axiom
+- `osetUnion`, `Theorem_III_4_Union` — union axiom
+- `osetPower`, `Theorem_III_5_Power` — power set axiom
+- `omega_OSet`, `Theorem_III_6_Infinity` — infinity axiom
+- `osetReplacement`, `Theorem_III_7_Replacement` — replacement as single theorem (not schema)
+- `Theorem_III_8_Foundation` — regularity/foundation axiom (added at Stage 9)
+- `Theorem_III_9_Choice` — choice axiom via `Classical.choice`
+
+#### Modes (`Sets/Modes.lean`, Stages 9–10)
+
+**Stage 9 — ZFC-mode:**
+- `isZFCmode (s : OSet) : Prop := Acc (· ∈ ·) s` — per-element well-foundedness predicate
+- `isZFCmode_all` — every OSet element is in ZFC-mode (structural consequence of ZFSet)
+- `Theorem_IV_1_ZFCAxioms` — structural collector: all nine ZFC axioms hold on OSet
+
+**Stage 10 — ZFA boundary (total absence):**
+- `isZFAmode (_ : PSet) : Prop := True` — ZFA-mode is the maximal universe (conceptual)
+- `isZFAmode_all` — every PSet is in ZFA-mode (trivial/definitional)
+- `quineAtomSpec : Prop := ∃ p : PSet.{0}, p ∈ p` — Quine atom specification
+- `quineAtom_impossible : ¬quineAtomSpec` — **axiom-free proof**: no Quine atom in PSet
+- `AFA_Statement` — classical Anti-Foundation Axiom (Aczel 1988), full generality
+- `AFA_Refuted : ¬AFA_Statement` — **axiom-free proof**: AFA is false in mathlib's PSet
+  (via universal self-loop graph + `PSet.mem_irrefl`)
+
+The Stage 10 objects are the only **axiom-free theorems** in the VR-Sets formalisation — a structural consequence of `PSet` being inductive (not coinductive). The ZFA boundary is type-theoretic, not axiomatic.
+
+#### Conjectures (`Sets/Conjectures.lean`, Stage 11)
+
+Open questions formalised as `def : Prop` — a third Lean status distinct from `theorem` and `axiom`.
+
+- `Conjecture_IV_1_Statement` — ZFC-mode is mutually interpretable with a countable model of ZFC.
+  Nine conjuncts (Extensionality, Empty, Foundation, Pairing, Union, Power, Infinity,
+  Replacement, Choice) over a countable type `M` embedded in OSet.
+  Axioms: `[propext, Quot.sound]` (through OSet reference).
+- `Conjecture_IV_2_Statement` — existence of a universe satisfying classical AFA (Aczel 1988).
+  Quine atom + Extensionality + full graph-decoration AFA over abstract `(U, mem)`.
+  Axioms: `[]` empty (abstract Type/Prop, no mathlib quotient infrastructure).
+
+#### VR numbers bridge (`Sets/VRNumbers.lean`, Stage 12)
+
+- `osetSuccOp (s : OSet) : OSet := insert s s` — von Neumann successor `s ∪ {s}`
+- `embedVR : VRObj → OSet.{0}` — `void ↦ ∅`, `succ x ↦ osetSuccOp (embedVR x)`
+- `embedVR_zero`, `embedVR_succ` — definitional equations (axiom-free, `rfl`)
+- `Theorem_V_1_WellFounded` — all VR numbers in ZFC-mode (via `isZFCmode_all`)
+- `embedVR_mem_iff` — `VR.mem x y ↔ embedVR x ∈ embedVR y` (membership preservation)
+- `embedVR_injective` — `Function.Injective embedVR`
+- `VR_OSet_iso` — isomorphism structure (5 fields: embed, preserve_zero, preserve_succ, preserve_mem, injective)
+- `Theorem_V_2 : VR_OSet_iso` — the explicit instance
+
+---
+
 ## What this formalisation does NOT claim
 
 **Ontological theses.** The preprint makes claims about minimalism, Leibnizian void, and the operational character of objects. These are interpretive layers on top of the formal system. This Lean formalisation verifies formal derivability given a specific translation into Lean types — not the philosophical claims themselves.
@@ -173,9 +246,29 @@ Purely constructive: no `Classical.choice`, no `propext`, no `Quot.sound`. Proof
 
 `Theorem_II_6_IntVR_Int` and all ℤ_VR theorems depend on `[propext, Quot.sound]` only. `Classical.choice` is absent. Integer arithmetic (`Int.add`, `Int.mul`) is axiom-free in Lean 4 core; the remaining axioms enter through the quotient construction of `ℤ_VR`.
 
-### Tier 3 — `[propext, Classical.choice, Quot.sound]` (VR-Numbers, ℚ_VR and above)
+### Tier 2b — `[propext, Quot.sound]` (VR-Sets, most theorems)
 
-All theorems from ℚ_VR through ℂ_VR depend on `Classical.choice`. This is a **structural property of Lean 4 core**, not a mathlib choice:
+Most VR-Sets theorems (Stages 1–6, 9 partial, 11–12) depend only on `[propext, Quot.sound]`:
+the quotient construction of `ZFSet` requires `Quot.sound`; membership and extensionality
+require `propext`. No `Classical.choice`.
+
+### Tier 2c — `[]` axiom-free (VR-Sets Stage 10, boundary results)
+
+The ZFA-boundary theorems are **constructively proved** with no axioms:
+
+```
+'VR.Sets.isZFAmode_all'        does not depend on any axioms
+'VR.Sets.quineAtom_impossible' does not depend on any axioms
+'VR.Sets.AFA_Refuted'          does not depend on any axioms
+'VR.Sets.Conjecture_IV_2_Statement' does not depend on any axioms
+```
+
+These derive from `PSet.mem_irrefl` via `Acc.rec` and `PSet`'s inductive structure — no
+quotient axioms needed because the proofs never leave the inductive type.
+
+### Tier 3 — `[propext, Classical.choice, Quot.sound]` (VR-Numbers ℚ_VR+; VR-Sets Stages 7–9)
+
+All theorems from ℚ_VR through ℂ_VR, and VR-Sets Stages 7–9 (Replacement, Choice, Foundation, Theorem IV.1), depend on `Classical.choice`. For VR-Numbers this is a **structural property of Lean 4 core**:
 
 ```
 -- Lean 4 Core (no mathlib):
@@ -259,6 +352,41 @@ All theorems from ℚ_VR through ℂ_VR depend on `Classical.choice`. This is a 
 </details>
 
 <details>
+<summary>Complete #print axioms output — VR-Sets</summary>
+
+```
+-- Foundation.lean (Stages 1-2)
+'VR.Sets.Lemma_II_1_Extensionality'  depends on axioms: [propext, Quot.sound]
+'VR.Sets.Lemma_II_2_UniquenessEmpty' depends on axioms: [propext, Quot.sound]
+'VR.Sets.Lemma_II_3_DepthEmpty'      depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Sets.Lemma_II_3_DepthMono'       depends on axioms: [propext, Classical.choice, Quot.sound]
+-- ZF.lean (Stages 3-8)
+'VR.Sets.Theorem_III_3_Pairing'      depends on axioms: [propext, Quot.sound]
+'VR.Sets.Theorem_III_4_Union'        depends on axioms: [propext, Quot.sound]
+'VR.Sets.Theorem_III_5_Power'        depends on axioms: [propext, Quot.sound]
+'VR.Sets.Theorem_III_6_Infinity'     depends on axioms: [propext, Quot.sound]
+'VR.Sets.Theorem_III_7_Replacement'  depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Sets.Theorem_III_8_Foundation'   depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Sets.Theorem_III_9_Choice'       depends on axioms: [propext, Classical.choice, Quot.sound]
+-- Modes.lean Stage 9 (ZFC-mode)
+'VR.Sets.isZFCmode_all'              depends on axioms: [propext, Quot.sound]
+'VR.Sets.Theorem_IV_1_ZFCAxioms'     depends on axioms: [propext, Classical.choice, Quot.sound]
+-- Modes.lean Stage 10 (ZFA boundary) — AXIOM-FREE
+'VR.Sets.isZFAmode_all'              does not depend on any axioms
+'VR.Sets.quineAtom_impossible'       does not depend on any axioms
+'VR.Sets.AFA_Refuted'                does not depend on any axioms
+-- Conjectures.lean (Stage 11)
+'VR.Sets.Conjecture_IV_1_Statement'  depends on axioms: [propext, Quot.sound]
+'VR.Sets.Conjecture_IV_2_Statement'  does not depend on any axioms
+-- VRNumbers.lean (Stage 12)
+'VR.Sets.Theorem_V_1_WellFounded'    depends on axioms: [propext, Quot.sound]
+'VR.Sets.embedVR_mem_iff'            depends on axioms: [propext, Quot.sound]
+'VR.Sets.embedVR_injective'          depends on axioms: [propext, Quot.sound]
+'VR.Sets.Theorem_V_2'                depends on axioms: [propext, Quot.sound]
+```
+</details>
+
+<details>
 <summary>Complete #print axioms output — VR-Numbers (key theorems)</summary>
 
 ```
@@ -290,7 +418,7 @@ lake build
 
 The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 
-**Expected output:** `Build completed successfully (3294 jobs).` with no warnings.
+**Expected output:** `Build completed successfully (908 jobs).` with no warnings.
 
 ## Toolchain
 
@@ -324,3 +452,16 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 | 8.10 | Canonical form (§III.4) | ✓ | `[propext, Classical.choice, Quot.sound]` |
 | 9 | ℝ_VR via Cauchy sequences, isomorphism ℝ_VR ≅ ℝ | ✓ | `[propext, Classical.choice, Quot.sound]` |
 | 10 | ℂ_VR, isomorphism ℂ_VR ≅ ℂ | ✓ | `[propext, Classical.choice, Quot.sound]` |
+
+### VR-Sets
+
+| Stage | File | Description | Status | Axioms |
+|-------|------|-------------|--------|--------|
+| 1–2 | `Foundation.lean` | OSet type, ∅, ≡; Lemmas 1–3 | ✓ | Lemmas 1–2: `[propext, Quot.sound]`; Lemma 3: `[propext, Classical.choice, Quot.sound]` |
+| 3–6 | `ZF.lean` | Pairing, Union, Power, Infinity | ✓ | `[propext, Quot.sound]` |
+| 7–8 | `ZF.lean` | Replacement, Choice | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 9 | `Modes.lean` | §III.8 Foundation; ZFC-mode; Theorem IV.1 | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 10 | `Modes.lean` | ZFA boundary: Quine impossible, AFA refuted | ✓ | **`[]` (axiom-free)** |
+| 11 | `Conjectures.lean` | Conjectures IV.1, IV.2 (formulations only) | ✓ | IV.1: `[propext, Quot.sound]`; IV.2: `[]` |
+| 12 | `VRNumbers.lean` | VR numbers as von Neumann ordinals; Theorem V.2 | ✓ | `[propext, Quot.sound]` |
+| 13 | — | Final audit, README, git tag, Zenodo | ✓ | — |
