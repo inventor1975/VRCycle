@@ -1,5 +1,5 @@
--- Корневой файл проекта VRCycle
--- Формализация цикла VR в Lean 4
+-- VRCycle — root file
+-- Lean 4 formalisation of the VR Cycle
 import VRCycle.VR
 import VRCycle.Numbers
 import VRCycle.Sets
