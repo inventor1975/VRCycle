@@ -9,7 +9,7 @@ Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of four
 | Work | DOI |
 |------|-----|
 | VR. A Formal System | [10.5281/zenodo.20212092](https://doi.org/10.5281/zenodo.20212092) |
-| VR-Numbers | [10.5281/zenodo.20272743](https://doi.org/10.5281/zenodo.20272743) |
+| VR-Numbers | [10.5281/zenodo.20352239](https://doi.org/10.5281/zenodo.20352239) |
 | VR-Sets | [10.5281/zenodo.20303536](https://doi.org/10.5281/zenodo.20303536) |
 | VR-Forms | [10.5281/zenodo.20313735](https://doi.org/10.5281/zenodo.20313735) |
 
