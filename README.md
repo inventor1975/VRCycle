@@ -1,17 +1,19 @@
 # VRCycle — Lean 4 Formalisation of the VR Cycle
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20324240.svg)](https://doi.org/10.5281/zenodo.20324240)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20352057.svg)](https://doi.org/10.5281/zenodo.20352057)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20354340.svg)](https://doi.org/10.5281/zenodo.20354340)
 
 Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of four works formalising arithmetic, numbers, sets, and forms from three primitives {∅, →, t}.
 
-## Preprints
+## Publications
 
-| Work | DOI |
-|------|-----|
-| VR. A Formal System | [10.5281/zenodo.20212092](https://doi.org/10.5281/zenodo.20212092) |
-| VR-Numbers | [10.5281/zenodo.20352239](https://doi.org/10.5281/zenodo.20352239) |
-| VR-Sets | [10.5281/zenodo.20303536](https://doi.org/10.5281/zenodo.20303536) |
-| VR-Forms | [10.5281/zenodo.20313735](https://doi.org/10.5281/zenodo.20313735) |
+| Work | Preprint DOI | Lean formalisation DOI |
+|------|-------------|------------------------|
+| VR. A Formal System | [10.5281/zenodo.20324391](https://doi.org/10.5281/zenodo.20324391) | [10.5281/zenodo.20324240](https://doi.org/10.5281/zenodo.20324240) |
+| VR-Numbers v1.0.2 | [10.5281/zenodo.20352239](https://doi.org/10.5281/zenodo.20352239) | [10.5281/zenodo.20352057](https://doi.org/10.5281/zenodo.20352057) |
+| VR-Sets v1.0.1 | [10.5281/zenodo.20354628](https://doi.org/10.5281/zenodo.20354628) | [10.5281/zenodo.20354340](https://doi.org/10.5281/zenodo.20354340) |
+| VR-Forms | [10.5281/zenodo.20313735](https://doi.org/10.5281/zenodo.20313735) | — |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 
