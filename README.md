@@ -13,7 +13,7 @@ Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of four
 | VR. A Formal System | [10.5281/zenodo.20324391](https://doi.org/10.5281/zenodo.20324391) | [10.5281/zenodo.20324240](https://doi.org/10.5281/zenodo.20324240) |
 | VR-Numbers v1.0.2 | [10.5281/zenodo.20352239](https://doi.org/10.5281/zenodo.20352239) | [10.5281/zenodo.20352057](https://doi.org/10.5281/zenodo.20352057) |
 | VR-Sets v1.0.1 | [10.5281/zenodo.20354628](https://doi.org/10.5281/zenodo.20354628) | [10.5281/zenodo.20354340](https://doi.org/10.5281/zenodo.20354340) |
-| VR-Forms | [10.5281/zenodo.20313735](https://doi.org/10.5281/zenodo.20313735) | — |
+| VR-Forms | [10.5281/zenodo.20313735](https://doi.org/10.5281/zenodo.20313735) | pending (tag v1.3-vr-forms) |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 
@@ -192,6 +192,81 @@ Open questions formalised as `def : Prop` — a third Lean status distinct from 
 
 ---
 
+### VR-Forms (`VRCycle/Forms/`)
+
+A partial Lean 4 formalisation of **VR-Forms** (DOI 10.5281/zenodo.20313735), Parts II, IV–V, and VII.
+VR-Forms is proof-theoretic: it introduces a two-register system (formal register L₁ / operational register L₀),
+formal terms, operational realisability, and the transit pattern. The central result (Theorem III.1:
+conservativity of T₁ over T₀) is the **explicit structural boundary** of this Lean cycle — documented in code
+at every relevant point. See "Central boundary" below and PLAN.md §"Critical boundary statement".
+
+**18 public objects across 5 files (1545 lines). Classical.choice absent throughout the entire cycle.**
+
+#### Language (`Forms/Language.lean`, Stage 1)
+
+- `Register` — inductive type with two constructors: `.formal` (L₁ / formal register) and `.ontological` (L₀ / operational register); derives `DecidableEq, Repr`
+- `FormalTerm` — structure `{ description : String; register : Register }`; derives `DecidableEq, Repr`
+- `⌜·⌝` macro (ident form) — `⌜foo⌝ = FormalTerm.mk "foo" .formal`
+- `⌜·⌝` macro (str form) — `⌜"foo"⌝ = FormalTerm.mk "foo" .formal`
+- Axioms: **`[]` (axiom-free)** — no imports, pure structure
+
+#### Realisability (`Forms/Realisability.lean`, Stage 2 + Stage 4 retroactive extension)
+
+`isRealisable : FormalTerm → Prop` — total predicate; match on `description` over 6 named cases plus catch-all `| _ => False`. Three-category structure:
+
+| Category | Formal terms | Lean status |
+|----------|-------------|-------------|
+| Provably realisable | `⌜"∅"⌝`, `⌜"omega_OSet"⌝`, `⌜"osetPair"⌝` | Witnessed by VR-Sets objects |
+| Open realisability | `⌜"Conjecture_IV_1_Statement"⌝`, `⌜"Conjecture_IV_2_Statement"⌝` | Reduces to open conjecture |
+| Provably non-realisable | `⌜"AFA_Statement"⌝` | Proved false via `AFA_Refuted` |
+
+- `isRealisable_empty : isRealisable ⌜"∅"⌝` — ∅ is operationally realisable (witness: `osetEmpty`)
+- `isRealisable_omega : isRealisable ⌜"omega_OSet"⌝` — ω is operationally realisable (witness: `omega_OSet`)
+- `isRealisable_osetPair : isRealisable ⌜"osetPair"⌝` — formal pairing term is operationally realisable
+- Axioms: `[propext, Quot.sound]`
+
+#### Transit pattern (`Forms/Transit.lean`, Stage 3)
+
+- `translate_pi : FormalTerm → Prop` — π translation; maps named formal terms to their defining operational predicates; catch-all `| _ => False`
+- `translate_pi_empty`, `translate_pi_omega`, `translate_pi_osetPair` — concrete translations of three operationally realisable terms
+- `translate_implies_realisable` — `∀ t, translate_pi t → isRealisable t` (translation implies realisability)
+- Large doc-block: the transit pattern as a documented inference pattern (not a theorem); references Theorem III.1 (conservativity) as structural boundary; quotes the preprint verbatim
+- Axioms: `[propext, Quot.sound]`
+
+#### Bridge (`Forms/Bridge.lean`, Stage 4)
+
+Bridge theorems connect formal terms in the formal register to concrete VR-Sets Lean objects. This is the junction point between the VR-Sets Lean cycle (Stages 1–13) and VR-Forms.
+
+- `bridge_AFA : ¬isRealisable ⌜"AFA_Statement"⌝` — proved via `AFA_Refuted` (VR-Sets Stage 10); the ZFA boundary of VR-Sets reappears as a realisability theorem in VR-Forms
+- `bridge_Conjecture_IV_1 : isRealisable ⌜"Conjecture_IV_1_Statement"⌝ ↔ Conjecture_IV_1_Statement` — iff trivially proved by `⟨id, id⟩`; mathematical content open (VR-Sets Stage 11)
+- `bridge_Conjecture_IV_2 : isRealisable ⌜"Conjecture_IV_2_Statement"⌝ ↔ Conjecture_IV_2_Statement` — iff trivially proved by `⟨id, id⟩`; mathematical content open (VR-Sets Stage 11)
+- Axioms: `[propext, Quot.sound]`
+
+#### Examples (`Forms/Examples.lean`, Stage 5)
+
+- `not_isRealisable_Russell` — Russell class formal term is not operationally realisable
+- `not_isRealisable_Vitali` — Vitali set formal term is not operationally realisable
+- `not_isRealisable_classical_R` — classical reals formal term is not operationally realisable
+- `not_isRealisable_classical_powerset_N` — classical power set of ℕ is not operationally realisable (formal-register half only; ontological side «℘_VR(ω) is countable» is metatheoretic — documented in comment, not formalised; see VR-Numbers §VIII.6 boundary)
+- `mixed_omega_two_register : (∅ : OSet) ∈ omega_OSet ∧ isRealisable ⌜"omega_OSet"⌝` — mixed formula: operational fact + formal-register fact in one statement (Part VII §VII.2)
+- `mixed_AFA_boundary : (∀ x : OSet, x ∉ x) ∧ ¬isRealisable ⌜"AFA_Statement"⌝` — **central junction theorem** of the cycle: ZFA boundary in both registers simultaneously; `ZFSet.mem_irrefl` (operational) + `bridge_AFA` (formal)
+- Axioms: `[propext, Quot.sound]`
+
+#### Central boundary
+
+**Theorem III.1 (conservativity of T₁ over T₀)** — the core result of VR-Forms — is **not formalised** in this Lean cycle. Full formalisation would require deep-embedding `Formula L₁`, `Derivation T₁`, and proving conservativity by induction over derivations — a proof-theory project beyond the scale of the VR-Forms preprint cycle.
+
+This boundary is structurally different from VR-Sets's five structural boundaries:
+
+| Cycle | Boundary type | Nature |
+|-------|--------------|--------|
+| VR-Sets | Five boundaries | Gaps in mathlib's set-theoretic infrastructure |
+| VR-Forms | One central boundary | Shallow-embedding vs. deep-embedding (proof-theoretic) |
+
+The boundary is documented at every relevant Lean object with explicit comments. The conservativity result is **not an open question** (it has a metalogical proof in the preprint); it is unformalisable *at this depth* in shallow Lean — distinct from the open Conjectures IV.1/IV.2 in VR-Sets, which are mathematically open questions.
+
+---
+
 ## What this formalisation does NOT claim
 
 **Ontological theses.** The preprint makes claims about minimalism, Leibnizian void, and the operational character of objects. These are interpretive layers on top of the formal system. This Lean formalisation verifies formal derivability given a specific translation into Lean types — not the philosophical claims themselves.
@@ -267,6 +342,23 @@ The ZFA-boundary theorems are **constructively proved** with no axioms:
 
 These derive from `PSet.mem_irrefl` via `Acc.rec` and `PSet`'s inductive structure — no
 quotient axioms needed because the proofs never leave the inductive type.
+
+### Tier 2d — `[propext, Quot.sound]` / `[]` (VR-Forms — entire cycle)
+
+All 18 public objects in VR-Forms depend on at most `[propext, Quot.sound]`.
+**`Classical.choice` is absent from the entire VR-Forms cycle** — this was not predicted
+(the estimate was «all `[propext, Classical.choice, Quot.sound]` or stricter»).
+The Classical-free outcome is the most structurally significant axiom result of VR-Forms Lean.
+
+Language.lean (Stage 1, 2 public objects: `Register`, `FormalTerm`) is **axiom-free `[]`** —
+a pure structure with no imports and no quotient infrastructure.
+
+All remaining 16 objects (Stages 2–5) depend on `[propext, Quot.sound]` through
+the `OSet = ZFSet = Quotient PSet.setoid` chain inherited from VR-Sets. No theorem
+in VR-Forms touches `Classical.choice`: the realisability predicate match reduces by
+iota-reduction (concrete scrutinees, no noncomputable reasoning), bridge theorems
+use direct application and `⟨id, id⟩`, and the catch-all residual is proved by
+`unfold`+`split`+`simp_all [FormalTerm.mk.injEq]` — all decidable.
 
 ### Tier 3 — `[propext, Classical.choice, Quot.sound]` (VR-Numbers ℚ_VR+; VR-Sets Stages 7–9)
 
@@ -389,6 +481,42 @@ All theorems from ℚ_VR through ℂ_VR, and VR-Sets Stages 7–9 (Replacement, 
 </details>
 
 <details>
+<summary>Complete #print axioms output — VR-Forms (all 18 public objects)</summary>
+
+```
+-- Language.lean (Stage 1) — AXIOM-FREE
+-- (Register and FormalTerm are structures/inductives with no imports;
+--  #print axioms on theorems in Stage 1 returns no axioms.)
+
+-- Realisability.lean (Stage 2)
+'VR.Forms.isRealisable'          depends on axioms: [propext, Quot.sound]
+'VR.Forms.isRealisable_empty'    depends on axioms: [propext, Quot.sound]
+'VR.Forms.isRealisable_omega'    depends on axioms: [propext, Quot.sound]
+'VR.Forms.isRealisable_osetPair' depends on axioms: [propext, Quot.sound]
+
+-- Transit.lean (Stage 3)
+'VR.Forms.translate_pi'                  depends on axioms: [propext, Quot.sound]
+'VR.Forms.translate_pi_empty'            depends on axioms: [propext, Quot.sound]
+'VR.Forms.translate_pi_omega'            depends on axioms: [propext, Quot.sound]
+'VR.Forms.translate_pi_osetPair'         depends on axioms: [propext, Quot.sound]
+'VR.Forms.translate_implies_realisable'  depends on axioms: [propext, Quot.sound]
+
+-- Bridge.lean (Stage 4)
+'VR.Forms.bridge_AFA'               depends on axioms: [propext, Quot.sound]
+'VR.Forms.bridge_Conjecture_IV_1'   depends on axioms: [propext, Quot.sound]
+'VR.Forms.bridge_Conjecture_IV_2'   depends on axioms: [propext, Quot.sound]
+
+-- Examples.lean (Stage 5)
+'VR.Forms.not_isRealisable_Russell'                depends on axioms: [propext, Quot.sound]
+'VR.Forms.not_isRealisable_Vitali'                 depends on axioms: [propext, Quot.sound]
+'VR.Forms.not_isRealisable_classical_R'            depends on axioms: [propext, Quot.sound]
+'VR.Forms.not_isRealisable_classical_powerset_N'   depends on axioms: [propext, Quot.sound]
+'VR.Forms.mixed_omega_two_register'                depends on axioms: [propext, Quot.sound]
+'VR.Forms.mixed_AFA_boundary'                      depends on axioms: [propext, Quot.sound]
+```
+</details>
+
+<details>
 <summary>Complete #print axioms output — VR-Numbers (key theorems)</summary>
 
 ```
@@ -420,7 +548,7 @@ lake build
 
 The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 
-**Expected output:** `Build completed successfully (908 jobs).` with no warnings.
+**Expected output:** `Build completed successfully (919 jobs).` with no warnings.
 
 ## Toolchain
 
@@ -467,3 +595,14 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 | 11 | `Conjectures.lean` | Conjectures IV.1, IV.2 (formulations only) | ✓ | IV.1: `[propext, Quot.sound]`; IV.2: `[]` |
 | 12 | `VRNumbers.lean` | VR numbers as von Neumann ordinals; Theorem V.2 | ✓ | `[propext, Quot.sound]` |
 | 13 | — | Final audit, README, git tag, Zenodo | ✓ | — |
+
+### VR-Forms
+
+| Stage | File | Description | Status | Axioms |
+|-------|------|-------------|--------|--------|
+| 1 | `Forms/Language.lean` | Register, FormalTerm, ⌜·⌝ macro | ✓ | **`[]` (axiom-free)** |
+| 2 | `Forms/Realisability.lean` | isRealisable predicate; 3 base lemmas; extended Stage 4 | ✓ | `[propext, Quot.sound]` |
+| 3 | `Forms/Transit.lean` | translate_pi; translate_implies_realisable; transit pattern (documented boundary) | ✓ | `[propext, Quot.sound]` |
+| 4 | `Forms/Bridge.lean` | bridge_AFA; bridge_Conjecture_IV_1/IV_2; retroactive Stage 2 extension | ✓ | `[propext, Quot.sound]` |
+| 5 | `Forms/Examples.lean` | 4 non-realisable examples; mixed_omega_two_register; mixed_AFA_boundary | ✓ | `[propext, Quot.sound]` |
+| 6 | — | Full audit, README, PLAN.md, git tag v1.3-vr-forms | ✓ | — |
