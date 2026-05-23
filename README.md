@@ -5,7 +5,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20354340.svg)](https://doi.org/10.5281/zenodo.20354340)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20355757.svg)](https://doi.org/10.5281/zenodo.20355757)
 
-Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of four works formalising arithmetic, numbers, sets, and forms from three primitives {∅, →, t}.
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of five works formalising arithmetic, numbers, sets, forms, and the first VR-Audit application (Hahn-Banach for operational Hilbert spaces).
 
 ## Publications
 
@@ -15,6 +15,7 @@ Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of four
 | VR-Numbers v1.0.2 | [10.5281/zenodo.20352239](https://doi.org/10.5281/zenodo.20352239) | [10.5281/zenodo.20352057](https://doi.org/10.5281/zenodo.20352057) |
 | VR-Sets v1.0.1 | [10.5281/zenodo.20354628](https://doi.org/10.5281/zenodo.20354628) | [10.5281/zenodo.20354340](https://doi.org/10.5281/zenodo.20354340) |
 | VR-Forms v1.0.1 | [10.5281/zenodo.20313735](https://doi.org/10.5281/zenodo.20313735) | [10.5281/zenodo.20355757](https://doi.org/10.5281/zenodo.20355757) |
+| VR-Audit (HB-Hilbert) | companion preprint (forthcoming) | DOI TBD — `v1.4-vr-audit-hb-hilbert` |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 
@@ -265,6 +266,118 @@ This boundary is structurally different from VR-Sets's five structural boundarie
 | VR-Forms | One central boundary | Shallow-embedding vs. deep-embedding (proof-theoretic) |
 
 The boundary is documented at every relevant Lean object with explicit comments. The conservativity result is **not an open question** (it has a metalogical proof in the preprint); it is unformalisable *at this depth* in shallow Lean — distinct from the open Conjectures IV.1/IV.2 in VR-Sets, which are mathematically open questions.
+
+---
+
+### VR-Audit: Hahn-Banach for Operational Hilbert Spaces (`VRCycle/Audit/`)
+
+The fifth and latest work in the VR Cycle. VR-Audit is **structurally different** from
+predecessor cycles: it is *applied* rather than foundational — using both mathlib and
+predecessor VR cycles as black-box dependencies, contributing computability predicates
+and transit theorems on top of existing classical mathematics.
+
+#### Position in the VR Cycle
+
+| # | Cycle | Tag | Nature |
+|---|-------|-----|--------|
+| 1 | VR. A Formal System | v1.0-vr | Foundational (primitives, arithmetic) |
+| 2 | VR-Numbers | v1.1-vr-numbers | Foundational (ℤ, ℚ, ℝ, ℂ over VR-ℕ) |
+| 3 | VR-Sets | v1.2-vr-sets | Foundational (ZFC, ZFA boundary) |
+| 4 | VR-Forms | v1.3-vr-forms | Foundational (two-register apparatus) |
+| 5 | **VR-Audit** | **v1.4-vr-audit-hb-hilbert** | **Applied (first VR-Audit application)** |
+
+#### Core architectural principle: wrapping
+
+VR-Audit does **not** redefine classical mathematics. It **wraps** existing mathlib
+types and theorems with computability predicates — the direct embodiment of the
+VR-Forms two-register apparatus in Lean:
+
+- **Formal register** = mathlib's full classical types (unrestricted).
+- **Operational register** = the sub-collection satisfying computability predicates,
+  with explicit constructive witnesses in proof terms.
+
+The **transit pattern**: given operational input (witnesses), apply a classical mathlib
+theorem, prove that output also satisfies operationality (witness derived from inputs).
+
+#### Main theorem
+
+```lean
+theorem HahnBanachOperational_Hilbert
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    [OperationalHilbertSpace E]
+    (M : OperationalLocatedSubspace E)
+    (f : OperationalNormableFunctional M.toSubmodule) :
+    ∃ (x₀ : E),
+      (∀ m : ℕ, IsComputableReal
+        (inner (OperationalHilbertSpace.denseSeq (E := E) m) x₀))  ∧
+      (∀ y ∈ (M.toSubmodule : Set E),
+        f.toFun y = inner y x₀)  ∧
+      ‖x₀‖ = f.fnNorm
+```
+
+For any operational Hilbert space and any operational normable functional on an
+operational located subspace, the Riesz representation vector is operationally
+accessible. Classical Hahn-Banach follows; the transit via Riesz avoids the
+Specker obstruction.
+
+#### File structure (`VRCycle/Audit/`)
+
+| Stage | File | Public objects | Description |
+|-------|------|---------------|-------------|
+| 1 | `Computable.lean` | 8 | `IsComputableReal`, `IsComputableSequence`, base lemmas |
+| 2 | `Hilbert.lean` | 2 | `OperationalHilbertSpace` typeclass; ℝ instance |
+| 3 | `Subspace.lean` | 2 | `OperationalLocatedSubspace` structure; ⊤ instance |
+| 4 | `Functional.lean` | 3 | `OperationalNormableFunctional` structure; zero instance |
+| 5 | `HahnBanach.lean` | 1 | Main theorem `HahnBanachOperational_Hilbert` |
+| 6 | `Example.lean` | 1 | `instOperationalHilbertSpaceEuclidean` (ℝⁿ for all n) |
+
+**Total: 17 public objects, ~1427 lines of Lean.**
+
+#### Axiom profile
+
+All 17 public objects:
+
+```
+'VR.Audit.IsComputableReal'                        depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.IsComputableSequence'                    depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.IsComputableReal_rat'                    depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.IsComputableReal_zero'                   depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.IsComputableReal_one'                    depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.IsComputableReal_neg'                    depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.IsComputableReal_add'                    depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.IsComputableReal_sub'                    depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.OperationalHilbertSpace'                 depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.instOperationalHilbertSpaceReal'         depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.OperationalLocatedSubspace'              depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.topOperationalLocatedSubspace'           depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.OperationalNormableFunctional'           depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.fn_computable_everywhere'                depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.zeroOperationalNormableFunctional'       depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.HahnBanachOperational_Hilbert'           depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Audit.instOperationalHilbertSpaceEuclidean'    depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+`Classical.choice` is **expected and accepted** throughout: mathlib's Hahn-Banach uses
+Zorn's lemma (equivalent to `Classical.choice`). The methodological point is not
+axiom minimisation but **preservation of operationality**: operational witnesses for
+outputs are constructed from input witnesses, even when classical machinery uses
+`Classical.choice` between.
+
+#### Key methodological observations
+
+1. **Wrapping principle confirmed**: `IsComputableReal` over mathlib's `Real`, no parallel `OperationalReal` type.
+2. **Riesz as transit enabler**: Hilbert + Riesz gives clean transit; general Banach does not (Riesz gives an explicit vector, not a supremum).
+3. **Locatedness as operational closedness**: `OperationalLocatedSubspace` replaces classical closedness with computable `infDist`.
+4. **Specker boundary avoided by structure**: projection gives an explicit vector x₀, not a bounded monotone limit.
+5. **Two-register apparatus in practice**: formal register = mathlib Hilbert spaces (unrestricted); operational register = three-field wrapping typeclass.
+6. **Non-vacuity confirmed**: Stage 6 shows `EuclideanSpace ℝ (Fin n)` is an `OperationalHilbertSpace` for every `n : ℕ`, with explicit dense sequence and computable inner products.
+7. **`ring` vs `mul_comm` on ℝ inner products**: `@inner ℝ ℝ _ x y = y * x` definitionally (reversed order); `ring` treats `⟪·,·⟫` as opaque; `exact mul_comm _ _` is the correct tactic.
+
+#### Acknowledgement
+
+Developed using **Claude Opus 4.7** (architectural review) and **Claude Sonnet 4.6**
+(Lean implementation), Variant A (interactive parent-child architecture), consistent
+with predecessor VR Lean cycles.
 
 ---
 
@@ -607,3 +720,15 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 | 4 | `Forms/Bridge.lean` | bridge_AFA; bridge_Conjecture_IV_1/IV_2; retroactive Stage 2 extension | ✓ | `[propext, Quot.sound]` |
 | 5 | `Forms/Examples.lean` | 4 non-realisable examples; mixed_omega_two_register; mixed_AFA_boundary | ✓ | `[propext, Quot.sound]` |
 | 6 | — | Full audit, README, PLAN.md, git tag v1.3-vr-forms | ✓ | — |
+
+### VR-Audit (Hahn-Banach for Operational Hilbert Spaces)
+
+| Stage | File | Description | Status | Axioms |
+|-------|------|-------------|--------|--------|
+| 1 | `Audit/Computable.lean` | `IsComputableReal`, `IsComputableSequence`, 6 base lemmas | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 2 | `Audit/Hilbert.lean` | `OperationalHilbertSpace` typeclass; ℝ instance | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 3 | `Audit/Subspace.lean` | `OperationalLocatedSubspace` structure; ⊤ instance | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 4 | `Audit/Functional.lean` | `OperationalNormableFunctional` structure; zero instance | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 5 | `Audit/HahnBanach.lean` | `HahnBanachOperational_Hilbert` (main theorem via Riesz) | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 6 | `Audit/Example.lean` | `instOperationalHilbertSpaceEuclidean` (ℝⁿ for all n) | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 7 | — | Full audit, README, PLAN.md, git tag v1.4-vr-audit-hb-hilbert | ✓ | — |
