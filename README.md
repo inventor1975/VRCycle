@@ -7,11 +7,11 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20363739.svg)](https://doi.org/10.5281/zenodo.20363739)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20364111.svg)](https://doi.org/10.5281/zenodo.20364111)
 
-Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of five works formalising arithmetic, numbers, sets, forms, and the first VR-Audit application (Hahn-Banach for operational Hilbert spaces).
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of six works formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), and a foundational extension providing non-well-founded sets with AFA proved as a theorem.
 
 ## Publications
 
-Ten Zenodo records. All Lean formalisations are in this repository under the listed git tags.
+Twelve Zenodo records. All Lean formalisations are in this repository under the listed git tags.
 
 | # | Work | Zenodo DOI | Git tag |
 |---|------|-----------|---------|
@@ -23,8 +23,10 @@ Ten Zenodo records. All Lean formalisations are in this repository under the lis
 | 6 | VR-Sets (Lean) | [10.5281/zenodo.20354340](https://doi.org/10.5281/zenodo.20354340) | `v1.2-vr-sets` |
 | 7 | VR-Forms v1.0.1 (preprint) | [10.5281/zenodo.20355939](https://doi.org/10.5281/zenodo.20355939) | — |
 | 8 | VR-Forms (Lean) | [10.5281/zenodo.20355757](https://doi.org/10.5281/zenodo.20355757) | `v1.3-vr-forms` |
-| 9 | **VR-Audit v1.0.0 (preprint)** | [**10.5281/zenodo.20364111**](https://doi.org/10.5281/zenodo.20364111) | — |
-| 10 | **VR-Audit (Lean)** | [**10.5281/zenodo.20363739**](https://doi.org/10.5281/zenodo.20363739) | **`v1.4-vr-audit-hb-hilbert`** |
+| 9 | VR-Audit v1.0.0 (preprint) | [10.5281/zenodo.20364111](https://doi.org/10.5281/zenodo.20364111) | — |
+| 10 | VR-Audit (Lean) | [10.5281/zenodo.20363739](https://doi.org/10.5281/zenodo.20363739) | `v1.4-vr-audit-hb-hilbert` |
+| 11 | **VR-Sets-ZFA (preprint)** | **[DOI pending]** | — |
+| 12 | **VR-Sets-ZFA (Lean)** | **[DOI pending]** | **`v1.5-vr-sets-zfa`** |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 
@@ -393,6 +395,154 @@ with predecessor VR Lean cycles.
 
 ---
 
+---
+
+### VR-Sets-ZFA (`VRCycle/SetsZFA/`)
+
+**Lean: [DOI pending] — git tag `v1.5-vr-sets-zfa`**  
+**Preprint: [DOI pending]**
+
+The sixth work in the VR Cycle. VR-Sets-ZFA is a **foundational extension** of VR-Sets
+that provides operational reference semantics for non-well-founded sets, with Aczel's
+Anti-Foundation Axiom (AFA) proved as a theorem, not postulated. This answers
+`Conjecture_IV_2_Statement` from VR-Sets `Conjectures.lean` constructively.
+
+#### Position in the VR Cycle
+
+| # | Cycle | Tag | Nature |
+|---|-------|-----|--------|
+| 1 | VR. A Formal System | v1.0-vr | Foundational (primitives, arithmetic) |
+| 2 | VR-Numbers | v1.1-vr-numbers | Foundational (ℤ, ℚ, ℝ, ℂ over VR-ℕ) |
+| 3 | VR-Sets | v1.2-vr-sets | Foundational (ZFC, ZFA boundary) |
+| 4 | VR-Forms | v1.3-vr-forms | Foundational (two-register apparatus) |
+| 5 | VR-Audit | v1.4-vr-audit-hb-hilbert | Applied (first VR-Audit application) |
+| **6** | **VR-Sets-ZFA** | **v1.5-vr-sets-zfa** | **Foundational (ZFA extension, AFA as theorem)** |
+
+#### Core architectural principle
+
+VR-Sets is a ZFC model (`OSet = ZFSet = Quotient PSet.setoid`, with `PSet` inductive
+and `PSet.mem_wf` following from the inductive structure). VR-Sets proved that AFA is
+**refuted** in that model (`AFA_Refuted`, axiom-free). VR-Sets-ZFA builds a parallel
+universe:
+
+```
+PSet (inductive) --[embedPSet]--> CoPSet (coinductive, via PFunctor.M)
+      |                                    |
+   ZFSet.mk                           OSetZFA.mk
+      ↓                                    ↓
+   OSet (ZFC) ---[embedOSet]--------> OSetZFA (ZFA)
+```
+
+`CoPSet` is the coinductive parallel of `PSet`, built via `PFunctor.M`. The quotient
+`OSetZFA = Quotient CoPSet.cobisim` (cobisimulation as equality) gives the ZFA universe.
+AFA emerges as the universal property of `CoPSet.corec` — the final coalgebra property.
+
+#### Main theorem
+
+```lean
+theorem AFA_in_OSetZFA (E : V → V → Prop) :
+    ∃! f : V → OSetZFA, isDecoration E f
+```
+
+For any relation `E : V → V → Prop` (a graph), there exists a unique decoration
+`f : V → OSetZFA` assigning to each vertex the set of images of its successors.
+This is Aczel's AFA for the ZFA universe `OSetZFA`, proved — not postulated.
+
+#### File structure (`VRCycle/SetsZFA/`)
+
+| Stage | File | Public objects | Lines | Description |
+|-------|------|---------------|-------|-------------|
+| 1 | `CoPSet.lean` | 13 | 265 | `CoPSet` coinductive type via `PFunctor.M`; `CoPSet.mk`, `.corec`, `.bisim` |
+| 2 | `Cobisimulation.lean` | 7 | 265 | `CoPSet.Equiv` (cobisimulation); setoid properties; `bisim_imp_Equiv` |
+| 3 | `OSetZFA.lean` | 11 | 209 | `OSetZFA` quotient type; `mk`, `sound`, `exact`, `eq_iff`, lifting infrastructure |
+| 4 | `Membership.lean` | 6 | 217 | `∈` on OSetZFA; `mem_mk`, `ext`, `ext_iff`; `CoPSet.mem_congr` |
+| 5 | `AFA.lean` | 8 | 291 | `graphCoalg`, `graphCoPSet`, `graphDecoration`; `AFA_in_OSetZFA` (main theorem) |
+| 6 | `Embedding.lean` | 8 | 256 | `embedPSet`, `embedOSet`; faithfulness (`injective`); membership preservation |
+| 7 | `Examples.lean` | 10 | 311 | `quineAtom`, `cycleDecoration`, `omegaChain`; non-well-foundedness witnesses |
+| 8 | `API.lean` | 7 | 295 | `OSetZFA.empty`, `OSetZFA.singleton`; `acc_irrefl`; `@[simp]` additions |
+
+**Total: 70 public objects, 2109 lines of Lean.**
+
+#### Key theorems
+
+```lean
+-- AFA (main theorem)
+theorem AFA_in_OSetZFA (E : V → V → Prop) :
+    ∃! f : V → OSetZFA, isDecoration E f
+
+-- Quine atom: a set equal to its own singleton
+theorem quineAtom_self_mem : quineAtom ∈ quineAtom
+theorem quineAtom_eq_singleton_self : quineAtom = OSetZFA.singleton quineAtom
+
+-- OSet embeds faithfully into OSetZFA
+theorem embedOSet_injective : Function.Injective embedOSet
+theorem embedOSet_mem (x a : ZFSet) : embedOSet x ∈ embedOSet a ↔ x ∈ a
+
+-- ZFA membership is not well-founded
+theorem OSetZFA_mem_not_wf : ¬ WellFounded (· ∈ · : OSetZFA → OSetZFA → Prop)
+
+-- Quine atom is not a well-founded set
+theorem quineAtom_not_in_range_embedOSet : quineAtom ∉ Set.range embedOSet
+```
+
+#### Axiom profile
+
+**8 axiom-free objects** (pure structural/corecursive definitions):
+
+```
+'VR.SetsZFA.CoPSetFunctor'    does not depend on any axioms
+'VR.SetsZFA.CoPSet'           does not depend on any axioms
+'VR.SetsZFA.CoPSet.mk'        does not depend on any axioms
+'VR.SetsZFA.CoPSet.corec'     does not depend on any axioms
+'VR.SetsZFA.graphCoalg'       does not depend on any axioms
+'VR.SetsZFA.graphCoPSet'      does not depend on any axioms
+'VR.SetsZFA.embedPSet'        does not depend on any axioms
+'VR.SetsZFA.acc_irrefl'       does not depend on any axioms
+```
+
+**62 objects at standard ceiling** `[propext, Classical.choice, Quot.sound]`:
+all remaining public objects. `Classical.choice` enters through `PFunctor.M.bisim`
+(the coinductive bisimulation principle) and the `OSetZFA` quotient machinery.
+No additional axioms anywhere in the cycle.
+
+#### Key methodological observations
+
+1. **AFA as theorem via final coalgebra**: `CoPSet.corec` is the universal property
+   of the final coalgebra. AFA follows: `graphCoPSet E = CoPSet.corec (graphCoalg E)`
+   is the unique decoration, and `graphDecoration E = OSetZFA.mk ∘ graphCoPSet E`
+   descends to the quotient.
+
+2. **Coinductive constructor and corecursor are axiom-free**: `CoPSet.mk` and
+   `CoPSet.corec` depend on no axioms — the coinductive content is constructive.
+   Classical choice enters only through the destructor (`CoPSet.dest`) and the
+   bisimulation principle.
+
+3. **Bisimulation collapse (two-cycle ≡ self-loop)**: `cycleDecoration true` and
+   `cycleDecoration false` (nodes of a two-cycle graph) are cobisimilar, both equal
+   to `quineAtom` (self-loop graph decoration). The two-cycle APG and self-loop APG
+   produce the same OSetZFA element — AFA's uniqueness theorem in action.
+
+4. **Forward embedding via coinduction, backward via induction**: `embedPSet_congr`
+   (`PSet.Equiv → CoPSet.Equiv`) uses a single bisimulation — no induction on PSet.
+   `embedPSet_faithful` (`CoPSet.Equiv → PSet.Equiv`) requires structural induction
+   on PSet's well-founded structure. A methodological asymmetry between the
+   coinductive and inductive directions.
+
+5. **`acc_irrefl` is axiom-free**: Irreflexivity from `Acc r x` is proved by pure
+   structural induction on the `Acc` inductive type — no classical choice needed.
+
+6. **Formal answer to Conjecture_IV_2**: VR-Sets posed the question of whether
+   a type satisfying AFA can be constructed; VR-Sets-ZFA answers constructively.
+   The answer lives in `OSetZFA`, not as a new axiom but as a theorem.
+
+#### Acknowledgement
+
+Developed using **Claude Opus 4.7** (architectural review) and **Claude Sonnet 4.6**
+(Lean implementation), Variant A (interactive parent-child architecture), consistent
+with predecessor VR Lean cycles.
+
+---
+
 ## What this formalisation does NOT claim
 
 **Ontological theses.** The preprint makes claims about minimalism, Leibnizian void, and the operational character of objects. These are interpretive layers on top of the formal system. This Lean formalisation verifies formal derivability given a specific translation into Lean types — not the philosophical claims themselves.
@@ -674,7 +824,7 @@ lake build
 
 The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 
-**Expected output:** `Build completed successfully (919 jobs).` with no warnings.
+**Expected output:** `Build completed successfully (3319 jobs).` with no warnings.
 
 ## Toolchain
 
@@ -744,3 +894,17 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 | 5 | `Audit/HahnBanach.lean` | `HahnBanachOperational_Hilbert` (main theorem via Riesz) | ✓ | `[propext, Classical.choice, Quot.sound]` |
 | 6 | `Audit/Example.lean` | `instOperationalHilbertSpaceEuclidean` (ℝⁿ for all n) | ✓ | `[propext, Classical.choice, Quot.sound]` |
 | 7 | — | Full audit, README, PLAN.md, git tag v1.4-vr-audit-hb-hilbert | ✓ | — |
+
+### VR-Sets-ZFA (Operational Reference Semantics for Non-Well-Founded Sets)
+
+| Stage | File | Description | Status | Axioms |
+|-------|------|-------------|--------|--------|
+| 1 | `SetsZFA/CoPSet.lean` | `CoPSet` coinductive type via `PFunctor.M`; `mk`, `corec`, `bisim` | ✓ | `CoPSetFunctor`, `CoPSet`, `CoPSet.mk`, `CoPSet.corec`: **none**; rest: standard ceiling |
+| 2 | `SetsZFA/Cobisimulation.lean` | `CoPSet.Equiv` (cobisimulation); setoid; `bisim_imp_Equiv` | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 3 | `SetsZFA/OSetZFA.lean` | `OSetZFA` quotient; `sound`, `exact`, `eq_iff`, lifting | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 4 | `SetsZFA/Membership.lean` | `∈` on OSetZFA; `mem_mk`, `ext`, `ext_iff` | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 5 | `SetsZFA/AFA.lean` | `graphCoalg` (axiom-free), `graphCoPSet`, `AFA_in_OSetZFA` | ✓ | `graphCoalg`, `graphCoPSet`: **none**; rest: standard ceiling |
+| 6 | `SetsZFA/Embedding.lean` | `embedPSet` (axiom-free), `embedOSet`, faithfulness, mem-preservation | ✓ | `embedPSet`: **none**; rest: standard ceiling |
+| 7 | `SetsZFA/Examples.lean` | `quineAtom`, `cycleDecoration`, `omegaChain`; non-wf witnesses | ✓ | `[propext, Classical.choice, Quot.sound]` |
+| 8 | `SetsZFA/API.lean` | `OSetZFA.empty`, `OSetZFA.singleton`, `acc_irrefl` (axiom-free), `@[simp]` | ✓ | `acc_irrefl`: **none**; rest: standard ceiling |
+| 9 | — | Full audit, README, PLAN.md, git tag v1.5-vr-sets-zfa, Zenodo | ✓ | — |
