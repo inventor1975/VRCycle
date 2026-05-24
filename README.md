@@ -6,12 +6,13 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20355757.svg)](https://doi.org/10.5281/zenodo.20355757)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20363739.svg)](https://doi.org/10.5281/zenodo.20363739)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20364111.svg)](https://doi.org/10.5281/zenodo.20364111)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20368268.svg)](https://doi.org/10.5281/zenodo.20368268)
 
 Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of six works formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), and a foundational extension providing non-well-founded sets with AFA proved as a theorem.
 
 ## Publications
 
-Twelve Zenodo records. All Lean formalisations are in this repository under the listed git tags.
+Eleven Zenodo records (preprint pending). All Lean formalisations are in this repository under the listed git tags.
 
 | # | Work | Zenodo DOI | Git tag |
 |---|------|-----------|---------|
@@ -25,8 +26,8 @@ Twelve Zenodo records. All Lean formalisations are in this repository under the 
 | 8 | VR-Forms (Lean) | [10.5281/zenodo.20355757](https://doi.org/10.5281/zenodo.20355757) | `v1.3-vr-forms` |
 | 9 | VR-Audit v1.0.0 (preprint) | [10.5281/zenodo.20364111](https://doi.org/10.5281/zenodo.20364111) | — |
 | 10 | VR-Audit (Lean) | [10.5281/zenodo.20363739](https://doi.org/10.5281/zenodo.20363739) | `v1.4-vr-audit-hb-hilbert` |
-| 11 | **VR-Sets-ZFA (preprint)** | **[DOI pending]** | — |
-| 12 | **VR-Sets-ZFA (Lean)** | **[DOI pending]** | **`v1.5-vr-sets-zfa`** |
+| 11 | **VR-Sets-ZFA (Lean)** | [**10.5281/zenodo.20368268**](https://doi.org/10.5281/zenodo.20368268) | **`v1.5-vr-sets-zfa`** |
+| 12 | VR-Sets-ZFA (preprint) | [DOI pending] | — |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 
@@ -399,7 +400,7 @@ with predecessor VR Lean cycles.
 
 ### VR-Sets-ZFA (`VRCycle/SetsZFA/`)
 
-**Lean: [DOI pending] — git tag `v1.5-vr-sets-zfa`**  
+**Lean: [10.5281/zenodo.20368268](https://doi.org/10.5281/zenodo.20368268) — git tag `v1.5-vr-sets-zfa`**  
 **Preprint: [DOI pending]**
 
 The sixth work in the VR Cycle. VR-Sets-ZFA is a **foundational extension** of VR-Sets
