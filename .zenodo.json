@@ -1,0 +1,84 @@
+{
+  "title": "VR-Sets-ZFA: A Lean 4 Formalisation of Operational Reference Semantics for Non-Well-Founded Sets",
+  "description": "<p>Lean 4 formalisation of VR-Sets-ZFA, a foundational extension of VR-Sets (<a href=\"https://doi.org/10.5281/zenodo.20354340\">DOI 10.5281/zenodo.20354340</a>) providing operational reference semantics for non-well-founded sets with Aczel's Anti-Foundation Axiom (AFA) proved as a theorem.</p><p>The formalisation builds <code>CoPSet</code> — a coinductive parallel of mathlib's <code>PSet</code> — via <code>PFunctor.M</code>, constructs the quotient <code>OSetZFA = Quotient CoPSet.cobisim</code>, and proves AFA (<code>AFA_in_OSetZFA</code>) as the universal property of the final coalgebra. Well-founded sets (<code>OSet = ZFSet</code>) embed faithfully into <code>OSetZFA</code> via <code>embedOSet</code>. The Quine atom (<code>quineAtom ∈ quineAtom</code>) and omega chain are machine-verified non-vacuity witnesses. AFA uniqueness (bisimulation collapse: two-cycle ≡ self-loop) is demonstrated.</p><p><strong>Technical facts:</strong></p><ul><li>70 public objects across 8 files, 2109 lines of Lean</li><li>8 axiom-free objects (pure structural/corecursive definitions)</li><li>62 objects at <code>[propext, Classical.choice, Quot.sound]</code> — mathlib's standard ceiling</li><li>No sorry, no admit, no axioms beyond mathlib ceiling</li><li>Lean 4.29.1 + mathlib4 v4.29.1; git tag <code>v1.5-vr-sets-zfa</code></li></ul><p><strong>Main theorems:</strong> <code>AFA_in_OSetZFA</code>, <code>quineAtom_self_mem</code>, <code>embedOSet_injective</code>, <code>embedOSet_mem</code>, <code>OSetZFA_mem_not_wf</code>, <code>quineAtom_not_in_range_embedOSet</code>, <code>cycleDecoration_eq_quineAtom</code>.</p><p>Formally resolves <code>Conjecture_IV_2_Statement</code> from VR-Sets <code>Conjectures.lean</code>. Sixth work in the VR Lean cycle. Developed using Claude Opus 4.7 (architectural review) and Claude Sonnet 4.6 (Lean implementation), Variant A.</p>",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "language": "eng",
+  "creators": [
+    {
+      "name": "Reznik, Vitaly",
+      "orcid": "0009-0002-4103-6387"
+    }
+  ],
+  "keywords": [
+    "VR",
+    "operational mathematics",
+    "AFA",
+    "anti-foundation axiom",
+    "non-well-founded sets",
+    "coinductive types",
+    "Aczel",
+    "Lean 4",
+    "mathlib",
+    "PFunctor.M",
+    "cobisimulation",
+    "Quine atom",
+    "reference semantics",
+    "ZFA",
+    "ZFC",
+    "formal verification"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.20324391",
+      "relation": "isRelatedTo",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "identifier": "10.5281/zenodo.20324240",
+      "relation": "isRelatedTo",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "10.5281/zenodo.20352239",
+      "relation": "isRelatedTo",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "identifier": "10.5281/zenodo.20352057",
+      "relation": "isRelatedTo",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "10.5281/zenodo.20354628",
+      "relation": "isRelatedTo",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "identifier": "10.5281/zenodo.20354340",
+      "relation": "isDerivedFrom",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "10.5281/zenodo.20355939",
+      "relation": "isRelatedTo",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "identifier": "10.5281/zenodo.20355757",
+      "relation": "isRelatedTo",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "10.5281/zenodo.20364111",
+      "relation": "isRelatedTo",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "identifier": "10.5281/zenodo.20363739",
+      "relation": "isRelatedTo",
+      "resource_type": "software"
+    }
+  ]
+}
