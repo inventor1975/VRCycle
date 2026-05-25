@@ -36,6 +36,71 @@ Fourteen Zenodo records (seven works × Lean + preprint). All Lean formalisation
 
 Preprint PDFs are in [`preprints/`](preprints/).
 
+---
+
+## Getting started
+
+### Audience guidance
+
+| Background | Recommended entry point |
+|-----------|------------------------|
+| **Mathematician** | Companion preprints on [Zenodo](https://zenodo.org/communities/vr-cycle) — each work has a self-contained PDF. Start with *VR. A Formal System*, then follow the numbered works in the table above. |
+| **Philosopher** | *VR. A Formal System* preprint (DOI [10.5281/zenodo.20324391](https://doi.org/10.5281/zenodo.20324391)) for the foundational ontological claims; *VR-Forms* preprint (DOI [10.5281/zenodo.20355939](https://doi.org/10.5281/zenodo.20355939)) for the two-register apparatus. |
+| **Lean developer** | `VRCycle/Examples/` (four annotated tutorial files) + [`CONTRIBUTING.md`](CONTRIBUTING.md) for code conventions and apparatus patterns. |
+
+### Build the project
+
+Requires [elan](https://github.com/leanprover/elan):
+
+```bash
+git clone https://github.com/inventor1975/VRCycle.git
+cd VRCycle
+lake build
+```
+
+First build downloads the mathlib4 cache (~1 GB). Expected output: `Build completed successfully (3319 jobs).` with one expected warning (E04 skeleton uses `sorry`).
+
+### Tutorial examples (Lean developers)
+
+Four annotated examples in `VRCycle/Examples/`:
+
+| File | What it demonstrates |
+|------|---------------------|
+| `E01_ComputableReals.lean` | `IsComputableReal` — predicate-wrapping on ℝ; operational subtype; Mode A closure |
+| `E02_ModeA.lean` | Mode A recognition and lifting; custom predicate `IsEven`; axiom minimisation |
+| `E03_InterMorphism.lean` | `InterApparatusMorphism` — cross-setoid maps; parity quotient; `[Quot.sound]` tier |
+| `E04_ModeBSkeleton.lean` | Mode B structure; trivial and non-trivial witnesses; `Factorisable` pattern |
+
+Build a single example:
+
+```bash
+lake build VRCycle.Examples.E01_ComputableReals
+```
+
+### Use VRCycle as a dependency
+
+Add to your `lakefile.toml`:
+
+```toml
+[[require]]
+name = "VRCycle"
+scope = "inventor1975"
+rev = "v1.7-vr-apparatus-1.0.0"
+```
+
+Then import the subsystem you need:
+
+```lean
+import VRCycle.Apparatus           -- apparatus framework (all of Apparatus/)
+import VRCycle.Audit.Computable    -- IsComputableReal predicate
+import VRCycle.Audit.HahnBanach    -- operational Hahn-Banach theorem
+import VRCycle.SetsZFA             -- OSetZFA, AFA as theorem
+```
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for code conventions, axiom profile discipline, and how to add new apparatus instances.
+
+---
+
 ## What is formalised
 
 ### VR. A Formal System (`VRCycle/VR.lean`)
