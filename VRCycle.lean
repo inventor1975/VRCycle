@@ -7,3 +7,4 @@ import VRCycle.Forms
 import VRCycle.Audit
 import VRCycle.SetsZFA
 import VRCycle.Apparatus
+import VRCycle.Algebra

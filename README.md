@@ -11,7 +11,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20380344.svg)](https://doi.org/10.5281/zenodo.20380344)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20381417.svg)](https://doi.org/10.5281/zenodo.20381417)
 
-Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of seven works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, and the methodological apparatus used implicitly throughout. **VR Cycle complete** (14 Zenodo records).
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, and a domain extension demonstrating apparatus generality in algebra. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra v0.1.0) in this repository, pending publication.
 
 ## Publications
 
@@ -684,6 +684,71 @@ with predecessor VR Lean cycles.
 
 ---
 
+### Operational Algebra (`VRCycle/Algebra/`)
+
+**Git tag**: `v1.8-vr-operational-algebra-v0.1.0` (pending)
+**Preprint**: in preparation
+
+The **eighth work** in the VR Cycle. A domain extension demonstrating that the
+VR-Apparatus framework (meta-formalised in VR-Apparatus v1.0.0,
+DOI 10.5281/zenodo.20380344) extends naturally to **algebraic structures** —
+confirming the framework is general methodology, not analysis-specific.
+
+#### Core contribution
+
+`OperationalAddGroup`: an additive group equipped with a VR operational predicate
+`IsOperational : G → Prop` and closure axioms (zero, add, neg). The apparatus
+framework (`PredicateOperationality`, Mode A, Mode B) is **reused without
+modification** for algebraic instances — this reuse is the main result.
+`Classical.choice` is **absent from the entire cycle**: algebra stays below the
+analysis ceiling established in VR-Audit.
+
+#### Three recognition discipline applications
+
+- **Finding A0** (Stage 1): `OperationalGroup` (multiplicative) removed — no v0.1.0 instances. Recognition discipline applied for the first time in this cycle.
+- **Finding A6** (Stage 5): `OperationalAddSubgroup` bundled structure removed — the predicate `IsOperationalAddSubgroup H := ∀ x ∈ H, IsOperational x` suffices. Third application across the full VR Cycle (after VR-Apparatus Finding F11).
+
+#### File structure
+
+| Stage | File | Public objects | Description |
+|-------|------|---------------|-------------|
+| 1 | `Algebra/AddGroup.lean` | 1 | `OperationalAddGroup` typeclass (class definition, axiom-free) |
+| 2, 4 | `Algebra/Instances.lean` | 8 | ℤ (`[propext]`) and ZMod n (`[propext, Quot.sound]`) instances |
+| 3 | `Algebra/ModeA.lean` | 5 | Mode A closure; `PredicateOperationality` registration |
+| 5 | `Algebra/Subgroups.lean` | 8 | `IsOperationalAddSubgroup`; ⊥, ⊤, ⊓ theorems |
+| 6 | `Algebra/ModeBExample.lean` | 9 | Mode B skeleton (intentional sorry); Findings A7, A8 |
+
+**Total: 31 public objects, ~1400 lines of Lean.**
+
+#### Axiom hierarchy — algebraic three-tier (Finding A5)
+
+| Tier | Profile | Representative |
+|------|---------|---------------|
+| 0 | `[]` | `OperationalAddGroup` (class definition) |
+| 1 | `[propext]` | ℤ instance; Mode A theorems; `IsOperationalAddSubgroup` def |
+| 2 | `[propext, Quot.sound]` | ZMod n instance; `bot_isOperationalAddSubgroup` |
+| Skeleton | `[propext, sorryAx]` | `image_isOperationalAddSubgroup_isModeBOp` (intentional sorry) |
+
+Contrast with the VR-Audit analysis ceiling `[propext, Classical.choice, Quot.sound]`: `Classical.choice` is absent from the entire algebra cycle, confirming it is analysis-specific.
+
+#### Key findings
+
+**A3** (Stage 3): Apparatus reuse confirmed without modification. `PredicateOperationality G OperationalAddGroup.IsOperational := ⟨⟩` — zero-cost registration. `IsModeAOp` and `IsModeAOp₂` from VR-Apparatus reused directly.
+
+**A4** (Stage 3): Sub-ceiling axiom asymmetry within a single typeclass. `neg_isModeAOp` has `[propext]`; `add_isModeAOp` and `sub_isModeAOp` have `[]`. Negation elaboration pulls propext via `SubNegMonoid`; addition does not.
+
+**A7** (Stage 6): Mode B-term vs Mode B-typeclass. Algebraic Mode B witness is explicit at the TERM level (`∀ x, IsOperational x → IsOperational (φ x)`). Riesz Mode B witness is at the TYPECLASS level (`[OperationalHilbertSpace E]`). Both are valid manifestations of `IsModeBOp`.
+
+**A8** (Stage 6): For trivial-predicate instances (ℤ, ZMod n), Mode B collapses to trivial. Mode B adds value only for non-trivial operational predicates — consistent with Finding S1-A in VR-Forms (trivial predicates collapse all modes).
+
+#### Acknowledgement
+
+Developed using **Claude Opus 4.7** (architectural review) and **Claude Sonnet 4.6**
+(Lean implementation), Variant A (interactive parent-child architecture), consistent
+with predecessor VR Lean cycles.
+
+---
+
 ## What this formalisation does NOT claim
 
 **Ontological theses.** The preprint makes claims about minimalism, Leibnizian void, and the operational character of objects. These are interpretive layers on top of the formal system. This Lean formalisation verifies formal derivability given a specific translation into Lean types — not the philosophical claims themselves.
@@ -965,7 +1030,9 @@ lake build
 
 The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 
-**Expected output:** `Build completed successfully (3319 jobs).` with no warnings.
+**Expected output:** `Build completed successfully (3349 jobs).` with one expected
+warning: `VRCycle/Algebra/ModeBExample.lean: declaration uses 'sorry'` (intentional
+Mode B skeleton placeholder — see `VRCycle/Algebra/ModeBExample.lean` §2).
 
 ## Toolchain
 
@@ -1068,3 +1135,15 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 | 1 | `Apparatus/FormsIntegration.lean` | VR-Forms transit as Mode B; three-way identity nature | ✓ | `[propext, Quot.sound]` |
 | Polish | `Apparatus.lean` | Comprehensive module doc; four-tier axiom table; twelve findings | ✓ | — |
 | Pub | — | Full audit, git tag v1.7-vr-apparatus-1.0.0, Zenodo DOI 10.5281/zenodo.20380344 | ✓ | — |
+
+### Operational Algebra (domain extension to algebraic structures)
+
+| Stage | File | Description | Status | Axioms |
+|-------|------|-------------|--------|--------|
+| 1 | `Algebra/AddGroup.lean` | `OperationalAddGroup` typeclass | ✓ | **`[]`** |
+| 2 | `Algebra/Instances.lean` §1–2 | `OperationalAddGroup ℤ`; 3 demos | ✓ | `[propext]` |
+| 3 | `Algebra/ModeA.lean` | Mode A theorems; `instPredOpAddGroup`; Finding A3, A4 | ✓ | `[]` – `[propext]` |
+| 4 | `Algebra/Instances.lean` §3–4 | `OperationalAddGroup (ZMod n)`; 3 demos; Finding A5 | ✓ | `[propext, Quot.sound]` |
+| 5 | `Algebra/Subgroups.lean` | `IsOperationalAddSubgroup`; ⊥, ⊤, ⊓; Finding A6 | ✓ | `[propext]` – `[propext, Quot.sound]` |
+| 6 | `Algebra/ModeBExample.lean` | Mode B skeleton (intentional sorry); Findings A7, A8 | ✓ | `[propext, sorryAx]` |
+| 7 | — | Polish, axiom audit, README, git | ✓ | — |
