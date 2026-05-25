@@ -1,6 +1,6 @@
 {
-  "title": "VR-Sets-ZFA: A Lean 4 Formalisation of Operational Reference Semantics for Non-Well-Founded Sets",
-  "description": "<p>Lean 4 formalisation of VR-Sets-ZFA, a foundational extension of VR-Sets (<a href=\"https://doi.org/10.5281/zenodo.20354340\">DOI 10.5281/zenodo.20354340</a>) providing operational reference semantics for non-well-founded sets with Aczel's Anti-Foundation Axiom (AFA) proved as a theorem.</p><p>The formalisation builds <code>CoPSet</code> — a coinductive parallel of mathlib's <code>PSet</code> — via <code>PFunctor.M</code>, constructs the quotient <code>OSetZFA = Quotient CoPSet.cobisim</code>, and proves AFA (<code>AFA_in_OSetZFA</code>) as the universal property of the final coalgebra. Well-founded sets (<code>OSet = ZFSet</code>) embed faithfully into <code>OSetZFA</code> via <code>embedOSet</code>. The Quine atom (<code>quineAtom ∈ quineAtom</code>) and omega chain are machine-verified non-vacuity witnesses. AFA uniqueness (bisimulation collapse: two-cycle ≡ self-loop) is demonstrated.</p><p><strong>Technical facts:</strong></p><ul><li>70 public objects across 8 files, 2109 lines of Lean</li><li>8 axiom-free objects (pure structural/corecursive definitions)</li><li>62 objects at <code>[propext, Classical.choice, Quot.sound]</code> — mathlib's standard ceiling</li><li>No sorry, no admit, no axioms beyond mathlib ceiling</li><li>Lean 4.29.1 + mathlib4 v4.29.1; git tag <code>v1.5-vr-sets-zfa</code></li></ul><p><strong>Main theorems:</strong> <code>AFA_in_OSetZFA</code>, <code>quineAtom_self_mem</code>, <code>embedOSet_injective</code>, <code>embedOSet_mem</code>, <code>OSetZFA_mem_not_wf</code>, <code>quineAtom_not_in_range_embedOSet</code>, <code>cycleDecoration_eq_quineAtom</code>.</p><p>Formally resolves <code>Conjecture_IV_2_Statement</code> from VR-Sets <code>Conjectures.lean</code>. Sixth work in the VR Lean cycle. Developed using Claude Opus 4.7 (architectural review) and Claude Sonnet 4.6 (Lean implementation), Variant A.</p>",
+  "title": "VR-Apparatus: A Lean 4 Formalisation of the Two-Apparatus Two-Mode Methodology of the VR Cycle",
+  "description": "<p>Lean 4 formalisation of VR-Apparatus, a meta-work making explicit the methodological apparatus used implicitly across the six prior works of the VR Lean cycle (VR, VR-Numbers, VR-Sets, VR-Forms, VR-Audit, VR-Sets-ZFA).</p><p>The formalisation identifies and formalises two <strong>apparatus modes</strong> and two <strong>transit modes</strong>.</p><p><strong>Two apparatus modes</strong> (Finding B):</p><ul><li><strong>Predicate-wrapping</strong> (<code>PredicateOperationality</code>): objects identified by position in a classical type <code>T</code>; a predicate <code>P : T → Prop</code> selects the operational sub-collection. Identity mode: <code>AsPoint</code>. Example: <code>IsComputableReal</code> on <code>ℝ</code> from VR-Audit.</li><li><strong>Reference semantics</strong> (<code>ReferenceOperationality</code>): objects identified by position in a membership graph; a pre-set type <code>Q</code> with setoid <code>[s : Setoid Q]</code> gives the quotient operational type. Identity mode: <code>AsReference</code>. Examples: <code>OSetZFA</code> (ZFA, non-well-founded) and <code>ZFSet</code> (ZFC, well-founded) from VR-Sets-ZFA.</li></ul><p><strong>Two transit modes</strong> (Finding A):</p><ul><li><strong>Mode A</strong> (<code>IsModeAOp</code>, <code>IsModeAOp₂</code>): if an operation stays within the operational register (preserves <code>P</code> or respects <code>≈</code>), extraction is free. Certificate lifts to a function on the operational subtype (<code>modeA_liftFn</code>) or quotient (<code>Quotient.lift</code>). Apparatus-structure-independent.</li><li><strong>Mode B</strong> (<code>IsModeBOp</code>): a classically-constructed operation is operationally evaluable on operationally-enriched operands. Operationality flows from the operand through the classical operation to the result. Generalises Mode A (which is Mode B with trivial witness). Concrete instance: VR-Audit-1 Riesz extension (Hahn-Banach on Hilbert).</li></ul><p><strong>Key findings:</strong></p><ul><li>Both Mode A and Mode B are apparatus-structure-independent: <code>IsModeAOp</code> and <code>IsModeBOp</code> require no <code>[PredicateOperationality]</code> or <code>[ReferenceOperationality]</code> instance.</li><li>Mode B has two sub-forms: term-level witness (<code>W : A → Prop</code>) and typeclass-level witness (e.g., <code>[OperationalHilbertSpace E]</code>).</li><li><code>instRefOpPSet</code> (ZFC) has a strictly lighter axiom profile <code>[propext, Quot.sound]</code> than <code>instRefOpCoPSet</code> (ZFA) which needs <code>Classical.choice</code>. Foundational inductive/coinductive asymmetry manifests in axiom profiles.</li><li>Known v0.1.0 limitation: <code>IsModeAOp</code> handles endomorphisms (<code>f : Q → Quotient s</code>, same setoid); cross-apparatus heteromorphisms require separate treatment.</li></ul><p><strong>Technical facts:</strong></p><ul><li>35 public objects across 6 files, ~1655 lines of Lean</li><li>24 axiom-free objects (69%): apparatus infrastructure is constructive</li><li>1 sub-ceiling object <code>[propext, Quot.sound]</code>: <code>instRefOpPSet</code></li><li>10 objects at <code>[propext, Classical.choice, Quot.sound]</code>: concrete instances only</li><li>No sorry, no admit, no axioms beyond mathlib ceiling</li><li>Lean 4.29.1 + mathlib4 v4.29.1; git tag <code>v1.6-vr-apparatus</code></li></ul><p><strong>Main objects:</strong> <code>IdentityNature</code>, <code>PredicateOperationality</code>, <code>ReferenceOperationality</code>, <code>IsModeAOp</code>, <code>IsModeAOp₂</code>, <code>IsModeBOp</code>, <code>modeA_liftFn</code>, <code>modeA_liftFn₂</code>, <code>IsModeBOp.lift</code>, <code>instRefOpCoPSet</code>, <code>instRefOpPSet</code>, <code>riesz_extension_isModeBOp</code>, <code>embedPSet_congr_modeA_pattern</code>.</p><p>Seventh work in the VR Lean cycle. Developed using Claude Opus 4.7 (architectural review) and Claude Sonnet 4.6 (Lean implementation), Variant A.</p>",
   "upload_type": "software",
   "access_right": "open",
   "license": "MIT",
@@ -14,20 +14,21 @@
   "keywords": [
     "VR",
     "operational mathematics",
-    "AFA",
-    "anti-foundation axiom",
-    "non-well-founded sets",
-    "coinductive types",
-    "Aczel",
+    "formal methodology",
+    "predicate-wrapping",
+    "reference semantics",
+    "Mode A",
+    "Mode B",
+    "transit pattern",
+    "apparatus",
+    "identity nature",
+    "IdentityNature",
+    "PredicateOperationality",
+    "ReferenceOperationality",
     "Lean 4",
     "mathlib",
-    "PFunctor.M",
-    "cobisimulation",
-    "Quine atom",
-    "reference semantics",
-    "ZFA",
-    "ZFC",
-    "formal verification"
+    "formal verification",
+    "meta-work"
   ],
   "related_identifiers": [
     {
@@ -57,7 +58,7 @@
     },
     {
       "identifier": "10.5281/zenodo.20354340",
-      "relation": "isDerivedFrom",
+      "relation": "isRelatedTo",
       "resource_type": "software"
     },
     {
@@ -77,6 +78,16 @@
     },
     {
       "identifier": "10.5281/zenodo.20363739",
+      "relation": "isRelatedTo",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "10.5281/zenodo.20369346",
+      "relation": "isRelatedTo",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "identifier": "10.5281/zenodo.20368268",
       "relation": "isRelatedTo",
       "resource_type": "software"
     }
