@@ -8,12 +8,13 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20364111.svg)](https://doi.org/10.5281/zenodo.20364111)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20368268.svg)](https://doi.org/10.5281/zenodo.20368268)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20369346.svg)](https://doi.org/10.5281/zenodo.20369346)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20380344.svg)](https://doi.org/10.5281/zenodo.20380344)
 
-Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of six works formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), and a foundational extension providing non-well-founded sets with AFA proved as a theorem.
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of seven works formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, and the methodological apparatus used implicitly throughout.
 
 ## Publications
 
-Twelve Zenodo records. All Lean formalisations are in this repository under the listed git tags.
+Thirteen Zenodo records. All Lean formalisations are in this repository under the listed git tags.
 
 | # | Work | Zenodo DOI | Git tag |
 |---|------|-----------|---------|
@@ -29,6 +30,7 @@ Twelve Zenodo records. All Lean formalisations are in this repository under the 
 | 10 | VR-Audit (Lean) | [10.5281/zenodo.20363739](https://doi.org/10.5281/zenodo.20363739) | `v1.4-vr-audit-hb-hilbert` |
 | 11 | **VR-Sets-ZFA (preprint)** | [**10.5281/zenodo.20369346**](https://doi.org/10.5281/zenodo.20369346) | — |
 | 12 | **VR-Sets-ZFA (Lean)** | [**10.5281/zenodo.20368268**](https://doi.org/10.5281/zenodo.20368268) | **`v1.5-vr-sets-zfa`** |
+| 13 | **VR-Apparatus v1.0.0 (Lean)** | [**10.5281/zenodo.20380344**](https://doi.org/10.5281/zenodo.20380344) | **`v1.7-vr-apparatus-1.0.0`** |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 
@@ -545,6 +547,75 @@ with predecessor VR Lean cycles.
 
 ---
 
+### VR-Apparatus (`VRCycle/Apparatus/`)
+
+**Lean: [10.5281/zenodo.20380344](https://doi.org/10.5281/zenodo.20380344) — git tag `v1.7-vr-apparatus-1.0.0`**
+
+The seventh work in the VR Cycle. VR-Apparatus is a **meta-work**: it makes explicit and machine-verifies the methodological apparatus used implicitly throughout the six predecessor works.
+
+Two apparatus modes, two transit modes, five architectural tiers, twelve methodological findings.
+
+#### Two apparatus modes
+
+- **Predicate-wrapping** (`PredicateOperationality`): objects identified by classical type membership; predicate `P : T → Prop` selects the operational sub-collection. Identity: `AsPoint`. Example: `IsComputableReal` on `ℝ`.
+- **Reference semantics** (`ReferenceOperationality`): objects identified by position in a membership graph; pre-set type `Q` with setoid gives the quotient operational type. Identity: `AsReference`. Example: `OSetZFA` via cobisimulation quotient.
+
+#### Two transit modes
+
+- **Mode A** (`IsModeAOp`): operations preserving the operational predicate lift to the operational subtype by `rfl`. Apparatus-structure-independent.
+- **Mode B** (`IsModeBOp`): classical operations with `Factorisable` witness yield operational results. Captures operand-not-operation principle. Riesz extension (VR-Audit Hahn-Banach) is the canonical instance.
+
+#### File structure (`VRCycle/Apparatus/`)
+
+| Stage | File | Public objects | Description |
+|-------|------|---------------|-------------|
+| v0.1.0 | `Identity.lean` | 2 | `IdentityNature` (AsPoint, AsReference) |
+| v0.1.0 | `Wrapping.lean` | 2 | `PredicateOperationality` marker class |
+| v0.1.0 | `Reference.lean` | 3 | `ReferenceOperationality` (membership + ext fields); instRefOpCoPSet |
+| v0.1.0 | `ModeA.lean` | 11 | `IsModeAOp`, `IsModeAOp₂`, `modeA_liftFn`, compose (both modes) |
+| v0.1.0 | `ModeB.lean` | 9 | `IsModeBOp`, lift, compose; Riesz instance |
+| v0.1.0 | `Instances.lean` | 5 | neg/sub Mode A, `instRefOpPSet`, embedPSet pattern |
+| 4 | `Factorisation.lean` | 8 | `Factorisable`, `operand_determines_operational`, `IsModeBOp_of_factorisable` |
+| 6 | `Separability.lean` | 3 | `HasSeparabilityStructure`; Hilbert instance; separability→factorisable |
+| 2 | `InterMorphism.lean` | 8 | `InterApparatusMorphism`, lift, lift_mk, compose; ZFC→ZFA embedding |
+| 3 | `Composition.lean` | 7 | Identity morphisms; unit laws; interop between morphism levels |
+| 5 | `Numbers.lean` | 4 | Hybrid lens analysis: ℝ (Cauchy bridge), ℕ (von Neumann IAM) |
+| 1 | `FormsIntegration.lean` | 3 | VR-Forms transit as Mode B; three-way identity nature contrast |
+
+**Total: 68 public objects, ~3430 lines of Lean.**
+
+#### Axiom profile (four tiers)
+
+| Tier | Profile | Count | Representative |
+|------|---------|-------|---------------|
+| 1 | `[]` (axiom-free) | 40 | `IsModeBOp.lift_val`, `Factorisable`, `nat_vonNeumann_isInterApparatus` |
+| 2 | `[Quot.sound]` | 7 | `InterApparatusMorphism.lift_mk`, `IsModeAOp_of_interApparatus` |
+| 3 | `[propext, Quot.sound]` | 12 | `instRefOpPSet`, `instPredicateOpFormalTerm`, `vr_forms_transit_isModeBOp` |
+| 4 | `[propext, Classical.choice, Quot.sound]` | 9 | `riesz_extension_isModeBOp`, `instHasSepStructOfOpHilbert` |
+
+**New tier discovered**: `[Quot.sound]` — 7 objects using only quotient soundness (IAM lift infrastructure). Sub-ceiling between axiom-free and `[propext, Quot.sound]`.
+
+#### Three honest scope limitations
+
+1. No `ReferenceOperationality` for Cauchy sequences — no natural membership relation on `CauSeq ℚ abs`.
+2. No `DirectionalMorphism` typeclass — Mode B already captures VR-Forms transit asymmetry.
+3. No generic `Register` structure — Lean's typeclass system provides this implicitly.
+
+#### Key methodological findings
+
+**S3-A**: Two parallel tracks (predicate, reference) with no natural cross-track composition.  
+**S4-B**: Operand-not-operation — operationality of the result is determined by the operand, not by the operation itself.  
+**S5-A**: Lens applicability depends on natural structure — ℝ+Cauchy artificial (no ∈), ℕ+von Neumann natural.  
+**S1-A**: VR-Forms transit IS `IsModeBOp translate_pi isRealisable (fun _ => True) id` — no new abstraction needed; Mode B already captures it.
+
+#### Acknowledgement
+
+Developed using **Claude Opus 4.7** (architectural review) and **Claude Sonnet 4.6**
+(Lean implementation), Variant A (interactive parent-child architecture), consistent
+with predecessor VR Lean cycles.
+
+---
+
 ## What this formalisation does NOT claim
 
 **Ontological theses.** The preprint makes claims about minimalism, Leibnizian void, and the operational character of objects. These are interpretive layers on top of the formal system. This Lean formalisation verifies formal derivability given a specific translation into Lean types — not the philosophical claims themselves.
@@ -910,3 +981,22 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 | 7 | `SetsZFA/Examples.lean` | `quineAtom`, `cycleDecoration`, `omegaChain`; non-wf witnesses | ✓ | `[propext, Classical.choice, Quot.sound]` |
 | 8 | `SetsZFA/API.lean` | `OSetZFA.empty`, `OSetZFA.singleton`, `acc_irrefl` (axiom-free), `@[simp]` | ✓ | `acc_irrefl`: **none**; rest: standard ceiling |
 | 9 | — | Full audit, README, PLAN.md, git tag v1.5-vr-sets-zfa, Zenodo | ✓ | — |
+
+### VR-Apparatus (Methodological Apparatus Formalisation)
+
+| Stage | File | Description | Status | Axioms |
+|-------|------|-------------|--------|--------|
+| v0.1.0 | `Apparatus/Identity.lean` | `IdentityNature` (AsPoint, AsReference) | ✓ | **`[]`** |
+| v0.1.0 | `Apparatus/Wrapping.lean` | `PredicateOperationality` marker class | ✓ | **`[]`** |
+| v0.1.0 | `Apparatus/Reference.lean` | `ReferenceOperationality`; instRefOpCoPSet | ✓ | instRefOpCoPSet: `[propext, Classical.choice, Quot.sound]` |
+| v0.1.0 | `Apparatus/ModeA.lean` | `IsModeAOp`, `IsModeAOp₂`, `modeA_liftFn`, compose | ✓ | instances: `[propext, Classical.choice, Quot.sound]` |
+| v0.1.0 | `Apparatus/ModeB.lean` | `IsModeBOp`, lift, compose; Riesz instance | ✓ | core: **`[]`**; Riesz: `[propext, Classical.choice, Quot.sound]` |
+| v0.1.0 | `Apparatus/Instances.lean` | neg/sub Mode A, `instRefOpPSet`, embedPSet pattern | ✓ | `instRefOpPSet`: `[propext, Quot.sound]`; rest: ceiling |
+| 4 | `Apparatus/Factorisation.lean` | `Factorisable`, operand-not-operation theorem, `IsModeBOp_of_factorisable` | ✓ | core: **`[]`**; Riesz: ceiling |
+| 6 | `Apparatus/Separability.lean` | `HasSeparabilityStructure`; Hilbert instance; separability→factorisable | ✓ | core: **`[]`**; Hilbert instance: ceiling |
+| 2 | `Apparatus/InterMorphism.lean` | `InterApparatusMorphism`, lift, lift_mk (new `[Quot.sound]` tier), compose | ✓ | lift/lift_mk: `[Quot.sound]`; ZFC→ZFA: ceiling |
+| 3 | `Apparatus/Composition.lean` | Identity morphisms; unit laws; interop | ✓ | reference identities: `[Quot.sound]`; rest: **`[]`** |
+| 5 | `Apparatus/Numbers.lean` | Hybrid lens: ℝ (Cauchy bridge), ℕ (von Neumann IAM) | ✓ | ℝ: ceiling; ℕ: **`[]`** |
+| 1 | `Apparatus/FormsIntegration.lean` | VR-Forms transit as Mode B; three-way identity nature | ✓ | `[propext, Quot.sound]` |
+| Polish | `Apparatus.lean` | Comprehensive module doc; four-tier axiom table; twelve findings | ✓ | — |
+| Pub | — | Full audit, git tag v1.7-vr-apparatus-1.0.0, Zenodo DOI 10.5281/zenodo.20380344 | ✓ | — |
