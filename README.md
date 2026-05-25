@@ -9,12 +9,13 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20368268.svg)](https://doi.org/10.5281/zenodo.20368268)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20369346.svg)](https://doi.org/10.5281/zenodo.20369346)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20380344.svg)](https://doi.org/10.5281/zenodo.20380344)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20381417.svg)](https://doi.org/10.5281/zenodo.20381417)
 
-Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of seven works formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, and the methodological apparatus used implicitly throughout.
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of seven works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, and the methodological apparatus used implicitly throughout. **VR Cycle complete** (14 Zenodo records).
 
 ## Publications
 
-Thirteen Zenodo records. All Lean formalisations are in this repository under the listed git tags.
+Fourteen Zenodo records (seven works × Lean + preprint). All Lean formalisations are in this repository under the listed git tags.
 
 | # | Work | Zenodo DOI | Git tag |
 |---|------|-----------|---------|
@@ -31,6 +32,7 @@ Thirteen Zenodo records. All Lean formalisations are in this repository under th
 | 11 | **VR-Sets-ZFA (preprint)** | [**10.5281/zenodo.20369346**](https://doi.org/10.5281/zenodo.20369346) | — |
 | 12 | **VR-Sets-ZFA (Lean)** | [**10.5281/zenodo.20368268**](https://doi.org/10.5281/zenodo.20368268) | **`v1.5-vr-sets-zfa`** |
 | 13 | **VR-Apparatus v1.0.0 (Lean)** | [**10.5281/zenodo.20380344**](https://doi.org/10.5281/zenodo.20380344) | **`v1.7-vr-apparatus-1.0.0`** |
+| 14 | **VR-Apparatus v1.0.0 (preprint)** | [**10.5281/zenodo.20381417**](https://doi.org/10.5281/zenodo.20381417) | — |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 
@@ -549,7 +551,8 @@ with predecessor VR Lean cycles.
 
 ### VR-Apparatus (`VRCycle/Apparatus/`)
 
-**Lean: [10.5281/zenodo.20380344](https://doi.org/10.5281/zenodo.20380344) — git tag `v1.7-vr-apparatus-1.0.0`**
+**Lean: [10.5281/zenodo.20380344](https://doi.org/10.5281/zenodo.20380344) — git tag `v1.7-vr-apparatus-1.0.0`**  
+**Preprint v1.0.0: [10.5281/zenodo.20381417](https://doi.org/10.5281/zenodo.20381417)**
 
 The seventh work in the VR Cycle. VR-Apparatus is a **meta-work**: it makes explicit and machine-verifies the methodological apparatus used implicitly throughout the six predecessor works.
 
