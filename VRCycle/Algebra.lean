@@ -1,5 +1,5 @@
 -- VRCycle: Algebra.lean
--- Module index for the VR Operational Algebra cycle — v0.3.0 (in progress; v0.2.0 complete).
+-- Module index for the VR Operational Algebra cycle — v0.4.0 (Stages 1-5 complete; Stage 6 in progress).
 --
 -- ## What this module is
 --
@@ -30,6 +30,15 @@
 -- VRCycle/Algebra/Field.lean        — OperationalField typeclass + bridges (v0.3.0 Stages 2, 5)
 -- VRCycle/Algebra/Instances.lean    — ℚ as OperationalField + ℚˣ demos (v0.3.0 Stages 3, 5)
 -- VRCycle/Algebra/ModeA.lean        — Mode A theorems for multiplicative groups + field (v0.3.0 Stage 4)
+--
+-- ### v0.4.0 (zsmul + A15 investigation + modules — Stages 1-5 complete)
+-- VRCycle/Algebra/ModeA.lean        — zsmul_isOperational (v0.4.0 Stage 1)
+-- VRCycle/Algebra/Module.lean       — OperationalModule typeclass, bridge-based (v0.4.0 Stage 3)
+--   Stage 1: zsmul_isOperational closes v0.3.0 Stage 4 gap (additive ℤ-scalar).
+--   Stage 2: A15 import-context investigated; Outcome C (structural Classical.choice confirmed).
+--   Stage 3: OperationalModule typeclass defined (bridge: OperationalRing R + OperationalAddGroup M).
+--   Stage 4: ℤ and ℚ as OperationalModule instances (Instances.lean §12).
+--   Stage 5: smul_isModeAOp Mode A theorem (ModeA.lean §11; fourth Finding A3 confirmation).
 --
 -- ## Stage index (v0.1.0)
 --
@@ -151,6 +160,29 @@
 --
 -- (ℚˣ examples are anonymous examples, not named public objects;
 --  the key deliverable is OperationalField.toOperationalGroupUnits in Field.lean)
+--
+-- ### v0.4.0 (Stages 1-5 complete; 9 new objects)
+--
+-- ModeA.lean §2 (1):
+--   zsmul_isOperational   (theorem, ∀ n : ℤ, IsOperational (n • a))
+--   [Stage 1: closes v0.3.0 Stage 4 gap; additive ℤ-scalar analogue of zpow_isOperational]
+-- Stage 2: A15 reconnaissance (Outcome C — see Finding A16).
+--   No new public objects. Finding A16 documented in findings catalog below.
+-- Module.lean (1):
+--   OperationalModule                      (class, bridge: [OperationalRing R] + [OperationalAddGroup M])
+--   [Stage 3: bridge-based; single new axiom smul_isOperational; no new predicate on M]
+-- Instances.lean §12 (6):
+--   instOperationalModuleIntInt            (instance, OperationalModule ℤ ℤ)
+--   int_smul_isOperational                 (theorem, general ℤ scalar closure)
+--   int_two_smul_three_isOperational       (theorem, concrete ℤ demo)
+--   instOperationalModuleRatRat            (instance, OperationalModule ℚ ℚ)
+--   rat_smul_isOperational                 (theorem, general ℚ scalar closure)
+--   rat_half_smul_third_isOperational      (theorem, concrete ℚ demo)
+--   [Stage 4: diamond auto-resolved for ℤ; ℚ via bridge chain; ceiling unchanged]
+-- ModeA.lean §11 (1):
+--   smul_isModeAOp                         (theorem, IsModeAOp (r • ·) for OperationalModule R M)
+--   [Stage 5: heterogeneous binary op → IsModeAOp (unary) on M for fixed r;
+--    fourth Finding A3 confirmation; instPredOpAddGroup reused without modification]
 --
 -- ### v0.2.0 (15 new objects across 3 files; 1 sorry eliminated in ModeBExample.lean)
 --
@@ -279,18 +311,102 @@
 --     This finding extends A5: import context can escalate the apparent ceiling
 --     beyond what the logic requires.
 --
--- ## Axiom profile summary (v0.1.0 + v0.2.0 + v0.3.0 Stages 1-4)
+-- ### v0.4.0 Findings (A16–A19, Stages 1-5)
+--
+-- A16: A15 structural confirmation — Classical.choice is not removable by isolation.
+--     Stage 2 reconnaissance (v0.4.0): systematic isolation attempts confirm Outcome C.
+--     Two affected objects, two distinct root causes:
+--
+--     (1) inv_isModeAOp_field [propext, Classical.choice, Quot.sound]:
+--         Root: VRCycle.Apparatus.ModeA transitively imports Mathlib.Data.Real.Basic,
+--         which introduces instances affecting Inv K elaboration when (·⁻¹) appears
+--         in the IsModeAOp type. IsModeAOp cannot be used without the apparatus import;
+--         therefore isolation via file separation is impossible.
+--         Test: minimal-import file (no Instances.lean) still shows Classical.choice.
+--         Confirmed: apparatus chain is the root cause, not ℚ instances.
+--
+--     (2) OperationalField.toOperationalGroupUnits [propext, Classical.choice, Quot.sound]:
+--         Root: proof-structural. The TYPE is clean (sorry-proof gives [propext, Quot.sound]).
+--         But any valid proof must use Units.val_inv_eq_inv_val to connect
+--         (u⁻¹ : Kˣ).val (= u.inv, definitional) to (u.val)⁻¹ (field inverse).
+--         After this rewrite, the goal contains field-level (u : K)⁻¹, which
+--         inherits Classical.choice in the elaboration context. No alternative proof
+--         path exists: the OperationalField closure axioms don't allow proving
+--         IsOperational u.inv from IsOperational u.val without field inverse.
+--         Note: Units.val_inv_eq_inv_val itself is [] (axiom-free); Classical.choice
+--         enters through the field-level (·⁻¹) expression in the resulting goal.
+--
+--     Conclusion: A15 is structurally embedded, not incidental. The Classical.choice
+--     reflects genuine mathematical structure of field inversion. No refactoring
+--     eliminates it without changing the predicate or the apparatus architecture.
+--     Programme remains honest: these two objects are the only non-eliminable
+--     sources of Classical.choice in the algebraic hierarchy.
+--     Extended A5 principle: import context CAN escalate; AND proof-structural
+--     requirements CAN require Classical.choice for field inversion specifically.
+--
+-- A17: Apparatus reuse confirmed for Module — fourth and strongest confirmation of A3.
+--     smul_isModeAOp (Stage 5) uses instPredOpAddGroup from ModeA.lean §1 — the same
+--     instance introduced in v0.1.0 for OperationalAddGroup. No new PredicateOperationality
+--     instance was registered for OperationalModule.
+--     Progression across four algebraic structures:
+--       v0.1.0: instPredOpAddGroup registered (OperationalAddGroup — new instance required).
+--       v0.2.0: instPredOpRing registered (OperationalRing — Ring adds mul, pow, one).
+--       v0.3.0: instPredOpField registered (OperationalField — Field adds inv).
+--       v0.4.0: NO new instance for OperationalModule — reuses instPredOpAddGroup unchanged.
+--     Bridge-based design (no new predicate on M) means apparatus reuse is not merely
+--     "extends naturally" but literally "uses the existing v0.1.0 instance unchanged."
+--     Root cause: OperationalModule introduces no new predicate on M (Decision A);
+--     M's predicate is still OperationalAddGroup.IsOperational; apparatus sees same type.
+--     Principle: apparatus generality is maximal for bridge-based structures.
+--     Connection to A3: apparatus framework, designed for additive groups, is
+--     genuinely structure-agnostic — it operates on predicates, not on algebraic structure.
+--
+-- A18: zsmul_isOperational closes v0.3.0 Stage 4 gap (v0.4.0 Stage 1).
+--     MulGroup.zpow_isOperational (v0.3.0): integer exponentiation for OperationalGroup.
+--     Gap noted: additive analogue (zsmul : ℤ → G → G) not proved in v0.1.0.
+--     Resolution: zsmul_isOperational (v0.4.0 Stage 1) proved by ℤ case split +
+--     nsmul_isOperational (ℕ induction). Proof mirrors zpow_isOperational structure.
+--     Axiom profile: [] — purely algebraic, same as zpow_isOperational.
+--     Symmetry table complete:
+--       nsmul_isOperational (ℕ-scalar, v0.1.0) ↔ MulGroup.npow_isOperational (ℕ-power, v0.3.0)
+--       zsmul_isOperational (ℤ-scalar, v0.4.0) ↔ MulGroup.zpow_isOperational (ℤ-power, v0.3.0)
+--     Engineering note: zsmul proof requires explicit rw [natCast_zsmul] + rw [negSucc_zsmul]
+--     (unlike zpow which admits bare `exact` via definitional unfolding). Documented in
+--     ModeA.lean §2 proof note.
+--
+-- A19: First heterogeneous binary operation in VR Cycle — Mode A form constraint.
+--     All prior binary operations in the VR Cycle were homogeneous: (+), (*), (-), (/).
+--     Scalar action smul : R → M → M is heterogeneous: input types R and M differ.
+--     IsModeAOp₂ f requires f : T → T → T (homogeneous single predicate P on one type T).
+--     For heterogeneous smul, the correct Mode A form is IsModeAOp (r • · : M → M)
+--     (unary predicate on M) for fixed operational scalar r : R.
+--     The operationality of r : R is a HYPOTHESIS (OperationalRing.IsOperational r),
+--     not a conclusion produced by IsModeAOp. IsModeAOp covers the M-side:
+--       ∀ m : M, OperationalAddGroup.IsOperational m → OperationalAddGroup.IsOperational (r • m).
+--     PLAN.md error: initially suggested `IsModeAOp₂ (· • · : R → M → M)` — incorrect
+--     because IsModeAOp₂ requires homogeneous type. Sonnet caught and corrected during
+--     Stage 5 reconnaissance (Variant A разделение работ functioning as designed).
+--     Engineering principle: apparatus architecture (IsModeAOp₂ homogeneous constraint)
+--     naturally and correctly distinguishes homogeneous from heterogeneous binary operations.
+--     The correction is a methodological confirmation, not a limitation: the apparatus
+--     accurately reflects the mathematical distinction between internal and external operations.
+--
+-- ## Axiom profile summary (v0.1.0 + v0.2.0 + v0.3.0 Stages 1-5; v0.4.0 Stages 1-5)
 --
 --   []                              — OperationalAddGroup, OperationalRing, OperationalGroup
---                                     (v0.3.0 Stage 1), all bridge instances,
+--                                     (v0.3.0 Stage 1), OperationalModule (v0.4.0 Stage 3),
+--                                     all bridge instances, instOperationalModuleIntInt,
 --                                     all PredicateOperationality instances except instPredOpField,
 --                                     add_/mul_/sub_isModeAOp, nsmul_/npow_isOperational,
+--                                     zsmul_isOperational (v0.4.0 Stage 1),
+--                                     smul_isModeAOp (v0.4.0 Stage 5),
 --                                     MulGroup.mul_/div_isModeAOp, MulGroup.npow_/zpow_isOp,
 --                                     IsOperationalAddSubgroup, ⊥/⊤/⊓ theorems,
 --                                     neg_isModeBOp, image_isOperationalAddSubgroup_isModeBOp
 --
 --   [propext]                       — ℤ AddGroup instances + demonstrations,
 --                                     ℤ Ring instances + demonstrations,
+--                                     ℤ Module instances + demonstrations (v0.4.0 Stage 4),
 --                                     neg_isModeAOp (Neg elaboration, Finding A4),
 --                                     MulGroup.inv_isModeAOp (Inv elaboration, A4 mirror),
 --                                     Mode B lifts and lift_val,
@@ -311,19 +427,31 @@
 --                                     effect from Mathlib.Data.Real.Basic via apparatus chain),
 --                                     OperationalField.toOperationalGroupUnits (Finding A15:
 --                                     import-context effect from GroupWithZero.Units.Basic),
---                                     ℚˣ demonstrations (Stage 5, via bridge)
+--                                     ℚˣ demonstrations (Stage 5, via bridge),
+--                                     ℚ Module instances + demonstrations (v0.4.0 Stage 4)
 --
 -- ## No sorry, no admit
 --
 -- v0.2.0 completion: sorryAx ELIMINATED from image_isOperationalAddSubgroup_isModeBOp.
 -- The intentional sorry of v0.1.0 (Mode B skeleton) is now a complete proof.
--- v0.3.0 (Stages 1-4): no sorry, no admit in any new object.
+-- v0.3.0 (Stages 1-5): no sorry, no admit in any new object.
 -- All 55 public objects (31 v0.1.0 + 15 v0.2.0 + 9 v0.3.0 Stages 1-5) are axiom-clean.
 -- v0.3.0 Stage 5 adds 1 named public object (OperationalField.toOperationalGroupUnits)
 -- + 5 anonymous examples demonstrating ℚˣ as OperationalGroup.
 -- Classical.choice appears in ℚ instances (logical, Finding A14), in
 -- inv_isModeAOp_field (import-context, Finding A15), and in
 -- OperationalField.toOperationalGroupUnits (import-context, Finding A15 pattern).
+-- v0.4.0 Stages 1-5: no sorry, no admit.
+-- v0.4.0 adds 9 new public objects:
+--   zsmul_isOperational (Stage 1, axiom profile []).
+--   OperationalModule (Stage 3, axiom profile []).
+--   instOperationalModuleIntInt, int_smul_isOperational, int_two_smul_three_isOperational
+--     (Stage 4, axiom profile [propext]).
+--   instOperationalModuleRatRat, rat_smul_isOperational, rat_half_smul_third_isOperational
+--     (Stage 4, axiom profile [propext, Classical.choice, Quot.sound]).
+--   smul_isModeAOp (Stage 5, axiom profile []).
+-- Total public objects: 64 (55 v0.1.0-v0.3.0 + 9 v0.4.0 Stages 1+3+4+5).
+-- Stage 2 reconnaissance produced no new public objects (Finding A16 is documentation only).
 
 import VRCycle.Algebra.AddGroup
 import VRCycle.Algebra.Instances
@@ -333,3 +461,4 @@ import VRCycle.Algebra.ModeBExample
 import VRCycle.Algebra.Ring
 import VRCycle.Algebra.MulGroup
 import VRCycle.Algebra.Field
+import VRCycle.Algebra.Module

@@ -1,8 +1,12 @@
 -- VRCycle: Algebra/ModeA.lean
 -- Operational Algebra v0.1.0 — Stage 3: Mode A theorems + PredicateOperationality instance.
 -- Operational Algebra v0.2.0 — Stage 5: Ring Mode A theorems + PredicateOperationality for OperationalRing.
+-- Operational Algebra v0.3.0 — Stage 4: MulGroup + Field Mode A (mul, inv, div, npow, zpow).
+-- Operational Algebra v0.4.0 — Stage 1: zsmul_isOperational (ℤ-scalar, closes v0.3.0 gap).
+-- Operational Algebra v0.4.0 — Stage 5: smul_isModeAOp (Module Mode A; fourth Finding A3 confirmation).
 --
--- STAGE: 3 (v0.1.0); 5 (v0.2.0). SOURCE: PLAN.md Stage 3 (v0.1.0); Stage 5 (v0.2.0).
+-- STAGE: 3 (v0.1.0); 5 (v0.2.0); 4 (v0.3.0); 1, 5 (v0.4.0).
+-- SOURCE: PLAN.md Stage 3 (v0.1.0); Stage 5 (v0.2.0); Stage 4 (v0.3.0); Stages 1, 5 (v0.4.0).
 --
 -- ## Position statement
 -- This file is the **critical connection** between the VR-Apparatus framework
@@ -199,6 +203,55 @@ theorem nsmul_isOperational {G : Type*} [OperationalAddGroup G] {a : G}
       rw [succ_nsmul]
       exact OperationalAddGroup.add_isOperational (nsmul_isOperational ha n) ha
 
+/-- Integer scalar multiplication preserves operationality.
+
+**Statement**: if `a : G` is operational and `n : ℤ`, then `n • a` is operational.
+
+**Proof**: by case analysis on `n : ℤ`.
+- `Int.ofNat n`: `Int.ofNat n • a` reduces definitionally to `n • a` (ℕ-scalar,
+  via `SubNegMonoid.zsmul = zsmulRec`); operational by `nsmul_isOperational`.
+- `Int.negSucc n`: `Int.negSucc n • a` reduces definitionally to `-((n + 1) • a)`;
+  `(n + 1) • a` is operational by `nsmul_isOperational`; negation preserves by
+  `neg_isOperational`.
+
+**Additive analogue of `MulGroup.zpow_isOperational`** (v0.3.0 §8):
+same ℤ case-split structure, `(· • ·)` in place of `(· ^ ·)`, `neg_isOperational`
+in place of `inv_isOperational`, `nsmul_isOperational` in place of
+`MulGroup.npow_isOperational`.
+
+**v0.4.0 Stage 1 — gap closure**: closes the gap noted at v0.3.0 Stage 4 (§8 of
+this file, `zpow_isOperational` doc-comment). In v0.3.0, `MulGroup.zpow_isOperational`
+was proved for multiplicative groups, but the additive ℤ-scalar analogue (`zsmul :
+ℤ → G → G` from `SubNegMonoid`) was deferred. v0.4.0 Stage 1 fills this gap.
+
+Symmetry table now complete:
+
+  `nsmul_isOperational` (ℕ-scalar, v0.1.0) ↔ `MulGroup.npow_isOperational` (ℕ-power, v0.3.0)
+  `zsmul_isOperational` (ℤ-scalar, v0.4.0) ↔ `MulGroup.zpow_isOperational` (ℤ-power, v0.3.0)
+
+**Proof note**: the `zsmul` action on a generic `AddGroup G` does not unfold
+definitionally in the way `zpowRec` does for `Group G`. Lean's elaborator requires
+explicit rewrite steps:
+- `Int.ofNat n` case: `change` converts `Int.ofNat n • a` to `(↑n : ℤ) • a`
+  (definitionally equal); `rw [natCast_zsmul]` reduces to ℕ-scalar `n • a`.
+- `Int.negSucc n` case: `rw [negSucc_zsmul]` reduces to `-((n + 1) • a)`.
+This uses the same pattern as `zpow_isOperational` (§8): `change` + `rw [zpow_natCast]`
+for the ofNat case, `rw [zpow_negSucc]`/`rw [negSucc_zsmul]` for the negSucc case.
+Additive analogues: `natCast_zsmul` ↔ `zpow_natCast`; `negSucc_zsmul` ↔ `zpow_negSucc`.
+
+## Axiom profile: []
+(confirmed: ℤ case split + ℕ induction; cf. `MulGroup.zpow_isOperational []`) -/
+theorem zsmul_isOperational {G : Type*} [OperationalAddGroup G] {a : G}
+    (ha : OperationalAddGroup.IsOperational a) :
+    ∀ n : ℤ, OperationalAddGroup.IsOperational (n • a)
+  | Int.ofNat n   => by
+      change OperationalAddGroup.IsOperational ((n : ℤ) • a)
+      rw [natCast_zsmul]
+      exact nsmul_isOperational ha n
+  | Int.negSucc n => by
+      rw [negSucc_zsmul]
+      exact OperationalAddGroup.neg_isOperational (nsmul_isOperational ha (n + 1))
+
 -- ============================================================
 -- §3. Concrete demonstrations applied to ℤ
 -- ============================================================
@@ -227,6 +280,11 @@ example : OperationalAddGroup.IsOperational ((3 : ℤ) - 5) :=
 /-- Concrete: `4 • 3 : ℤ` is operational. -/
 example : OperationalAddGroup.IsOperational ((4 : ℕ) • (3 : ℤ)) :=
   nsmul_isOperational (ha := trivial) 4
+
+/-- Concrete: `(-2 : ℤ) • 7 : ℤ` is operational via `zsmul_isOperational`.
+Demonstrates the negative-integer scalar case (not covered by `nsmul_isOperational`). -/
+example : OperationalAddGroup.IsOperational ((-2 : ℤ) • (7 : ℤ)) :=
+  zsmul_isOperational (ha := trivial) (-2)
 
 -- ============================================================
 -- §4. PredicateOperationality instance for OperationalRing (Stage 5)
@@ -503,12 +561,12 @@ the additive gap is noted as a possible v0.4.0 addition.
 
 ## Axiom profile: [] (predicted — natCast case from npow, negSucc case from inv + npow)
 
-**Proof note**: `rw [zpow_natCast]` fails — after pattern matching on `Int.ofNat n`,
-the goal contains `a ^ (Int.ofNat n : ℤ)` while `zpow_natCast` rewrites `a ^ (↑n : ℤ)`
-(syntactically different via Nat.cast vs Int.ofNat, though definitionally equal).
-Using `exact` directly works: Lean's unification handles definitional equality.
-`zpow` defaults to `zpowRec` for generic Group, which reduces `Int.ofNat n → a ^ n`
-and `Int.negSucc n → (a ^ (n+1))⁻¹` definitionally. -/
+**Proof note**: `rw [zpow_natCast]` alone fails — after pattern matching on
+`Int.ofNat n`, the goal contains `a ^ (Int.ofNat n : ℤ)` while `zpow_natCast`
+expects `a ^ (↑n : ℤ)` (syntactically different: `Int.ofNat n` vs `Nat.cast n`,
+though definitionally equal). Resolution: `change OperationalGroup.IsOperational
+(a ^ (n : ℤ))` normalises the coercion, then `rw [zpow_natCast]` succeeds.
+Same pattern as `zsmul_isOperational` (§2): `change` + `rw [natCast_zsmul]`. -/
 theorem zpow_isOperational {G : Type*} [OperationalGroup G] {a : G}
     (ha : OperationalGroup.IsOperational a) :
     ∀ n : ℤ, OperationalGroup.IsOperational (a ^ n)
@@ -613,9 +671,145 @@ example : PredicateOperationality ℚ OperationalField.IsOperational :=
   inferInstance
 
 -- ============================================================
+-- §11. OperationalModule Mode A theorem (v0.4.0 Stage 5)
+-- ============================================================
+--
+-- **Reconnaissance**: no new PredicateOperationality instance needed.
+-- `instPredOpAddGroup` (§1, v0.1.0 Stage 3) already covers `OperationalAddGroup M`.
+-- When `[OperationalModule R M]` is in scope, the apparatus identity for M is
+-- governed by `instPredOpAddGroup` with predicate `OperationalAddGroup.IsOperational (G := M)`.
+-- `OperationalModule` introduces no new predicate on M (Decision A, Stage 3 bridge design).
+--
+-- **Architecture: IsModeAOp (unary) vs IsModeAOp₂ (binary)**
+--
+-- All previous Mode A binary certificates (add_isModeAOp, mul_isModeAOp,
+-- MulGroup.mul_isModeAOp, MulGroup.div_isModeAOp) were HOMOGENEOUS: `T → T → T`.
+-- `IsModeAOp₂` requires `f : T → T → T` with a single predicate `P : T → Prop`.
+--
+-- Scalar action `(· • ·) : R → M → M` is HETEROGENEOUS: input types R and M are
+-- distinct (R = ring type, M = module type). `IsModeAOp₂` does not apply.
+--
+-- Correct Mode A form for scalar action:
+--   For a fixed OPERATIONAL scalar `r : R`, the right-scalar map `r • (·) : M → M`
+--   is a Mode A UNARY operation on M:
+--     `IsModeAOp (P := OperationalAddGroup.IsOperational (G := M)) (r • ·)`
+--   Unfolds to: `∀ m : M, OperationalAddGroup.IsOperational m → IsOperational (r • m)`.
+--
+-- This is the FIRST HETEROGENEOUS binary operation in the VR Cycle. All previous
+-- Mode A binary operations (add, mul, div) had homogeneous types. Scalar action
+-- is the first with distinct input types. The Mode A certificate naturally lives
+-- as a unary theorem parameterized by an operational scalar.
+--
+-- PLAN.md Stage 5 suggested `IsModeAOp₂ (· • · : R → M → M)` — architecturally
+-- incorrect (IsModeAOp₂ requires homogeneous T → T → T). Recognition discipline:
+-- use `IsModeAOp` (unary on M, for fixed r) instead.
+--
+-- **Finding A3 fourth confirmation**:
+-- `instPredOpAddGroup` (v0.1.0 §1) is reused without modification for Module M.
+-- `smul_isModeAOp` plugs into `IsModeAOp` (predicate-wrapping apparatus) with:
+--   T = M (the module type)
+--   P = OperationalAddGroup.IsOperational (M's operational predicate)
+--   f = r • (·) : M → M (for fixed operational r)
+-- The apparatus framework requires zero modification. Apparatus generality confirmed
+-- across the full algebraic hierarchy: AddGroup (v0.1.0), Ring (v0.2.0), Field (v0.3.0),
+-- Module (v0.4.0). **Finding A3 pattern firmly established**.
+
+/-- For any operational scalar `r : R`, the right-scalar map `r • (·) : M → M` is
+a Mode A unary operation for the `OperationalAddGroup M` apparatus.
+
+## Statement
+
+```
+smul_isModeAOp hr : IsModeAOp (P := OperationalAddGroup.IsOperational (G := M)) (r • ·)
+```
+
+Equivalently: if `m : M` is operational and `r : R` is operational, then `r • m : M`
+is operational. This is the Mode A certificate for scalar action.
+
+## Apparatus structure
+
+The apparatus instance used is `instPredOpAddGroup` (v0.1.0 §1), which registers
+`OperationalAddGroup M` as a predicate-wrapping apparatus instance. **No new apparatus
+instance is needed** — Module inherits M's apparatus identity without modification.
+This is **Finding A3 fourth confirmation**: apparatus reuse across AddGroup, Ring, Field,
+and now Module, all without modification.
+
+## Architecture: IsModeAOp (unary) vs IsModeAOp₂ (binary)
+
+`IsModeAOp₂` (binary) requires `f : T → T → T` with a SINGLE predicate `P : T → Prop`.
+Scalar action `(· • ·) : R → M → M` is HETEROGENEOUS — input types R and M are distinct.
+`IsModeAOp₂` does not apply. The Mode A certificate is `IsModeAOp` (unary on M) for
+fixed operational scalar `r : R`. This is the first heterogeneous binary operation in
+the VR Cycle; all prior Mode A binary theorems had homogeneous `T → T → T` type.
+
+## Parallel structure
+
+Homogeneous Mode A binary operations (all use IsModeAOp₂):
+  `add_isModeAOp`           (v0.1.0) : `IsModeAOp₂ (· + · : G → G → G)`
+  `mul_isModeAOp`           (v0.2.0) : `IsModeAOp₂ (· * · : R → R → R)`
+  `MulGroup.mul_isModeAOp`  (v0.3.0) : `IsModeAOp₂ (· * · : G → G → G)`
+
+Heterogeneous Mode A (uses IsModeAOp with fixed scalar):
+  `smul_isModeAOp`          (v0.4.0) : `IsModeAOp (r • · : M → M)` — THIS THEOREM
+
+## Proof
+
+One-liner: `fun m hm => OperationalModule.smul_isOperational hr hm`.
+The Mode A certificate IS the `smul_isOperational` closure axiom from `OperationalModule`.
+
+## Axiom profile: []
+
+Pure algebraic — no carrier-specific infrastructure (no propext from Neg, no Quot.sound
+from Quotient, no Classical.choice). Same tier as `add_isModeAOp` and `mul_isModeAOp`.
+Confirms that scalar action, when stated in its correct heterogeneous Mode A form,
+is axiom-free at the generic level. -/
+theorem smul_isModeAOp {R M : Type*}
+    [Ring R] [AddCommGroup M] [Module R M]
+    [OperationalRing R] [OperationalAddGroup M] [OperationalModule R M]
+    {r : R} (hr : OperationalRing.IsOperational r) :
+    PredicateOperationality.IsModeAOp
+      (P := OperationalAddGroup.IsOperational (G := M)) (r • ·) :=
+  fun _ hm => OperationalModule.smul_isOperational hr hm
+
+-- ============================================================
+-- §12. Concrete demonstrations — module Mode A applied to ℤ and ℚ (v0.4.0 Stage 5)
+-- ============================================================
+
+/-- **Finding A3 fourth confirmation** for ℤ: `instPredOpAddGroup` fires for `ℤ` as the
+module type M, confirming apparatus reuse without modification in the module setting.
+The instance is the same `⟨⟩` registration used for AddGroup, Ring, Field, and MulGroup. -/
+example : PredicateOperationality ℤ OperationalAddGroup.IsOperational :=
+  inferInstance
+
+/-- `smul_isModeAOp` specialised to ℤ-module: `(2 : ℤ) • (·) : ℤ → ℤ` is Mode A.
+Applies `smul_isModeAOp` with `r = 2 : ℤ` and trivial operationality hypothesis. -/
+example : PredicateOperationality.IsModeAOp
+    (P := OperationalAddGroup.IsOperational (G := ℤ)) ((2 : ℤ) • ·) :=
+  smul_isModeAOp trivial
+
+/-- Concrete ℤ: `(3 : ℤ) • (5 : ℤ) = 15` is operational via Mode A certificate.
+`smul_isModeAOp trivial` gives the Mode A certificate for `(3 : ℤ) • (·)`;
+applied to `5 : ℤ` with trivial operationality, yields `IsOperational (3 • 5)`. -/
+example : OperationalAddGroup.IsOperational ((3 : ℤ) • (5 : ℤ)) :=
+  smul_isModeAOp trivial 5 trivial
+
+/-- `smul_isModeAOp` specialised to ℚ-module: `(1/2 : ℚ) • (·) : ℚ → ℚ` is Mode A.
+Apparatus reuse: same `instPredOpAddGroup` instance, now with M = ℚ (via bridge chain
+`instOperationalFieldRat → ... → OperationalAddGroup ℚ`). Fourth Finding A3 confirmation
+on ℚ as module type. -/
+example : PredicateOperationality.IsModeAOp
+    (P := OperationalAddGroup.IsOperational (G := ℚ)) ((1/2 : ℚ) • ·) :=
+  smul_isModeAOp trivial
+
+/-- Concrete ℚ: `(1/2 : ℚ) • (1/3 : ℚ) = 1/6` is operational via Mode A certificate. -/
+example : OperationalAddGroup.IsOperational ((1/2 : ℚ) • (1/3 : ℚ)) :=
+  smul_isModeAOp trivial (1/3) trivial
+
+-- ============================================================
 -- Axiom audit — Stages 3 (v0.1.0) and 5 (v0.2.0), ModeA.lean
 -- ============================================================
--- STAGE: 3 (v0.1.0); 5 (v0.2.0). SOURCE: PLAN.md Stage 3 (v0.1.0); Stage 5 (v0.2.0).
+-- STAGE: 3 (v0.1.0); 5 (v0.2.0); 4 (v0.3.0); 1, 5 (v0.4.0).
+-- SOURCE: PLAN.md Stage 3 (v0.1.0); Stage 5 (v0.2.0); Stage 4 (v0.3.0); Stage 1 (v0.4.0).
 -- LEAN OBJECTS:
 --   v0.1.0 Stage 3 (5 objects):
 --     instPredOpAddGroup    (instance, PredicateOperationality G IsOperational)
@@ -674,6 +868,37 @@ example : PredicateOperationality ℚ OperationalField.IsOperational :=
 -- Finding A15: import-context ceiling escalation — elaborating (·⁻¹) in Field K context
 --   when Mathlib.Data.Real.Basic is transitively imported escalates from [propext, Quot.sound]
 --   to [propext, Classical.choice, Quot.sound]. This is an import effect, not logic.
+--   v0.4.0 Stage 1 (1 object):
+--     zsmul_isOperational  (theorem, ∀ n : ℤ, IsOperational (n • a))
+-- AXIOM AUDIT (v0.4.0 Stage 1, confirmed by build):
+--     zsmul_isOperational  []  — ℤ case split + ℕ induction (confirmed)
+-- Finding A18: zsmul_isOperational closes v0.3.0 Stage 4 gap. Additive ℤ-scalar analogue of
+--   multiplicative zpow. Symmetry table now complete:
+--     nsmul_isOperational (ℕ-scalar, v0.1.0) ↔ MulGroup.npow_isOperational (ℕ-power, v0.3.0)
+--     zsmul_isOperational (ℤ-scalar, v0.4.0) ↔ MulGroup.zpow_isOperational (ℤ-power, v0.3.0)
+--   Proof pattern: definitional unfolding of zsmulRec (same mechanism as zpow_isOperational).
+--   v0.4.0 Stage 5 (1 object):
+--     smul_isModeAOp  (theorem, IsModeAOp (r • ·) for OperationalModule R M)
+-- AXIOM AUDIT (v0.4.0 Stage 5, confirmed by build):
+--     smul_isModeAOp  []  — pure algebraic (confirmed)
+-- Finding A3 FOURTH CONFIRMATION (v0.4.0 Stage 5):
+--   Apparatus (PredicateOperationality, IsModeAOp) reuses without modification for Module.
+--   instPredOpAddGroup (v0.1.0 §1) covers OperationalAddGroup M — the module's carrier type.
+--   No new PredicateOperationality instance needed. Apparatus generality confirmed across:
+--     AddGroup (v0.1.0 Stage 3)   — instPredOpAddGroup, add_/neg_/sub_isModeAOp
+--     Ring     (v0.2.0 Stage 5)   — instPredOpRing, mul_isModeAOp
+--     Field    (v0.3.0 Stage 4)   — instPredOpField, inv_isModeAOp_field
+--     MulGroup (v0.3.0 Stage 4)   — instPredOpMulGroup, mul_/inv_/div_isModeAOp
+--     Module   (v0.4.0 Stage 5)   — instPredOpAddGroup (reused!), smul_isModeAOp
+--   Finding A3 pattern firmly established. Apparatus generality across five structures
+--   using only four PredicateOperationality instances (Module reuses AddGroup's instance).
+--
+-- ARCHITECTURE NOTE (v0.4.0 Stage 5):
+--   smul_isModeAOp uses IsModeAOp (unary), NOT IsModeAOp₂ (binary).
+--   Reason: scalar action R → M → M is HETEROGENEOUS; IsModeAOp₂ requires T → T → T.
+--   Scalar action is the first heterogeneous binary operation in the VR Cycle.
+--   Mode A form: for fixed operational r : R, the map r • (·) : M → M is Mode A on M.
+--   This is architecturally correct; PLAN.md's IsModeAOp₂ suggestion was refined here.
 -- CHECKS: no sorry, no admit.
 
 #print axioms instPredOpAddGroup
@@ -681,6 +906,7 @@ example : PredicateOperationality ℚ OperationalField.IsOperational :=
 #print axioms neg_isModeAOp
 #print axioms sub_isModeAOp
 #print axioms nsmul_isOperational
+#print axioms zsmul_isOperational
 #print axioms instPredOpRing
 #print axioms mul_isModeAOp
 #print axioms npow_isOperational
@@ -692,5 +918,6 @@ example : PredicateOperationality ℚ OperationalField.IsOperational :=
 #print axioms VR.Algebra.MulGroup.zpow_isOperational
 #print axioms instPredOpField
 #print axioms inv_isModeAOp_field
+#print axioms smul_isModeAOp
 
 end VR.Algebra

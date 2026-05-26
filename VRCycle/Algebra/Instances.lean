@@ -2,8 +2,9 @@
 -- Operational Algebra v0.1.0 — Stages 2 and 4: concrete OperationalAddGroup instances.
 -- Operational Algebra v0.2.0 — Stage 3: ℤ and ZMod n as OperationalRing instances.
 -- Operational Algebra v0.3.0 — Stage 3: ℚ as OperationalField instance.
+-- Operational Algebra v0.4.0 — Stage 4: ℤ and ℚ as OperationalModule instances.
 --
--- STAGE: 2, 4 (v0.1.0); 3, 4 (v0.2.0); 3 (v0.3.0). SOURCE: PLAN.md throughout.
+-- STAGE: 2, 4 (v0.1.0); 3, 4 (v0.2.0); 3 (v0.3.0); 4 (v0.4.0). SOURCE: PLAN.md.
 --
 -- ## Position statement
 -- This file provides concrete instances of `OperationalAddGroup` (defined in
@@ -49,6 +50,7 @@ import VRCycle.Algebra.AddGroup
 import VRCycle.Algebra.Ring
 import VRCycle.Algebra.Field
 import VRCycle.Algebra.MulGroup
+import VRCycle.Algebra.Module
 
 namespace VR.Algebra
 
@@ -623,9 +625,153 @@ example : OperationalGroup.IsOperational
   OperationalGroup.inv_isOperational trivial
 
 -- ============================================================
+-- §12. OperationalModule instances — ℤ and ℚ (Stage 4, v0.4.0)
+-- ============================================================
+--
+-- OperationalModule instantiation for ℤ as ℤ-module (R = M = ℤ) and
+-- ℚ as ℚ-module (R = M = ℚ). Both are bridge-based: the smul_isOperational
+-- proof is trivial because both predicates are fun _ => True.
+--
+-- **Mathlib Module structure**:
+--   Module ℤ ℤ: via AddCommGroup.intModule (ℤ acts on any AddCommGroup via zsmul).
+--               (r : ℤ) • (m : ℤ) = r * m via ring multiplication.
+--   Module ℚ ℚ: via Algebra ℚ ℚ → Algebra.toModule (ℚ as ℚ-algebra via algebraRat).
+--               (r : ℚ) • (m : ℚ) = r * m via rational multiplication.
+--
+-- **Diamond check (ℤ)**:
+--   instOperationalModuleIntInt requires both [OperationalRing ℤ] and [OperationalAddGroup ℤ].
+--   Two synthesis paths to OperationalAddGroup ℤ:
+--     (a) instOperationalAddGroupInt (direct, v0.1.0 Stage 2).
+--     (b) instOperationalRingInt → OperationalRing.toOperationalAddGroup (bridge, v0.2.0).
+--   Both predicates are fun _ => True. Lean synthesises without conflict.
+--   No @[priority] annotation needed.
+--
+-- **Bridge chain (ℚ)**:
+--   instOperationalModuleRatRat requires [OperationalAddGroup ℚ] via bridge chain:
+--     instOperationalFieldRat → OperationalField.toOperationalRing
+--                             → OperationalRing.toOperationalAddGroup.
+--   Single synthesis path for ℚ (no direct OperationalAddGroup ℚ defined in prior stages).
+--
+-- **Axiom ceiling confirmation**:
+--   instOperationalModuleIntInt:  [propext] — ℤ ceiling, matching v0.2.0 Finding A10.
+--   instOperationalModuleRatRat:  [propext, Classical.choice, Quot.sound] — ℚ ceiling.
+--   Module instantiation does NOT escalate ceiling beyond underlying type.
+--   Extends Finding A10: ceiling determined by carrier type, not algebraic depth.
+
+/-- `OperationalModule ℤ ℤ` — ℤ as a module over itself.
+
+**Instance**: `OperationalModule ℤ ℤ` with `smul_isOperational := fun _ _ => trivial`.
+
+**Module structure**: ℤ acts on itself via `AddCommGroup.intModule`, which provides
+`Module ℤ M` for any `[AddCommGroup M]`. The scalar action `(r : ℤ) • (m : ℤ) = r * m`
+(integer multiplication via `zsmul`).
+
+**Predicate chain**:
+- Scalar predicate: `OperationalRing.IsOperational` from `instOperationalRingInt` (v0.2.0).
+  `IsOperational := fun _ => True` for ℤ.
+- Module predicate: `OperationalAddGroup.IsOperational` from `instOperationalAddGroupInt`
+  (v0.1.0). `IsOperational := fun _ => True` for ℤ.
+- Closure axiom: `fun _ _ => trivial` proves `smul_isOperational` vacuously.
+
+**Apparatus connection**: `instPredOpAddGroup` (ModeA.lean v0.1.0 Stage 3) already provides
+the `PredicateOperationality` instance for `OperationalAddGroup ℤ`. No new apparatus
+infrastructure needed at the module level. Stage 5 will confirm this (fourth Finding A3).
+
+## Axiom profile: [propext]
+(ℤ ceiling from underlying Int.instAddCommGroup; module instantiation does not escalate) -/
+instance instOperationalModuleIntInt : OperationalModule ℤ ℤ where
+  smul_isOperational := fun _ _ => trivial
+
+/-- General scalar action closure on ℤ: for any `r m : ℤ`, `r • m` is operational.
+
+Applies `smul_isOperational` from `instOperationalModuleIntInt`. Since all integers
+are operational (`IsOperational := fun _ => True`), closure holds vacuously.
+
+## Axiom profile: [propext] -/
+theorem int_smul_isOperational (r m : ℤ) :
+    OperationalAddGroup.IsOperational (r • m) :=
+  OperationalModule.smul_isOperational trivial trivial
+
+/-- Concrete: `(2 : ℤ) • (3 : ℤ) = 6` is operational.
+
+Demonstrates the ℤ-module scalar action on a specific pair. `(2 : ℤ) • 3 = 6`
+as integer multiplication. Operationality is immediate from the trivial predicate.
+
+## Axiom profile: [propext] -/
+theorem int_two_smul_three_isOperational :
+    OperationalAddGroup.IsOperational ((2 : ℤ) • (3 : ℤ)) :=
+  int_smul_isOperational 2 3
+
+/-- `OperationalModule ℚ ℚ` — ℚ as a module over itself.
+
+**Instance**: `OperationalModule ℚ ℚ` with `smul_isOperational := fun _ _ => trivial`.
+
+**Module structure**: ℚ acts on itself via `Algebra ℚ ℚ → Algebra.toModule`,
+provided by the standard rational algebra instance (`algebraRat`).
+The scalar action `(r : ℚ) • (m : ℚ) = r * m` (rational multiplication).
+
+**Predicate chain**:
+- Scalar predicate: `OperationalRing.IsOperational` from the bridge
+  `instOperationalFieldRat → OperationalField.toOperationalRing` = `fun _ => True`.
+- Module predicate: `OperationalAddGroup.IsOperational` from the full bridge chain
+  `instOperationalFieldRat → OperationalField.toOperationalRing
+  → OperationalRing.toOperationalAddGroup` = `fun _ => True`.
+- Closure axiom: `fun _ _ => trivial` proves `smul_isOperational` vacuously.
+
+**Axiom ceiling**: the ℚ ceiling is `[propext, Classical.choice, Quot.sound]` (Finding A14),
+determined by `Rat.instField`. Module instantiation does NOT escalate this ceiling;
+the instance inherits it from the underlying ℚ structures. Confirms Finding A10
+generalisation to the module level.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound]
+(ℚ ceiling inherited from instOperationalFieldRat via bridge chain) -/
+instance instOperationalModuleRatRat : OperationalModule ℚ ℚ where
+  smul_isOperational := fun _ _ => trivial
+
+/-- General scalar action closure on ℚ: for any `r m : ℚ`, `r • m` is operational.
+
+Applies `smul_isOperational` from `instOperationalModuleRatRat`. Since all rationals
+are operational, closure holds vacuously.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound] -/
+theorem rat_smul_isOperational (r m : ℚ) :
+    OperationalAddGroup.IsOperational (r • m) :=
+  OperationalModule.smul_isOperational trivial trivial
+
+/-- Concrete: `(1/2 : ℚ) • (1/3 : ℚ) = 1/6` is operational.
+
+Demonstrates the ℚ-module scalar action: rational multiplication `(1/2) * (1/3) = 1/6`.
+Operationality follows immediately from the trivial predicate.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound] -/
+theorem rat_half_smul_third_isOperational :
+    OperationalAddGroup.IsOperational ((1/2 : ℚ) • (1/3 : ℚ)) :=
+  rat_smul_isOperational (1/2) (1/3)
+
+/-- Chained ℤ scalar action: `(3 : ℤ) • ((2 : ℤ) • (5 : ℤ))` is operational.
+
+Demonstrates scalar action composition: the inner `2 • 5 = 10` produces an integer
+(still operational), which serves as the module element for the outer `3 • 10 = 30`.
+Shows operationality is closed under chained scalar actions.
+
+## Axiom profile: [propext] -/
+example : OperationalAddGroup.IsOperational ((3 : ℤ) • ((2 : ℤ) • (5 : ℤ))) :=
+  int_smul_isOperational 3 ((2 : ℤ) • 5)
+
+/-- Combined ℚ: scalar action applied to a sum — `(1/2 : ℚ) • ((1/3 : ℚ) + 1/6)`.
+
+Demonstrates that the module element `m` can itself arise from an additive operation
+(which is operational by `OperationalAddGroup M`). The scalar action closure then
+applies over this result, showing the full interplay of Module and AddGroup structure.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound] -/
+example : OperationalAddGroup.IsOperational ((1/2 : ℚ) • ((1/3 : ℚ) + 1/6)) :=
+  rat_smul_isOperational (1/2) (1/3 + 1/6)
+
+-- ============================================================
 -- Axiom audit — all stages, Instances.lean
 -- ============================================================
--- STAGE: 2, 4 (v0.1.0); 3, 4 (v0.2.0); 3 (v0.3.0); 5 (ℚˣ examples).
+-- STAGE: 2, 4 (v0.1.0); 3, 4 (v0.2.0); 3 (v0.3.0); 5 (ℚˣ examples); 4 (v0.4.0).
 -- SOURCE: PLAN.md throughout.
 -- LEAN OBJECTS:
 --   v0.1.0 Stage 2 (4 objects):
@@ -662,6 +808,14 @@ example : OperationalGroup.IsOperational
 --     [2ˣ operational in ℚˣ]            (example, concrete unit)
 --     [2ˣ * 3ˣ operational]             (example, mul closure)
 --     [(2ˣ)⁻¹ operational]              (example, inv closure)
+--   v0.4.0 Stage 4 (6 objects):
+--     instOperationalModuleIntInt    (instance, OperationalModule ℤ ℤ)
+--     int_smul_isOperational         (theorem, general ℤ scalar closure)
+--     int_two_smul_three_isOperational (theorem, concrete ℤ demo)
+--     instOperationalModuleRatRat    (instance, OperationalModule ℚ ℚ)
+--     rat_smul_isOperational         (theorem, general ℚ scalar closure)
+--     rat_half_smul_third_isOperational (theorem, concrete ℚ demo)
+--   v0.4.0 Stage 4 (2 anonymous examples): chained ℤ, combined ℚ.
 -- AXIOM AUDIT:
 --   ℤ AddGroup objects:  [propext]                               — v0.1.0 ceiling
 --   ZMod AddGroup:       [propext, Quot.sound]                   — v0.1.0 ceiling
@@ -669,17 +823,24 @@ example : OperationalGroup.IsOperational
 --   ZMod Ring objects:   [propext, Quot.sound]                   — v0.2.0, UNCHANGED
 --   ℚ Field objects:     [propext, Classical.choice, Quot.sound] — v0.3.0 (Finding A14)
 --   ℚˣ Group examples:   [propext, Classical.choice, Quot.sound] — v0.3.0 Stage 5 (A15)
+--   ℤ Module objects:    [propext]           — v0.4.0 Stage 4 (ceiling unchanged, A10 ext.)
+--   ℚ Module objects:    [propext, Classical.choice, Quot.sound] — v0.4.0 Stage 4
 --   Finding A10 confirmed (ℤ, ZMod): ring extension does not escalate ceiling.
 --   Finding A14 (NEW): ℚ concrete instances reach FULL analysis ceiling.
 --     Source: Rat.instField carries [propext, Classical.choice, Quot.sound].
 --     Classical.choice enters via GroupWithZero.inv in ℚ's multiplicative inverse.
 --     NOT a sign of analytic complexity — coincidental ceiling alignment.
--- AXIOM STAIRCASE (complete after v0.3.0 Stage 3):
---   []                                       — typeclasses (AddGroup, Group, Ring)
+--   Finding A10 extension (v0.4.0): module instantiation does NOT escalate ceiling.
+--     ℤ module ceiling = ℤ ring ceiling = [propext].
+--     ℚ module ceiling = ℚ field ceiling = [propext, Classical.choice, Quot.sound].
+--     Principle: ceiling determined by carrier type, not algebraic depth.
+--     Now confirmed across 4 algebraic levels: AddGroup, Ring, Field, Module.
+-- AXIOM STAIRCASE (complete after v0.4.0 Stage 4):
+--   []                                       — typeclasses (AddGroup, Group, Ring, Module)
 --   [propext, Quot.sound]                    — OperationalField typeclass (Field RatCast)
---   [propext]                                — ℤ concrete instances
+--   [propext]                                — ℤ concrete instances (all levels)
 --   [propext, Quot.sound]                    — ZMod n concrete instances
---   [propext, Classical.choice, Quot.sound]  — ℚ concrete instances = analysis ceiling
+--   [propext, Classical.choice, Quot.sound]  — ℚ concrete instances (all levels)
 -- CHECKS: no sorry, no admit.
 
 #print axioms instOperationalAddGroupInt
@@ -705,5 +866,11 @@ example : OperationalGroup.IsOperational
 #print axioms rat_half_plus_third_isOperational
 #print axioms rat_product_inv_isOperational
 #print axioms rat_sub_isOperational
+#print axioms instOperationalModuleIntInt
+#print axioms int_smul_isOperational
+#print axioms int_two_smul_three_isOperational
+#print axioms instOperationalModuleRatRat
+#print axioms rat_smul_isOperational
+#print axioms rat_half_smul_third_isOperational
 
 end VR.Algebra

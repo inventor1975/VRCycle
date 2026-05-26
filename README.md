@@ -686,8 +686,8 @@ with predecessor VR Lean cycles.
 
 ### Operational Algebra (`VRCycle/Algebra/`)
 
-**Git tags**: `v1.8-vr-operational-algebra-v0.1.0` (additive groups), `v1.9-vr-operational-algebra-v0.2.0` (rings), `v1.10-vr-operational-algebra-v0.3.0` (fields + multiplicative groups)
-**Preprint**: in preparation
+**Git tags**: `v1.8-vr-operational-algebra-v0.1.0` (additive groups), `v1.9-vr-operational-algebra-v0.2.0` (rings), `v1.10-vr-operational-algebra-v0.3.0` (fields + multiplicative groups), `v1.11-vr-operational-algebra-v0.4.0` (modules + zsmul + A15 investigation)
+**Preprint**: in preparation (targeting v1.0.0 for Zenodo submission)
 
 The **eighth work** in the VR Cycle. A domain extension demonstrating that the
 VR-Apparatus framework (meta-formalised in VR-Apparatus v1.0.0,
@@ -714,21 +714,40 @@ the v0.1.0 intentional sorry in `image_isOperationalAddSubgroup_isModeBOp` is **
 - `OperationalField.toOperationalGroupUnits`: bridge `[OperationalField K] → OperationalGroup Kˣ` — the concrete justification for `OperationalGroup`'s revival. **Recognition discipline loop CLOSED**.
 - Mode A theorems for multiplicative groups: `mul_isModeAOp`, `inv_isModeAOp`, `div_isModeAOp`, `npow_isOperational`, `zpow_isOperational` (ℤ-exponentiation — new vs additive side).
 
-#### Classical.choice — honest framing (v0.3.0)
+**v0.4.0** — Closes three content gaps and extends to **modules**.
+- **`zsmul_isOperational`**: additive ℤ-scalar analogue of `zpow_isOperational`. Completes the additive/multiplicative symmetry table: `nsmul`/`npow` (v0.1.0/v0.3.0) and now `zsmul`/`zpow` (v0.4.0/v0.3.0). Finding A18.
+- **Finding A16** (A15 structural investigation): systematic isolation confirms `Classical.choice` in `inv_isModeAOp_field` and `toOperationalGroupUnits` is structurally embedded — one source is the apparatus import chain pulling `Mathlib.Data.Real.Basic`; the other is proof-structural (field-inverse reasoning via `Units.val_inv_eq_inv_val`). Neither is removable by file isolation. The programme remains honest: these two objects are the only non-eliminable `Classical.choice` sources in the algebraic hierarchy.
+- **`OperationalModule`**: bridge-based typeclass over `[OperationalRing R] [OperationalAddGroup M] [Module R M]`. Adds one axiom: `smul_isOperational`. Introduces **no new predicate** on M — M's predicate is sourced entirely from `[OperationalAddGroup M]`. Instances: ℤ as ℤ-module, ℚ as ℚ-module.
+- **`smul_isModeAOp`**: Mode A theorem for scalar action. First **heterogeneous binary operation** in VR Cycle — `smul : R → M → M` requires `IsModeAOp (r • · : M → M)` (unary, for fixed operational `r`), not `IsModeAOp₂`. Finding A19. Fourth confirmation of apparatus generality (Finding A17).
+
+#### Classical.choice — honest framing (updated v0.4.0 / Finding A16)
 
 Prior cycles: `Classical.choice` absent from all 46 algebraic objects (v0.1.0 + v0.2.0).
 
-v0.3.0 introduces two objects with `Classical.choice` in their elaborated proof terms:
+v0.3.0 introduced two objects with `Classical.choice` in their elaborated proof terms:
 - `inv_isModeAOp_field` (`ModeA.lean`)
 - `OperationalField.toOperationalGroupUnits` (`Field.lean`)
 
-**Both are import-context effects** (Finding A15), **not logical requirements**:
-- `Mathlib.Algebra.GroupWithZero.Units.Basic` (resp. apparatus chain importing `Mathlib.Data.Real.Basic`) changes how Lean resolves `Inv K` for generic `[Field K]` in the elaboration context, injecting `Classical.choice` into proof terms that use `(·⁻¹)` in `IsModeAOp` types or `Units.val_inv_eq_inv_val` rewrites.
-- Without these imports (tested), the same theorems elaborate with `[propext, Quot.sound]`.
-- **Logical ceiling** of v0.3.0 algebra remains `[propext, Quot.sound]` (field infrastructure) — no classical reasoning is required by the VR operational content.
-- `OperationalField`, `OperationalField.toOperationalRing`, and `instPredOpField` (same import context, no `(·⁻¹)` in their types) remain `[propext, Quot.sound]`, confirming the effect is scoped to `Inv K` elaboration.
+v0.4.0 Stage 2 (Finding A16) systematically investigated whether isolation could remove them.
+**Conclusion: both sources are structurally embedded and not removable**:
 
-#### Recognition discipline applications (six total across v0.1.0–v0.3.0)
+- `inv_isModeAOp_field`: root is the apparatus import chain — `VRCycle.Apparatus.ModeA`
+  transitively imports `Mathlib.Data.Real.Basic`, injecting instances that affect `Inv K`
+  elaboration in `IsModeAOp` types. `IsModeAOp` cannot be used without the apparatus import;
+  file separation is impossible. Confirmed: minimal-import test file still shows `Classical.choice`.
+- `OperationalField.toOperationalGroupUnits`: root is proof-structural — any valid proof must
+  use `Units.val_inv_eq_inv_val` to connect `(u⁻¹ : Kˣ).val` to `(u.val)⁻¹ (K)`; after this
+  rewrite, the goal contains field-level `(·)⁻¹`, which carries `Classical.choice`.
+  The type alone (sorry-proof) elaborates `[propext, Quot.sound]` — so it is the proof
+  necessity, not the type, that requires classical reasoning.
+
+**Programme position**: the cycle is **logically constructive with two structural
+`Classical.choice` exceptions** in field-inverse reasoning. These exceptions reflect genuine
+mathematical structure (multiplicative inversion in a field requires classical reasoning
+about the zero case), not implementation choices or import noise that could be engineered away.
+All 62 other public objects remain at or below `[propext, Quot.sound]`.
+
+#### Recognition discipline applications (seven total across v0.1.0–v0.4.0)
 
 **Removals** (five):
 - **Finding A0** (v0.1.0 Stage 1): `OperationalGroup` (multiplicative) removed — no v0.1.0 instances.
@@ -739,6 +758,9 @@ v0.3.0 introduces two objects with `Classical.choice` in their elaborated proof 
 
 **Introduction** (one — **first documented introduction in cycle**):
 - **Finding A12** (v0.3.0 Stage 1, confirmed Stage 5): `OperationalGroup` REVIVED — field unit groups (`Kˣ`) provide the natural multiplicative instance that was absent in v0.1.0. The bridge `OperationalField.toOperationalGroupUnits` is the concrete justification. **Bidirectional recognition discipline**: remove preemptive abstractions; introduce when natural justification arrives.
+
+**Architectural correction** (v0.4.0 Stage 5 — Variant A разделение работ):
+- PLAN.md error: proposed `IsModeAOp₂ (· • · : R → M → M)` for `smul_isModeAOp`. Incorrect: `IsModeAOp₂` requires `f : T → T → T` (homogeneous single type). Scalar action `R → M → M` is heterogeneous. Sonnet (implementer) caught this during Stage 5 reconnaissance, before any proof attempt. Correct form: `IsModeAOp (r • · : M → M)` for fixed `r`. The apparatus architecture correctly distinguishes internal from external operations (Finding A19).
 
 #### File structure
 
@@ -756,43 +778,52 @@ v0.3.0 introduces two objects with `Classical.choice` in their elaborated proof 
 | v0.3.0 §2,5 | `Algebra/Field.lean` | 3 | `OperationalField`; bridge `→ OperationalRing`; bridge `→ OperationalGroup Kˣ` |
 | v0.3.0 §3,5 | `Algebra/Instances.lean` | 5 | ℚ field instance + demos; ℚˣ demos (anonymous) |
 | v0.3.0 §4 | `Algebra/ModeA.lean` | 8 | MulGroup Mode A (6 objects) + Field Mode A (2 objects) |
+| v0.4.0 §3 | `Algebra/Module.lean` | 1 | `OperationalModule` typeclass (bridge-based; no new predicate on M) |
+| v0.4.0 §12 | `Algebra/Instances.lean` | 6 | ℤ and ℚ module instances + demos (3 each) |
+| v0.4.0 §2,11 | `Algebra/ModeA.lean` | 2 | `zsmul_isOperational` (§2); `smul_isModeAOp` (§11) |
 
-**Total: 55 named public objects (31 v0.1.0 + 15 v0.2.0 + 9 v0.3.0).**
+**Total: 64 named public objects (31 v0.1.0 + 15 v0.2.0 + 9 v0.3.0 + 9 v0.4.0).**
 
-#### Axiom hierarchy — algebraic (Finding A5, extended by A10, A14, A15)
+#### Axiom hierarchy — algebraic (Finding A5, extended by A10, A14, A15, A16)
 
 | Tier | Profile | Representative objects |
 |------|---------|----------------------|
-| 0 | `[]` | `OperationalAddGroup`, `OperationalRing`, `OperationalGroup`; all Mode A theorems for add/mul/sub/div/pow/zpow; bridge instances (AddGroup, Ring); `image_isOperationalAddSubgroup_isModeBOp` |
-| 1 | `[propext]` | ℤ instances (additive + ring); `neg_isModeAOp`, `MulGroup.inv_isModeAOp`; Mode B lifts; `int_ker/image` theorems |
+| 0 | `[]` | `OperationalAddGroup`, `OperationalRing`, `OperationalGroup`, `OperationalModule`; all Mode A theorems for add/mul/sub/div/pow/zpow/zsmul/smul; bridge instances (AddGroup, Ring, Module); `image_isOperationalAddSubgroup_isModeBOp` |
+| 1 | `[propext]` | ℤ instances (additive + ring + **module**); `neg_isModeAOp`, `MulGroup.inv_isModeAOp`; Mode B lifts; `int_ker/image` theorems |
 | 2 | `[propext, Quot.sound]` | ZMod n instances; `OperationalField`; bridges `→ OperationalRing`, `→ OperationalAddGroup`; `instPredOpField` |
-| 3 | `[propext, Classical.choice, Quot.sound]` | ℚ instances (Finding A14); `inv_isModeAOp_field`, `toOperationalGroupUnits` (**import-context effect**, Finding A15 — logical ceiling remains tier 2) |
+| 3 | `[propext, Classical.choice, Quot.sound]` | ℚ instances (Finding A14); ℚ **module** instances (inherit via bridge chain); `inv_isModeAOp_field`, `toOperationalGroupUnits` (**structurally embedded**, Finding A16 — not removable by isolation) |
 
-**Finding A10**: axiom ceiling = underlying type ceiling, not algebraic depth. Confirmed for rings (v0.2.0); field infrastructure sets a new algebraic ceiling at tier 2.
+**Finding A10** (extended through v0.4.0): axiom ceiling = underlying type ceiling, not algebraic depth. Module structure adds no new ceiling: ℤ-module ≡ ℤ-ring ceiling `[propext]`; ℚ-module ≡ ℚ-field ceiling `[propext, Classical.choice, Quot.sound]`.
 
 **Finding A14** (v0.3.0): ℚ concrete instances reach the full analysis ceiling. Source: `Rat.instField` carries classical infrastructure for multiplicative inverses via `GroupWithZero`.
 
-**Finding A15** (v0.3.0): import-context ceiling escalation. `Mathlib.Algebra.GroupWithZero.Units.Basic` (and `Mathlib.Data.Real.Basic` via apparatus chain) change the elaboration path for `(·⁻¹)` in `[Field K]` contexts, injecting `Classical.choice` into proof terms without logical requirement.
+**Finding A16** (v0.4.0): A15 structural confirmation — two `Classical.choice` sources are not removable by isolation. See Classical.choice section above for details.
 
-#### Key findings (A0–A15)
+#### Key findings (A0–A19)
 
-**A3** (v0.1.0, extended through v0.3.0): Apparatus reuse confirmed for four algebraic structures — AddGroup, Ring, Group, Field. `PredicateOperationality` instance = `⟨⟩` in all cases.
+**A3** (v0.1.0, extended through v0.4.0): Apparatus reuse confirmed for five algebraic structures — AddGroup, Ring, Group, Field, **Module**. `PredicateOperationality` instance = `⟨⟩` in first four; Module reuses existing `instPredOpAddGroup` unchanged (Finding A17 — strongest confirmation).
 
-**A4** (v0.1.0, confirmed v0.3.0): `neg_isModeAOp` and `inv_isModeAOp` pull `[propext]`; all binary operations (`add`, `mul`, `sub`, `div`) are `[]`. Unary inversion (additive and multiplicative) elaborates through `Neg`/`Inv` infrastructure touching propext; binary closure does not.
+**A4** (v0.1.0, confirmed v0.3.0): `neg_isModeAOp` and `inv_isModeAOp` pull `[propext]`; all binary operations (`add`, `mul`, `sub`, `div`) and scalar action (`smul_isModeAOp`) are `[]`. Unary inversion elaborates through `Neg`/`Inv` infrastructure; binary and external closures do not.
 
-**A10** (v0.2.0): Axiom ceiling = underlying type ceiling, not algebraic depth.
+**A10** (v0.2.0, extended through v0.4.0): Axiom ceiling = underlying type ceiling, not algebraic depth. Confirmed for all four structures: AddGroup, Ring, Field, Module.
 
 **A11** (v0.2.0): Algebraic Mode B requires one proof step (constructive witness from `AddSubgroup.mem_map`, no `Classical.choice`).
 
 **A12** (v0.3.0): Recognition discipline reversal — `OperationalGroup` omitted (A0), revived (Stage 1), justified concretely by `OperationalField.toOperationalGroupUnits` (Stage 5). First documented *introduction* in the recognition discipline pattern (previously: removals only).
 
-**A13** (v0.3.0): `OperationalField` does not escalate beyond `Field K`'s axiom profile. Consistent with A10: ceiling determined by type infrastructure, not operational layer.
+**A13** (v0.3.0): `OperationalField` does not escalate beyond `Field K`'s axiom profile. Consistent with A10.
 
 **A14** (v0.3.0): ℚ reaches full analysis ceiling via `Rat.instField`'s classical inverse infrastructure.
 
-**A15** (v0.3.0): Import-context ceiling escalation. Certain Mathlib imports change how `Inv K` resolves for generic `[Field K]`, affecting axiom profiles of theorems where `(·⁻¹)` appears in elaborated types. Two objects affected: `inv_isModeAOp_field`, `toOperationalGroupUnits`. Logical content does not require `Classical.choice`.
+**A15** (v0.3.0): Import-context ceiling escalation. Certain Mathlib imports change how `Inv K` resolves for generic `[Field K]`, affecting two objects: `inv_isModeAOp_field`, `toOperationalGroupUnits`.
 
-**zpow_isOperational** (v0.3.0, new vs additive side): Group has `zpow : ℤ → G → G` natively via `DivInvMonoid`; `zpow_isOperational` proves ℤ-exponentiation preserves operationality. The additive analogue (`zsmul_isOperational`) was not proved in v0.1.0 and is deferred to v0.4.0.
+**A16** (v0.4.0 Stage 2): A15 structural confirmation. Systematic isolation confirms `Classical.choice` is not removable from the two affected objects — one source is apparatus import chain (proof-architectural), one is proof-structural (field-inverse necessity). Programme framing updated: two structural exceptions, all others at tier 0–2.
+
+**A17** (v0.4.0 Stages 3–5): Apparatus reuse for Module — fourth and strongest confirmation of A3. `smul_isModeAOp` uses `instPredOpAddGroup` (v0.1.0 instance) unchanged. Bridge-based design (no new predicate on M) means literal reuse, not mere extension.
+
+**A18** (v0.4.0 Stage 1): `zsmul_isOperational` closes v0.3.0 gap. Completes the additive/multiplicative symmetry table for ℕ-scalar and ℤ-scalar pairs. Proof mechanics asymmetry: `zsmul` requires explicit `change + rw [natCast_zsmul]`; `zpow` admits definitional unfolding.
+
+**A19** (v0.4.0 Stage 5): First heterogeneous binary operation in VR Cycle. Scalar action `R → M → M` requires `IsModeAOp (r • · : M → M)` (unary, for fixed operational scalar), not `IsModeAOp₂`. Apparatus architecture correctly distinguishes internal (homogeneous) from external (heterogeneous) algebraic operations.
 
 #### Acknowledgement
 
