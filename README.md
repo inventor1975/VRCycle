@@ -1160,7 +1160,7 @@ lake build
 
 The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 
-**Expected output:** `Build completed successfully (3358 jobs).` Zero warnings. Zero sorry.
+**Expected output:** `Build completed successfully (3360 jobs).` Zero warnings. Zero sorry.
 
 ## Toolchain
 
