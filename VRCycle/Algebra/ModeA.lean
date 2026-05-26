@@ -4,9 +4,11 @@
 -- Operational Algebra v0.3.0 — Stage 4: MulGroup + Field Mode A (mul, inv, div, npow, zpow).
 -- Operational Algebra v0.4.0 — Stage 1: zsmul_isOperational (ℤ-scalar, closes v0.3.0 gap).
 -- Operational Algebra v0.4.0 — Stage 5: smul_isModeAOp (Module Mode A; fourth Finding A3 confirmation).
+-- v1.0.0: documentation polish only; no new Lean content.
 --
 -- STAGE: 3 (v0.1.0); 5 (v0.2.0); 4 (v0.3.0); 1, 5 (v0.4.0).
 -- SOURCE: PLAN.md Stage 3 (v0.1.0); Stage 5 (v0.2.0); Stage 4 (v0.3.0); Stages 1, 5 (v0.4.0).
+-- VERSION: v1.0.0 (stable release). Mathematical content accumulates from v0.1.0–v0.4.0.
 --
 -- ## Position statement
 -- This file is the **critical connection** between the VR-Apparatus framework
@@ -876,7 +878,9 @@ example : OperationalAddGroup.IsOperational ((1/2 : ℚ) • (1/3 : ℚ)) :=
 --   multiplicative zpow. Symmetry table now complete:
 --     nsmul_isOperational (ℕ-scalar, v0.1.0) ↔ MulGroup.npow_isOperational (ℕ-power, v0.3.0)
 --     zsmul_isOperational (ℤ-scalar, v0.4.0) ↔ MulGroup.zpow_isOperational (ℤ-power, v0.3.0)
---   Proof pattern: definitional unfolding of zsmulRec (same mechanism as zpow_isOperational).
+--   Proof pattern: Int case split. ofNat case: change + rw [natCast_zsmul]; negSucc case:
+--   rw [negSucc_zsmul]. Requires explicit rewrite steps (unlike zpow which admits bare
+--   `exact` via definitional unfolding). Documented in ModeA.lean §2 proof note.
 --   v0.4.0 Stage 5 (1 object):
 --     smul_isModeAOp  (theorem, IsModeAOp (r • ·) for OperationalModule R M)
 -- AXIOM AUDIT (v0.4.0 Stage 5, confirmed by build):

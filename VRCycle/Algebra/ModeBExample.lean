@@ -1,8 +1,10 @@
 -- VRCycle: Algebra/ModeBExample.lean
 -- Operational Algebra v0.1.0 — Stage 6: Mode B skeleton example.
 -- Operational Algebra v0.2.0 — Stage 6: Substantive Mode B audit (sorry eliminated).
+-- v1.0.0: documentation polish only; no new Lean content.
 --
 -- STAGE: 6 (v0.1.0 skeleton); 6 (v0.2.0 completion). SOURCE: PLAN.md Stage 6.
+-- VERSION: v1.0.0 (stable release). Mathematical content from v0.1.0 Stage 6 + v0.2.0 Stage 6.
 --
 -- ## v0.2.0 Stage 6 — Substantive Mode B Audit
 --

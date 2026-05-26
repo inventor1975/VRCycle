@@ -1,8 +1,10 @@
 -- VRCycle: Algebra/Field.lean
 -- Operational Algebra v0.3.0 — Stage 2: OperationalField typeclass + bridge instance.
 --                               Stage 5: OperationalField → OperationalGroup Kˣ bridge.
+-- v1.0.0: documentation polish only; no new Lean content.
 --
 -- STAGE: 2 (of 6, v0.3.0); 5 (Units bridge). SOURCE: PLAN.md Stage 2, Stage 5.
+-- VERSION: v1.0.0 (stable release). Mathematical content from v0.3.0 Stages 2 and 5.
 --
 -- ## Position statement
 -- This file defines the VR operational layer on top of mathlib's field typeclass.
@@ -139,13 +141,13 @@
 -- ## Namespace policy (Stage 4 note)
 --
 -- v0.2.0 ModeA.lean contains `VR.Algebra.mul_isModeAOp` for OperationalRing.
--- Stage 4 will add Mode A theorems for both OperationalGroup and OperationalField.
+-- Stage 4 (ModeA.lean §8–9) added Mode A theorems for both OperationalGroup and OperationalField.
 -- To avoid naming conflicts:
 --   - OperationalGroup Mode A theorems: namespace VR.Algebra.MulGroup
 --     (full name: VR.Algebra.MulGroup.mul_isModeAOp)
 --   - OperationalField Mode A theorems: derivable from OperationalRing via bridge;
 --     inv_isModeAOp in VR.Algebra namespace (no ring analogue; no conflict).
--- This policy is established here; implemented in Stage 4.
+-- This policy is established here; implemented in ModeA.lean §8–9 (v0.3.0 Stage 4).
 --
 -- ## Axiom profile — UNEXPECTED RESULT (Stage 2 Finding)
 --
@@ -222,8 +224,8 @@ this is immediate; non-trivial predicates (v0.4.0+) must verify the zero case.
 
 Note: `sub_isOperational` and `div_isOperational` are NOT separate axioms.
 `a - b = a + (-b)` and `a / b = a * b⁻¹` in any field. Closure under these
-derived operations follows from the axioms above and will be proved as Mode A
-theorems (`sub_isModeAOp`, `div_isModeAOp`) in Stage 4.
+derived operations follow from the axioms above and are proved as Mode A
+theorems (`sub_isModeAOp`, `div_isModeAOp`) in ModeA.lean §9 (v0.3.0 Stage 4).
 
 ## Algebraic hierarchy completion
 
@@ -249,10 +251,10 @@ The chain of bridges (all with the same predicate):
 
 ## Apparatus connection
 
-Stage 4 will register `OperationalField` as an instance of `PredicateOperationality`
-(VRCycle.Apparatus.Wrapping). Finding A3 (apparatus reuse without modification)
-is expected to confirm again: the zero-field marker mechanism applies to fields
-as it did to additive groups and rings.
+`OperationalField` is registered as an instance of `PredicateOperationality`
+(VRCycle.Apparatus.Wrapping) via `instPredOpField` in ModeA.lean §9 (v0.3.0 Stage 4).
+Finding A3 (apparatus reuse without modification) is confirmed: the zero-field marker
+mechanism applies to fields as it did to additive groups and rings.
 
 ## Concrete instances (v0.3.0)
 

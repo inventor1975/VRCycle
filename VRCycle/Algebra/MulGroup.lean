@@ -1,7 +1,9 @@
 -- VRCycle: Algebra/MulGroup.lean
 -- Operational Algebra v0.3.0 — Stage 1: OperationalGroup typeclass (multiplicative).
+-- v1.0.0: documentation polish only; no new Lean content.
 --
 -- STAGE: 1 (of 6, v0.3.0). SOURCE: PLAN.md Stage 1; CLAUDE.md §What is being built in v0.3.0.
+-- VERSION: v1.0.0 (stable release). Mathematical content from v0.3.0 Stage 1.
 --
 -- ## Position statement
 -- This file introduces the VR operational layer on top of mathlib's multiplicative
@@ -35,8 +37,9 @@
 -- v0.1.0 (Finding A0): recognised preemptive abstraction → omitted.
 -- v0.3.0 (Finding A12): recognised justified abstraction → introduced.
 --
--- The Units instance will be provided in Stage 5 (Instances.lean or FieldInstances.lean).
--- Stage 1 only defines the typeclass; the instance justification follows.
+-- The Units instance is provided in v0.3.0 Stage 5 via
+-- `OperationalField.toOperationalGroupUnits` in Field.lean.
+-- This file defines only the typeclass; the instance is in Field.lean.
 --
 -- ## Mathlib reconnaissance (Stage 1)
 --
@@ -70,7 +73,7 @@
 --   instance instCommGroupUnits : CommGroup αˣ  (if α is CommMonoid)
 --
 --   The val coercion (u : Kˣ) → (u : K) is `Units.val`.
---   Stage 5 will use this coercion to define:
+--   Stage 5 uses this coercion to define:
 --     IsOperational (u : Kˣ) := OperationalField.IsOperational (u : K)
 --   connecting the field's operational predicate to the units group.
 --
@@ -80,14 +83,14 @@
 --   DivisionRing K extends Ring K, DivInvMonoid K, Nontrivial K, NNRatCast K, RatCast K
 --
 --   Key: Field K already includes DivInvMonoid K (multiplicative inverse).
---   OperationalField (Stage 2) will extend Field K, adding inv_isOperational.
---   Bridge OperationalField → OperationalGroup Kˣ (Stage 5) justified by instGroup.
+--   OperationalField (v0.3.0 Stage 2) extends Field K, adding inv_isOperational.
+--   Bridge OperationalField → OperationalGroup Kˣ (Stage 5) is in Field.lean.
 --
--- ### ℚ as Field (Mathlib.Data.Rat.Defs) — preparation for Stage 3
+-- ### ℚ as Field (Mathlib.Data.Rat.Defs)
 --
 --   Rat.instField : Field ℚ  — available in mathlib.
 --   ℚˣ = Units ℚ is thus a multiplicative group.
---   Stage 3 will instantiate OperationalField ℚ; Stage 5 gives OperationalGroup ℚˣ.
+--   Stage 3 instantiates OperationalField ℚ; Stage 5 provides OperationalGroup ℚˣ (Instances.lean).
 --
 -- ## Design decisions (Stage 1)
 --
@@ -103,8 +106,8 @@
 -- ### Decision B: div_isOperational is NOT an axiom
 -- Division a / b = a * b⁻¹ in any Group (from DivInvMonoid.div_eq_mul_inv).
 -- Closure under / follows from mul_isOperational + inv_isOperational.
--- This will be proved as div_isModeAOp in Stage 4, exactly parallel to
--- sub_isModeAOp in v0.1.0 ModeA.lean (where sub = add + neg).
+-- This is proved as div_isModeAOp in ModeA.lean §8 (v0.3.0 Stage 4), exactly parallel
+-- to sub_isModeAOp in v0.1.0 ModeA.lean (where sub = add + neg).
 -- No explicit div axiom in the typeclass — avoids redundancy.
 --
 -- ### Decision C: zpow_isOperational deferred
@@ -119,11 +122,11 @@
 -- For Kˣ (Stage 5): IsOperational u := OperationalField.IsOperational (u : K).
 -- Trivially-operational if OperationalField.IsOperational = fun _ => True.
 --
--- ## Naming note for Stage 4
+-- ## Naming note (resolved in Stage 4)
 -- v0.2.0 ModeA.lean contains `mul_isModeAOp` for OperationalRing multiplication.
--- Stage 4 will prove the multiplicative group analogue. Name conflict will require
--- namespace separation: e.g., VR.Algebra.MulGroup.mul_isModeAOp vs the ring theorem.
--- This is documented here for awareness; NOT a concern for Stage 1 (typeclass only).
+-- Stage 4 proves the multiplicative group analogue. Name conflict is resolved via
+-- namespace separation: VR.Algebra.MulGroup.mul_isModeAOp vs the ring theorem.
+-- (See ModeA.lean §8.)
 --
 -- ## Axiom profile
 -- OperationalGroup (class definition): []
@@ -162,8 +165,8 @@ the multiplicative group operations — a *sub-apparatus* in the VR sense.
 
 Note: division `a / b` closure is NOT a separate axiom. Since `a / b = a * b⁻¹`
 in any `Group G` (from `DivInvMonoid.div_eq_mul_inv`), division closure follows
-from `mul_isOperational` and `inv_isOperational`. This will be proved as
-`div_isModeAOp` in Stage 4, exactly parallel to `sub_isModeAOp` in v0.1.0.
+from `mul_isOperational` and `inv_isOperational`. This is proved as
+`div_isModeAOp` in ModeA.lean §8 (v0.3.0 Stage 4), exactly parallel to `sub_isModeAOp` in v0.1.0.
 
 ## Symmetry with OperationalAddGroup
 
@@ -185,13 +188,14 @@ existed, so the abstraction had no users — recognition discipline removed it.
 
 v0.3.0 **reverses** this decision: fields K provide natural multiplicative instances
 through their unit groups `Kˣ` (`Units K`, which carries `Group Kˣ` automatically).
-Stage 5 will provide:
+Stage 5 provides:
 
   `instance [OperationalField K] : OperationalGroup Kˣ`
 
-This is the instance that justifies the abstraction. Recognition discipline applies
-**bidirectionally**: remove preemptive abstractions AND introduce justified ones.
-The reversal from Finding A0 to this Stage 1 is Finding A12.
+This bridge is `OperationalField.toOperationalGroupUnits` in Field.lean (v0.3.0 Stage 5).
+Recognition discipline applies **bidirectionally**: remove preemptive abstractions AND
+introduce justified ones. The reversal from Finding A0 to this Stage 1 is Finding A12
+(anticipated in v0.3.0 Stage 1), confirmed concretely in Stage 5 (Finding A12 CLOSED).
 
 ## Apparatus connection
 
@@ -200,8 +204,9 @@ This is an instance of the VR-Apparatus predicate-wrapping apparatus:
   Formal register      = G  (the full classical group, mathlib's `Group G`)
   Operational register = { g : G // IsOperational g }  (operational sub-collection)
 
-Stage 4 will register `OperationalGroup` as an instance of `PredicateOperationality`
-(VRCycle.Apparatus.Wrapping), confirming Finding A3 extends to multiplicative groups
+`OperationalGroup` is registered as an instance of `PredicateOperationality`
+(VRCycle.Apparatus.Wrapping) via `MulGroup.instPredOpMulGroup` in ModeA.lean §8
+(v0.3.0 Stage 4), confirming Finding A3 extends to multiplicative groups
 (third structure after AddGroup and Ring).
 
 ## Concrete instances (v0.3.0)

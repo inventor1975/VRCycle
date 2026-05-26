@@ -1,7 +1,9 @@
 -- VRCycle: Algebra/Ring.lean
 -- Operational Algebra v0.2.0 — Stages 1-2: OperationalRing typeclass + bridge instance.
+-- v1.0.0: documentation polish only; no new Lean content.
 --
 -- STAGE: 1-2 (of 7). SOURCE: PLAN.md Stages 1, 2; CLAUDE.md §What is being built in v0.2.0.
+-- VERSION: v1.0.0 (stable release). Mathematical content from v0.2.0 Stages 1-2.
 --
 -- ## Position statement
 -- This file defines the VR operational layer on top of mathlib's ring typeclass.
@@ -135,8 +137,9 @@ via `a - b = a + (-b)`. This is proved as a Mode A theorem in `RingModeA.lean`
 `OperationalRing R` extends this to the full ring structure by adding
 `one_isOperational` and `mul_isOperational`.
 
-A bridge instance `[OperationalRing R] → OperationalAddGroup R` will be provided
-(Stage 2), setting `OperationalAddGroup.IsOperational := OperationalRing.IsOperational`.
+A bridge instance `[OperationalRing R] → OperationalAddGroup R` is provided
+(ModeA.lean §3, v0.2.0 Stage 2), setting
+`OperationalAddGroup.IsOperational := OperationalRing.IsOperational`.
 This ensures: whenever a ring is operational, its underlying additive group is
 operational with the same predicate. One predicate per element, two typeclasses.
 
@@ -147,10 +150,11 @@ This is an instance of the VR-Apparatus predicate-wrapping apparatus:
   Formal register      = R  (the full classical ring, mathlib's `Ring R`)
   Operational register = { r : R // IsOperational r }  (operational sub-collection)
 
-`PredicateOperationality R OperationalRing.IsOperational` will be registered
-in Stage 5 (RingModeA.lean), consistent with the v0.1.0 pattern in ModeA.lean.
+`PredicateOperationality R OperationalRing.IsOperational` is registered
+as `instPredOpRing` in ModeA.lean §4 (v0.2.0 Stage 5), consistent with
+the v0.1.0 pattern (`instPredOpAddGroup` in ModeA.lean §1).
 
-## Concrete instances (planned for v0.2.0)
+## Concrete instances (v0.2.0)
 
 - **ℤ** (Stage 3): `IsOperational := fun _ => True`.
   Every integer is trivially operational. Demonstrates ring apparatus collapses
@@ -229,7 +233,7 @@ class OperationalRing (R : Type*) extends Ring R where
 -- ## Verdict: omit OperationalCommRing
 --
 -- Form B would introduce preemptive abstraction with duplicated fields and no genuine
--- new mathematical content. All v0.2.0 instances (ℤ, ZMod n) will be instantiated as
+-- new mathematical content. All v0.2.0 instances (ℤ, ZMod n) are instantiated as
 -- `OperationalRing`. Since `CommRing ℤ` and `CommRing (ZMod n)` are already in mathlib,
 -- any downstream context needing commutativity uses `[OperationalRing R] [CommRing R]`
 -- — both already present, no new typeclass needed.

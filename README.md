@@ -11,7 +11,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20380344.svg)](https://doi.org/10.5281/zenodo.20380344)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20381417.svg)](https://doi.org/10.5281/zenodo.20381417)
 
-Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, and a domain extension demonstrating apparatus generality in algebra. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra v0.3.0) in this repository, pending publication. v0.3.0 completes the algebraic hierarchy (groups → rings → fields), introduces ℚ as the first field instance, delivers the `OperationalGroup Kˣ` bridge instance (Finding A12, recognition discipline reversal confirmed concrete), and closes the bidirectional recognition discipline loop.
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, and a domain extension demonstrating apparatus generality in algebra. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra **v1.0.0** — stable release) in this repository, pending Zenodo paired publication. v1.0.0 delivers the complete algebraic hierarchy (groups → rings → fields → modules), 64 public objects across 9 files, Findings A0–A19, and the closed Recognition Discipline Loop (bidirectional, confirmed v0.3.0–v0.4.0). Companion preprint in preparation; Zenodo submission deferred for paired publication.
 
 ## Publications
 
@@ -58,7 +58,7 @@ cd VRCycle
 lake build
 ```
 
-First build downloads the mathlib4 cache (~1 GB). Expected output: `Build completed successfully (3319 jobs).` with one expected warning (E04 skeleton uses `sorry`).
+First build downloads the mathlib4 cache (~1 GB). Expected output: `Build completed successfully (3361 jobs).` with one expected warning (E04 skeleton uses `sorry`).
 
 ### Tutorial examples (Lean developers)
 
@@ -686,8 +686,9 @@ with predecessor VR Lean cycles.
 
 ### Operational Algebra (`VRCycle/Algebra/`)
 
-**Git tags**: `v1.8-vr-operational-algebra-v0.1.0` (additive groups), `v1.9-vr-operational-algebra-v0.2.0` (rings), `v1.10-vr-operational-algebra-v0.3.0` (fields + multiplicative groups), `v1.11-vr-operational-algebra-v0.4.0` (modules + zsmul + A15 investigation)
-**Preprint**: in preparation (targeting v1.0.0 for Zenodo submission)
+**Git tags**: `v1.8-vr-operational-algebra-v0.1.0` (additive groups), `v1.9-vr-operational-algebra-v0.2.0` (rings), `v1.10-vr-operational-algebra-v0.3.0` (fields + multiplicative groups), `v1.11-vr-operational-algebra-v0.4.0` (modules + zsmul + A15 investigation), `v1.12-vr-operational-algebra-v1.0.0` (stable release)
+**Status**: v1.0.0 — stable release. Pending Zenodo paired publication (companion preprint in preparation).
+**Preprint**: in preparation. Zenodo submission deferred for paired publication.
 
 The **eighth work** in the VR Cycle. A domain extension demonstrating that the
 VR-Apparatus framework (meta-formalised in VR-Apparatus v1.0.0,
@@ -1101,7 +1102,7 @@ All theorems from ℚ_VR through ℂ_VR, and VR-Sets Stages 7–9 (Replacement, 
 </details>
 
 <details>
-<summary>Complete #print axioms output — Operational Algebra (all 46 public objects)</summary>
+<summary>Complete #print axioms output — Operational Algebra (all 64 public objects, v0.1.0–v0.4.0)</summary>
 
 ```
 -- AddGroup.lean (v0.1.0 Stage 1) — AXIOM-FREE
@@ -1126,15 +1127,20 @@ All theorems from ℚ_VR through ℂ_VR, and VR-Sets Stages 7–9 (Replacement, 
 'VR.Algebra.nsmul_isOperational' does not depend on any axioms
 'VR.Algebra.neg_isModeAOp'       depends on axioms: [propext]
 
+-- ModeA.lean §2 (v0.4.0 Stage 1) — AXIOM-FREE
+'VR.Algebra.zsmul_isOperational' does not depend on any axioms
+
 -- Subgroups.lean (v0.1.0 Stage 5)
-'VR.Algebra.IsOperationalAddSubgroup'        does not depend on any axioms
-'VR.Algebra.bot_isOperationalAddSubgroup'    depends on axioms: [propext]
-'VR.Algebra.top_isOperationalAddSubgroup'    does not depend on any axioms
-'VR.Algebra.inf_isOperationalAddSubgroup'    does not depend on any axioms
-'VR.Algebra.OperationalSubgroup'             does not depend on any axioms
-'VR.Algebra.instInfOperationalSubgroup'      does not depend on any axioms
-'VR.Algebra.instTopOperationalSubgroup'      does not depend on any axioms
-'VR.Algebra.instBotOperationalSubgroup'      depends on axioms: [propext, Quot.sound]
+-- Note: OperationalSubgroup structure was not implemented (Finding A6 — predicate suffices).
+-- The 8 objects below are the actual public objects in Subgroups.lean.
+'VR.Algebra.IsOperationalAddSubgroup'                  depends on axioms: [propext]
+'VR.Algebra.bot_isOperationalAddSubgroup'              depends on axioms: [propext, Quot.sound]
+'VR.Algebra.top_isOperationalAddSubgroup'              depends on axioms: [propext]
+'VR.Algebra.inf_isOperationalAddSubgroup'              depends on axioms: [propext]
+'VR.Algebra.inf_isOperationalAddSubgroup_bilateral'    depends on axioms: [propext]
+'VR.Algebra.int_bot_isOperationalAddSubgroup'          depends on axioms: [propext, Quot.sound]
+'VR.Algebra.int_top_isOperationalAddSubgroup'          depends on axioms: [propext]
+'VR.Algebra.int_inf_top_isOperationalAddSubgroup'      depends on axioms: [propext]
 
 -- ModeBExample.lean §1 (v0.1.0 Stage 6, fully proved)
 'VR.Algebra.neg_isModeBOp'        depends on axioms: [propext]
@@ -1174,6 +1180,60 @@ All theorems from ℚ_VR through ℂ_VR, and VR-Sets Stages 7–9 (Replacement, 
 'VR.Algebra.instPredOpRing'      does not depend on any axioms
 'VR.Algebra.mul_isModeAOp'       does not depend on any axioms
 'VR.Algebra.npow_isOperational'  does not depend on any axioms
+
+-- MulGroup.lean (v0.3.0 Stage 1) — AXIOM-FREE
+'VR.Algebra.OperationalGroup' does not depend on any axioms
+
+-- Field.lean (v0.3.0 Stages 2 and 5)
+'VR.Algebra.OperationalField'
+    depends on axioms: [propext, Quot.sound]
+'VR.Algebra.OperationalField.toOperationalRing'
+    depends on axioms: [propext, Quot.sound]
+'VR.Algebra.OperationalField.toOperationalGroupUnits'
+    depends on axioms: [propext, Classical.choice, Quot.sound]   ← Finding A15/A16
+
+-- Instances.lean §9-10 (v0.3.0 Stage 3)
+'VR.Algebra.instOperationalFieldRat'
+    depends on axioms: [propext, Classical.choice, Quot.sound]   ← Finding A14
+'VR.Algebra.rat_half_isOperational'
+    depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Algebra.rat_half_plus_third_isOperational'
+    depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Algebra.rat_product_inv_isOperational'
+    depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Algebra.rat_sub_isOperational'
+    depends on axioms: [propext, Classical.choice, Quot.sound]
+
+-- ModeA.lean §8-10 (v0.3.0 Stage 4)
+-- Note: VR.Algebra.MulGroup.xxx is the within-namespace form used in file-level #print axioms.
+-- Absolute Lean 4 names: VR.Algebra.VR.Algebra.MulGroup.xxx (namespace nesting artifact).
+'VR.Algebra.VR.Algebra.MulGroup.instPredOpMulGroup'  does not depend on any axioms
+'VR.Algebra.VR.Algebra.MulGroup.mul_isModeAOp'       does not depend on any axioms
+'VR.Algebra.VR.Algebra.MulGroup.inv_isModeAOp'       depends on axioms: [propext]
+'VR.Algebra.VR.Algebra.MulGroup.div_isModeAOp'       does not depend on any axioms
+'VR.Algebra.VR.Algebra.MulGroup.npow_isOperational'  does not depend on any axioms
+'VR.Algebra.VR.Algebra.MulGroup.zpow_isOperational'  does not depend on any axioms
+'VR.Algebra.instPredOpField'
+    depends on axioms: [propext, Quot.sound]
+'VR.Algebra.inv_isModeAOp_field'
+    depends on axioms: [propext, Classical.choice, Quot.sound]   ← Finding A15/A16
+
+-- Module.lean (v0.4.0 Stage 3) — AXIOM-FREE
+'VR.Algebra.OperationalModule' does not depend on any axioms
+
+-- Instances.lean §12 (v0.4.0 Stage 4)
+'VR.Algebra.instOperationalModuleIntInt'            depends on axioms: [propext]
+'VR.Algebra.int_smul_isOperational'                 depends on axioms: [propext]
+'VR.Algebra.int_two_smul_three_isOperational'       depends on axioms: [propext]
+'VR.Algebra.instOperationalModuleRatRat'
+    depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Algebra.rat_smul_isOperational'
+    depends on axioms: [propext, Classical.choice, Quot.sound]
+'VR.Algebra.rat_half_smul_third_isOperational'
+    depends on axioms: [propext, Classical.choice, Quot.sound]
+
+-- ModeA.lean §11 (v0.4.0 Stage 5) — AXIOM-FREE
+'VR.Algebra.smul_isModeAOp' does not depend on any axioms
 ```
 </details>
 
@@ -1191,7 +1251,7 @@ lake build
 
 The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 
-**Expected output:** `Build completed successfully (3360 jobs).` Zero warnings. Zero sorry.
+**Expected output:** `Build completed successfully (3361 jobs).` Zero warnings. Zero sorry.
 
 ## Toolchain
 
@@ -1297,7 +1357,7 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 
 ### Operational Algebra (domain extension to algebraic structures)
 
-**55 public objects** across 8 files, 3202 lines. No sorry. No admit. `sorryAx` eliminated in v0.2.0 Stage 6. Logically constructive throughout — `Classical.choice` absent from all logical content; two objects carry it as import-context noise (Finding A15). Git tags: `v1.8-vr-operational-algebra-v0.1.0` (additive groups), `v1.9-vr-operational-algebra-v0.2.0` (rings), `v1.10-vr-operational-algebra-v0.3.0` (fields + multiplicative groups).
+**64 public objects** across 9 files. No sorry. No admit. `sorryAx` eliminated in v0.2.0 Stage 6. Logically constructive throughout — `Classical.choice` absent from all logical content; two objects carry it as structurally embedded field-inverse reasoning (Finding A16). Git tags: `v1.8–v1.11` (v0.1.0–v0.4.0); `v1.12-vr-operational-algebra-v1.0.0` (stable release).
 
 #### v0.1.0 — Additive groups (31 objects, tag `v1.8-vr-operational-algebra-v0.1.0`)
 

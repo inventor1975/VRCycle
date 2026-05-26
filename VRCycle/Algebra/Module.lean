@@ -1,7 +1,9 @@
 -- VRCycle: Algebra/Module.lean
 -- Operational Algebra v0.4.0 — Stage 3: OperationalModule typeclass.
+-- v1.0.0: documentation polish only; no new Lean content.
 --
 -- STAGE: 3 (of 6, v0.4.0). SOURCE: PLAN.md Stage 3.
+-- VERSION: v1.0.0 (stable release). Mathematical content from v0.4.0 Stage 3.
 --
 -- ## Position statement
 -- This file introduces the VR operational layer on top of mathlib's module typeclass.
@@ -128,9 +130,9 @@
 -- ## Apparatus connection (Stage 5 / Finding A17)
 --
 -- When `[OperationalModule R M]` is in scope, the Mode A theorem `smul_isModeAOp`
--- (Stage 5) will state that scalar action is a Mode A operation for the apparatus
--- instance from `[OperationalAddGroup M]`. This will confirm Finding A3 for the
--- fourth algebraic structure (additive group → ring → field → module).
+-- (ModeA.lean §11, v0.4.0 Stage 5) states that scalar action is a Mode A operation
+-- for the apparatus instance from `[OperationalAddGroup M]`. This confirmed Finding A3
+-- for the fourth algebraic structure (additive group → ring → field → module).
 -- No new `PredicateOperationality` instance is needed: `instPredOpAddGroup` from
 -- ModeA.lean already covers `OperationalAddGroup M`, and module inherits this.
 --
@@ -240,7 +242,7 @@ class OperationalModule (R : Type*) (M : Type*) [Ring R] [AddCommGroup M] [Modul
 --   B: single new axiom smul_isOperational.
 --   C: explicit qualification OperationalRing.IsOperational / OperationalAddGroup.IsOperational.
 -- RECOGNITION DISCIPLINE: OperationalModule KEPT (see §1 doc-comment).
--- APPARATUS CONNECTION: Stage 5 will confirm Finding A3 for module (4th structure).
+-- APPARATUS CONNECTION: Stage 5 (ModeA.lean §11) confirms Finding A3 for module (Finding A17).
 --   instPredOpAddGroup (ModeA.lean) already covers OperationalAddGroup M.
 --   No new PredicateOperationality instance needed.
 -- AXIOM AUDIT: expected [] for class definition.

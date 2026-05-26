@@ -1,7 +1,7 @@
 {
-  "title": "VR-Apparatus: A Lean 4 Formalisation of the Two-Apparatus Two-Mode Methodology of the VR Cycle (v1.0.0)",
+  "title": "VR Operational Algebra: A Lean 4 Formalisation of the Algebraic Hierarchy via the VR Apparatus (v1.0.0)",
   "version": "1.0.0",
-  "description": "Lean 4 formalisation of VR-Apparatus, the seventh work in the VR Cycle. Meta-work formalising the methodological apparatus used implicitly through the prior six works (VR, VR-Numbers, VR-Sets, VR-Forms, VR-Audit, VR-Sets-ZFA).\n\nThe apparatus distinguishes two methodological modes:\n- Predicate-wrapping (PredicateOperationality): objects identified by classical type membership with operational predicates. Example: IsComputableReal on Real.\n- Reference semantics (ReferenceOperationality): objects identified by position in reference graph. Example: OSetZFA via cobisimulation quotient.\n\nTwo transit modes formalised:\n- Mode A: operations preserving operational predicates lift to operational subtypes. Closure theorem proved by rfl.\n- Mode B: classical operations with Factorisable witness yield operational results. Captures operand-not-operation principle.\n\nLayered architecture (five tiers):\n1. Apparatus instances (PredicateOperationality, ReferenceOperationality).\n2. Domain structures (HasSeparabilityStructure).\n3. Morphism levels (Mode A, InterApparatusMorphism, Mode B).\n4. Compositional algebra (within tracks).\n5. Cross-instance recognition (VR-Forms transit as Mode B).\n\nTechnical facts:\n- 68 public objects across 12 implementation files, ~3430 lines of Lean\n- 40 axiom-free objects (59%)\n- New sub-ceiling tier [Quot.sound] discovered (7 objects)\n- No sorry, no admit, no axioms beyond mathlib standard ceiling\n- Lean 4.29.1 + mathlib4 v4.29.1\n- Git tag: v1.7-vr-apparatus-1.0.0\n\nTwelve methodological findings catalogued: two parallel tracks (predicate, reference), layered structure, productive triviality pattern, spectrum of witnesses, self-witnessing, two-level Factorisable, lens applicability depends on natural structure, axiom asymmetry between tracks, generic Register abstraction unnecessary, three-way identity nature contrast.\n\nThree honest scope limitations: no ReferenceOperationality for Cauchy sequences (no natural membership), no DirectionalMorphism (Mode B captures asymmetry), no generic Register structure (Lean typeclass system already provides it implicitly).\n\nSeventh work in the VR Lean cycle. Developed using Claude Opus 4.7 (architectural review) and Claude Sonnet 4.6 (Lean implementation), Variant A.",
+  "description": "Lean 4 formalisation of Operational Algebra, the eighth work in the VR Cycle. A domain extension demonstrating that the VR-Apparatus predicate-wrapping framework (meta-formalised in the seventh work) extends naturally to algebraic structures.\n\nThe complete algebraic hierarchy is formalised:\n- OperationalAddGroup (v0.1.0): additive groups with operational predicate.\n- OperationalRing (v0.2.0): rings extending OperationalAddGroup via bridge instance.\n- OperationalGroup (v0.3.0): multiplicative groups (recognition discipline reversal — Finding A12).\n- OperationalField (v0.3.0): fields extending OperationalRing + bridge to OperationalGroup via units.\n- OperationalModule (v0.4.0): modules, bridge-based (no new predicate on M).\n\nConcrete instances: ℤ (OperationalAddGroup, OperationalRing, OperationalModule), ZMod n (OperationalAddGroup, OperationalRing), ℚ (OperationalField, OperationalModule), ℚˣ (OperationalGroup via bridge).\n\nTechnical facts:\n- 64 public objects across 9 files, ~3977 lines of Lean\n- No sorry, no admit. sorryAx eliminated in v0.2.0 Stage 6.\n- Logically constructive: Classical.choice absent from all logical content.\n  Two structurally embedded exceptions (Finding A16): field-inversion path.\n- Lean 4.29.1 + mathlib4 v4.29.1\n- Git tag: v1.12-vr-operational-algebra-v1.0.0\n\nTwenty methodological findings (A0–A19): recognition discipline applications (A0, A6, A9, A12 — bidirectional loop closed), apparatus reuse across five structures (A3/A17), axiom hierarchy (A1, A4, A5, A10, A13, A14, A15, A16), engineering observations (A2, A7, A8, A11, A18, A19).\n\nKey finding: Recognition Discipline Loop CLOSED (A0→A12): OperationalGroup omitted v0.1.0 (no instances), revived v0.3.0 (field units provide natural instance). Apparatus reuse confirmed across full hierarchy: PredicateOperationality applies without modification to AddGroup, Ring, Group, Field, and Module. Module (v0.4.0) reuses v0.1.0 AddGroup apparatus instance unchanged (strongest apparatus generality confirmation).\n\nAxiom staircase: [] (typeclasses) → [propext] (ℤ objects) → [propext, Quot.sound] (ZMod n objects, OperationalField typeclass) → [propext, Classical.choice, Quot.sound] (ℚ objects, field-inversion Mode A).\n\nEighth work in the VR Lean cycle. Developed using Claude Opus 4.7 (architectural review) and Claude Sonnet 4.6 (Lean implementation), Variant A.\n\nNote: Zenodo submission deferred for paired publication with companion preprint (in preparation).",
   "upload_type": "software",
   "access_right": "open",
   "license": "cc-by",
@@ -15,21 +15,22 @@
   "keywords": [
     "VR",
     "operational mathematics",
-    "formal methodology",
-    "apparatus",
+    "algebraic hierarchy",
+    "operational algebra",
     "predicate-wrapping",
-    "reference semantics",
+    "apparatus reuse",
     "Mode A",
     "Mode B",
-    "factorisation",
-    "separability",
-    "inter-apparatus morphism",
-    "identity nature",
-    "transit pattern",
+    "recognition discipline",
+    "additive group",
+    "ring",
+    "field",
+    "module",
+    "axiom hierarchy",
     "Lean 4",
     "mathlib",
     "formal verification",
-    "meta-work"
+    "domain extension"
   ],
   "related_identifiers": [
     {
@@ -89,6 +90,16 @@
     },
     {
       "identifier": "10.5281/zenodo.20368268",
+      "relation": "isRelatedTo",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "10.5281/zenodo.20381417",
+      "relation": "isRelatedTo",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "identifier": "10.5281/zenodo.20380344",
       "relation": "isRelatedTo",
       "resource_type": "software"
     }

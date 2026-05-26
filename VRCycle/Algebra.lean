@@ -1,14 +1,20 @@
 -- VRCycle: Algebra.lean
--- Module index for the VR Operational Algebra cycle — v0.4.0 (Stages 1-5 complete; Stage 6 in progress).
+-- Module index for the VR Operational Algebra cycle — v1.0.0 (stable release).
 --
 -- ## What this module is
 --
 -- The eighth work in the VR Cycle: **Operational Algebra**.
 --
+-- **v1.0.0 — Stable release**. Mathematical scope closed at v0.4.0.
+-- v1.0.0 is a documentation-polish release: file headers, findings catalog,
+-- cross-references, and README brought to publication-quality form.
+-- No new Lean content in v1.0.0; v1.0.0 ≅ v0.4.0 mathematically.
+--
 -- Demonstrates that the VR-Apparatus framework (meta-formalised in v1.0.0,
 -- DOI 10.5281/zenodo.20380344) extends naturally to algebraic structures.
 -- Specifically: the predicate-wrapping apparatus (PredicateOperationality)
--- applies to additive groups and rings, with subgroups and substantive Mode B audit.
+-- applies to additive groups, rings, multiplicative groups, fields, and modules,
+-- with subgroups and substantive Mode B audit completing the algebraic hierarchy.
 --
 -- ## Architecture
 --
@@ -103,14 +109,19 @@
 --   nsmul_isOperational   (theorem, ∀ n : ℕ, IsOperational (n • a))
 --
 -- Subgroups.lean (8):
---   IsOperationalAddSubgroup          (def, ∀ x ∈ H, IsOperational x)
---   bot_isOperationalAddSubgroup      (theorem, ⊥ is operational)
---   top_isOperationalAddSubgroup      (theorem, ⊤ is operational)
---   inf_isOperationalAddSubgroup      (theorem, ⊓ of operational is operational)
---   OperationalSubgroup               (structure, H : AddSubgroup G, proof : IsOperational...)
---   instInfOperationalSubgroup        (instance, OperationalSubgroup closed under ⊓)
---   instTopOperationalSubgroup        (instance, ⊤ as OperationalSubgroup)
---   instBotOperationalSubgroup        (instance, ⊥ as OperationalSubgroup)
+--   IsOperationalAddSubgroup                 (def, ∀ x ∈ H, IsOperational x)
+--   bot_isOperationalAddSubgroup             (theorem, ⊥ is always operational)
+--   top_isOperationalAddSubgroup             (theorem, ⊤ is operational if all-operational)
+--   inf_isOperationalAddSubgroup             (theorem, one-sided: H operational → H ⊓ K operational)
+--   inf_isOperationalAddSubgroup_bilateral   (theorem, bilateral intersection corollary)
+--   int_bot_isOperationalAddSubgroup         (theorem, ℤ: ⊥ is operational)
+--   int_top_isOperationalAddSubgroup         (theorem, ℤ: ⊤ is operational)
+--   int_inf_top_isOperationalAddSubgroup     (theorem, ℤ: ⊤ ⊓ K is operational)
+--
+-- Note: Finding A6 — OperationalSubgroup as bundled structure was omitted (predicate suffices).
+-- The three instances (instInfOperationalSubgroup, instTopOperationalSubgroup,
+-- instBotOperationalSubgroup) listed in earlier drafts were never implemented.
+-- The predicate-based design (IsOperationalAddSubgroup) is the final form.
 --
 -- ModeBExample.lean (9):
 --   neg_isModeBOp                              (theorem, Mode B for negation)
@@ -123,7 +134,7 @@
 --   int_image_isOperationalAddSubgroup         (theorem, concrete ℤ image)
 --   int_to_zmod_ker_isOperationalAddSubgroup   (theorem, concrete ℤ→ZMod kernel)
 --
--- ### v0.3.0 (Stages 1-4 complete; 24 new objects across 4 files)
+-- ### v0.3.0 (Stages 1-5 complete; 17 named objects across 4 files)
 --
 -- MulGroup.lean (1):
 --   OperationalGroup                       (class, extends Group G)
@@ -440,7 +451,7 @@
 -- + 5 anonymous examples demonstrating ℚˣ as OperationalGroup.
 -- Classical.choice appears in ℚ instances (logical, Finding A14), in
 -- inv_isModeAOp_field (import-context, Finding A15), and in
--- OperationalField.toOperationalGroupUnits (import-context, Finding A15 pattern).
+-- OperationalField.toOperationalGroupUnits (proof-structural, Finding A15/A16).
 -- v0.4.0 Stages 1-5: no sorry, no admit.
 -- v0.4.0 adds 9 new public objects:
 --   zsmul_isOperational (Stage 1, axiom profile []).
@@ -452,6 +463,7 @@
 --   smul_isModeAOp (Stage 5, axiom profile []).
 -- Total public objects: 64 (55 v0.1.0-v0.3.0 + 9 v0.4.0 Stages 1+3+4+5).
 -- Stage 2 reconnaissance produced no new public objects (Finding A16 is documentation only).
+-- v1.0.0: no new public objects — documentation polish only. v1.0.0 ≅ v0.4.0 mathematically.
 
 import VRCycle.Algebra.AddGroup
 import VRCycle.Algebra.Instances

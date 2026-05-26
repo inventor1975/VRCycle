@@ -1,7 +1,9 @@
 -- VRCycle: Algebra/AddGroup.lean
 -- Operational Algebra v0.1.0 — Stage 1: OperationalAddGroup typeclass.
+-- v1.0.0: documentation polish only; no new Lean content.
 --
 -- STAGE: 1 (of 7). SOURCE: PLAN.md Stage 1; CLAUDE.md §What is being built.
+-- VERSION: v1.0.0 (stable release). Mathematical content from v0.1.0 Stage 1.
 --
 -- ## Position statement
 -- This file introduces the VR operational layer on top of mathlib's additive group
@@ -12,8 +14,8 @@
 -- This is the algebraic analogue of the predicate-wrapping apparatus established
 -- in VR-Audit (IsComputableReal on ℝ) and meta-formalised in VR-Apparatus
 -- (PredicateOperationality). The apparatus framework is REUSED here — we do not
--- create a parallel apparatus for algebra. Stage 3 will register
--- OperationalAddGroup as an instance of PredicateOperationality.
+-- create a parallel apparatus for algebra. Stage 3 registered
+-- OperationalAddGroup as an instance of PredicateOperationality (ModeA.lean §1).
 --
 -- ## Finding A0 — Recognition discipline applied
 --
@@ -26,8 +28,8 @@
 --   OperationalGroup (multiplicative) has no instance in v0.1.0 scope.
 --   → Preemptive abstraction without users. Removed.
 --
--- Multiplicative operational groups are deferred to v0.2.0 or a future cycle
--- when actual multiplicative content (e.g., matrix groups, free groups) arrives.
+-- Multiplicative operational groups were deferred to v0.3.0, when field unit groups
+-- provided the natural instance. See Finding A12 and MulGroup.lean.
 -- This removal follows the principle: recognise when a planned structure is
 -- unnecessary, omit rather than duplicate or speculate.
 --
@@ -74,7 +76,7 @@
 -- An operational additive group element is one satisfying IsOperational : G → Prop,
 -- provided by each typeclass INSTANCE. The typeclass itself is generic.
 --
--- For the v0.1.0 instances (ℤ, ZMod n), IsOperational will be fun _ => True:
+-- For the v0.1.0 instances (ℤ, ZMod n), IsOperational is fun _ => True:
 -- every element is trivially operational via standard representations.
 --
 -- This is intentional: it demonstrates the apparatus collapses gracefully when
@@ -134,8 +136,8 @@ This is an instance of the VR-Apparatus predicate-wrapping apparatus:
   Formal register      = G  (the full classical additive group, mathlib's `AddGroup G`)
   Operational register = { g : G // IsOperational g }  (operational sub-collection)
 
-Stage 3 will register OperationalAddGroup as an instance of `PredicateOperationality`
-(VRCycle.Apparatus.Wrapping), formalising this connection explicitly.
+Stage 3 registered OperationalAddGroup as an instance of `PredicateOperationality`
+(VRCycle.Apparatus.Wrapping) via `instPredOpAddGroup` in ModeA.lean §1.
 
 ## Concrete instances (v0.1.0)
 
@@ -159,8 +161,9 @@ so the trivial witness suffices.
 
 ## Note on multiplicative groups
 
-`OperationalGroup` (multiplicative analogue) is deferred to v0.2.0.
-See Finding A0 in this file's module doc-comment.
+`OperationalGroup` (multiplicative analogue) was initially deferred (Finding A0, v0.1.0).
+It was subsequently introduced in v0.3.0 Stage 1 (MulGroup.lean) when field unit groups
+provided the natural multiplicative instance. See Finding A12 (recognition discipline reversal).
 
 ## Axiom profile: [] -/
 class OperationalAddGroup (G : Type*) extends AddGroup G where

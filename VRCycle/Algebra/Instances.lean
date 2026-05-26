@@ -1,15 +1,19 @@
 -- VRCycle: Algebra/Instances.lean
 -- Operational Algebra v0.1.0 — Stages 2 and 4: concrete OperationalAddGroup instances.
 -- Operational Algebra v0.2.0 — Stage 3: ℤ and ZMod n as OperationalRing instances.
+--                               Stage 4: ZMod n as OperationalRing (continued).
 -- Operational Algebra v0.3.0 — Stage 3: ℚ as OperationalField instance.
+--                               Stage 5: ℚˣ examples (anonymous; Finding A12 concrete).
 -- Operational Algebra v0.4.0 — Stage 4: ℤ and ℚ as OperationalModule instances.
+-- v1.0.0: documentation polish only; no new Lean content.
 --
--- STAGE: 2, 4 (v0.1.0); 3, 4 (v0.2.0); 3 (v0.3.0); 4 (v0.4.0). SOURCE: PLAN.md.
+-- STAGE: 2, 4 (v0.1.0); 3, 4 (v0.2.0); 3, 5 (v0.3.0); 4 (v0.4.0). SOURCE: PLAN.md.
+-- VERSION: v1.0.0 (stable release). Mathematical content accumulates from v0.1.0–v0.4.0.
 --
 -- ## Position statement
 -- This file provides concrete instances of `OperationalAddGroup` (defined in
--- VRCycle.Algebra.AddGroup) for the two planned v0.1.0 types: ℤ (Stage 2)
--- and ZMod n (Stage 4, added in that stage).
+-- VRCycle.Algebra.AddGroup) for the initial v0.1.0 types: ℤ (Stage 2)
+-- and ZMod n (Stage 4). Later stages added ℤ-Ring, ℚ-Field, ℚˣ-MulGroup, and ℤ-Module.
 --
 -- ## Stage 2 content: ℤ as OperationalAddGroup
 --
@@ -675,7 +679,8 @@ example : OperationalGroup.IsOperational
 
 **Apparatus connection**: `instPredOpAddGroup` (ModeA.lean v0.1.0 Stage 3) already provides
 the `PredicateOperationality` instance for `OperationalAddGroup ℤ`. No new apparatus
-infrastructure needed at the module level. Stage 5 will confirm this (fourth Finding A3).
+infrastructure needed at the module level. Stage 5 (ModeA.lean §11) confirms this
+as the fourth instance of Finding A3 (apparatus reuse; documented as Finding A17).
 
 ## Axiom profile: [propext]
 (ℤ ceiling from underlying Int.instAddCommGroup; module instantiation does not escalate) -/

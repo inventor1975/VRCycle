@@ -1,7 +1,9 @@
 -- VRCycle: Algebra/Subgroups.lean
 -- Operational Algebra v0.1.0 — Stage 5: Operational subgroups.
+-- v1.0.0: documentation polish only; no new Lean content.
 --
 -- STAGE: 5 (of 7). SOURCE: PLAN.md Stage 5.
+-- VERSION: v1.0.0 (stable release). Mathematical content from v0.1.0 Stage 5.
 --
 -- ## Position statement
 -- This file introduces the VR operational layer on `AddSubgroup G`: an additive
