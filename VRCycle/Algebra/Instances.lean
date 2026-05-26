@@ -37,6 +37,14 @@
 --   Operational register = { n : ℤ // True }  ≅  ℤ  (all integers)
 --   Operational layer    = vacuous (collapses to whole group)
 --
+-- **Clarification on register language (added 2026-05-26):**
+-- The two-register language describes modes of description, not separate
+-- ontological levels. All descriptions are operational acts; the registers
+-- distinguish whether the described referent has an operational correlate
+-- (operational register) or is a formal term referring to a non-operational
+-- concept such as actual infinity (formal register). This clarification
+-- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+--
 -- **Axiom profile for ℤ instance:**
 -- The instance delegates its AddGroup structure to `Int.instAddCommGroup`.
 -- That instance depends on `[propext]` (from mathlib's ℤ arithmetic

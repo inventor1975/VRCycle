@@ -58,6 +58,14 @@ following rules:
   (i)  For ψ ∈ L₀ (an ontological formula): π(ψ) = ψ.
        (π is identity on the ontological register.)
 
+**Clarification on register language (added 2026-05-26):**
+The two-register language describes modes of description, not separate
+ontological levels. All descriptions are operational acts; the registers
+distinguish whether the described referent has an operational correlate
+(operational register) or is a formal term referring to a non-operational
+concept such as actual infinity (formal register). This clarification
+aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+
   (ii) For a formal term ⌜τ⌝ with description τ:
        π(⌜τ⌝) = δ_τ, where δ_τ is the defining predicate of τ
        in the operational register — the characterisation of the

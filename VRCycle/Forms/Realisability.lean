@@ -55,6 +55,14 @@ Equivalently: ⌜τ⌝ is operationally realisable if τ (without the
 formal-register marker) is an admissible description in VR-Sets
 satisfying the closure principle.»
 
+**Clarification on register language (added 2026-05-26):**
+The two-register language describes modes of description, not separate
+ontological levels. All descriptions are operational acts; the registers
+distinguish whether the described referent has an operational correlate
+(operational register) or is a formal term referring to a non-operational
+concept such as actual infinity (formal register). This clarification
+aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+
 §II.7 continues (verbatim): «The distinction «realisable / non-realisable»
 is a property of the formal term as a pair (description, register). It only
 tells whether the formal term has an ontological correlate. The formal term

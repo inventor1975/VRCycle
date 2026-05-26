@@ -204,6 +204,14 @@ This is an instance of the VR-Apparatus predicate-wrapping apparatus:
   Formal register      = G  (the full classical group, mathlib's `Group G`)
   Operational register = { g : G // IsOperational g }  (operational sub-collection)
 
+**Clarification on register language (added 2026-05-26):**
+The two-register language describes modes of description, not separate
+ontological levels. All descriptions are operational acts; the registers
+distinguish whether the described referent has an operational correlate
+(operational register) or is a formal term referring to a non-operational
+concept such as actual infinity (formal register). This clarification
+aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+
 `OperationalGroup` is registered as an instance of `PredicateOperationality`
 (VRCycle.Apparatus.Wrapping) via `MulGroup.instPredOpMulGroup` in ModeA.lean §8
 (v0.3.0 Stage 4), confirming Finding A3 extends to multiplicative groups

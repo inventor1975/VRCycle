@@ -77,6 +77,14 @@
 -- "f is Mode A" means f stays in the operational register. Equivalently,
 -- f lifts to a function on the operational subtype { x : T // P x }.
 -- Lifting is Subtype.mk — definitionally trivial (Finding A from VR-Apparatus).
+--
+-- **Clarification on register language (added 2026-05-26):**
+-- The two-register language describes modes of description, not separate
+-- ontological levels. All descriptions are operational acts; the registers
+-- distinguish whether the described referent has an operational correlate
+-- (operational register) or is a formal term referring to a non-operational
+-- concept such as actual infinity (formal register). This clarification
+-- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
 
 import VRCycle.Apparatus.ModeA
 import VRCycle.Algebra.AddGroup

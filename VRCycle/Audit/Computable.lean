@@ -17,6 +17,14 @@
 --   Operational register = `{x : ℝ | IsComputableReal x}` (computable reals,
 --                           carried by the proof term of `IsComputableReal x`).
 --
+-- **Clarification on register language (added 2026-05-26):**
+-- The two-register language describes modes of description, not separate
+-- ontological levels. All descriptions are operational acts; the registers
+-- distinguish whether the described referent has an operational correlate
+-- (operational register) or is a formal term referring to a non-operational
+-- concept such as actual infinity (formal register). This clarification
+-- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+--
 -- ## Literature reference
 -- Following Pour-El & Richards 1989 §1.1 and Bishop-Bridges 1985 §2.2:
 -- a real number x is computable if there exists a sequence alg : ℕ → ℚ

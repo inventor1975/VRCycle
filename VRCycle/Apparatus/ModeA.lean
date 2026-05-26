@@ -7,6 +7,14 @@
 -- Formalises Finding A (Mode A, sufficient condition): if an operation stays
 -- within VR's operational register, it lifts freely to the operational type.
 --
+-- **Clarification on register language (added 2026-05-26):**
+-- The two-register language describes modes of description, not separate
+-- ontological levels. All descriptions are operational acts; the registers
+-- distinguish whether the described referent has an operational correlate
+-- (operational register) or is a formal term referring to a non-operational
+-- concept such as actual infinity (formal register). This clarification
+-- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+--
 -- Two apparatus modes, two parallel theorems:
 --
 --   (A) Predicate-wrapping: f : T → T preserves P iff it lifts to {x : T // P x}.

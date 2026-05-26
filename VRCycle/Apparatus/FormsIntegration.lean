@@ -1,6 +1,14 @@
 -- VR-Apparatus: FormsIntegration (DOI TBD — v1.0.0)
 -- Stage 1: VR-Forms integration — apparatus re-reading of the two-register system.
 --
+-- **Clarification on register language (added 2026-05-26):**
+-- The two-register language describes modes of description, not separate
+-- ontological levels. All descriptions are operational acts; the registers
+-- distinguish whether the described referent has an operational correlate
+-- (operational register) or is a formal term referring to a non-operational
+-- concept such as actual infinity (formal register). This clarification
+-- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+--
 -- STAGE: 1 (of 6). ORDER: 4 → 6 → 2 → 3 → 5 → 1 (final stage). SOURCE: CLAUDE.md §v1.0.0 piece (1).
 --
 -- ## Filename note

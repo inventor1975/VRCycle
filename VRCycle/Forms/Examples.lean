@@ -2,6 +2,14 @@
 -- Part V §V.2–§V.4, Part VI §VI.1, Part VII §VII.2.
 -- Applications of the two-register apparatus.
 --
+-- **Clarification on register language (added 2026-05-26):**
+-- The two-register language describes modes of description, not separate
+-- ontological levels. All descriptions are operational acts; the registers
+-- distinguish whether the described referent has an operational correlate
+-- (operational register) or is a formal term referring to a non-operational
+-- concept such as actual infinity (formal register). This clarification
+-- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+--
 -- Stage 5: non-realisable examples (Russell, Vitali, classical ℝ, ℘(ℕ))
 --          and mixed formulas (§VII.2) demonstrating cross-register coherence.
 -- Source: Part V §V.2–§V.4; Part VI §VI.1; Part VII §VII.2.

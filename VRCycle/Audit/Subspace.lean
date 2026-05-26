@@ -24,6 +24,14 @@
 -- Formal register   = mathlib's `ClosedSubmodule ℝ E` (unrestricted).
 -- Operational register = `OperationalLocatedSubspace E` (three added fields).
 --
+-- **Clarification on register language (added 2026-05-26):**
+-- The two-register language describes modes of description, not separate
+-- ontological levels. All descriptions are operational acts; the registers
+-- distinguish whether the described referent has an operational correlate
+-- (operational register) or is a formal term referring to a non-operational
+-- concept such as actual infinity (formal register). This clarification
+-- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+--
 -- ## Why this formulation of locatedness (Methodological Observation 3)
 -- The locatedness predicate `dist_computable` is formulated only over points
 -- of `OperationalHilbertSpace.denseSeq`, not over arbitrary `x : E`. This is

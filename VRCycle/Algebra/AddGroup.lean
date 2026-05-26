@@ -136,6 +136,14 @@ This is an instance of the VR-Apparatus predicate-wrapping apparatus:
   Formal register      = G  (the full classical additive group, mathlib's `AddGroup G`)
   Operational register = { g : G // IsOperational g }  (operational sub-collection)
 
+**Clarification on register language (added 2026-05-26):**
+The two-register language describes modes of description, not separate
+ontological levels. All descriptions are operational acts; the registers
+distinguish whether the described referent has an operational correlate
+(operational register) or is a formal term referring to a non-operational
+concept such as actual infinity (formal register). This clarification
+aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+
 Stage 3 registered OperationalAddGroup as an instance of `PredicateOperationality`
 (VRCycle.Apparatus.Wrapping) via `instPredOpAddGroup` in ModeA.lean §1.
 

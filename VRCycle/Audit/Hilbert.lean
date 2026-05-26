@@ -22,6 +22,14 @@
 -- Formal register   = mathlib's `InnerProductSpace ℝ E` (unrestricted).
 -- Operational register = `OperationalHilbertSpace E` (three added fields).
 --
+-- **Clarification on register language (added 2026-05-26):**
+-- The two-register language describes modes of description, not separate
+-- ontological levels. All descriptions are operational acts; the registers
+-- distinguish whether the described referent has an operational correlate
+-- (operational register) or is a formal term referring to a non-operational
+-- concept such as actual infinity (formal register). This clarification
+-- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+--
 -- ## Why exactly three fields
 -- Three fields are the minimum sufficient for Stage 5 (Hahn-Banach via Riesz):
 --

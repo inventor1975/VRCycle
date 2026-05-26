@@ -19,6 +19,14 @@
 -- formal register but leave the operational register empty: there would be
 -- no computable witness for g(denseSeq n).
 --
+-- **Clarification on register language (added 2026-05-26):**
+-- The two-register language describes modes of description, not separate
+-- ontological levels. All descriptions are operational acts; the registers
+-- distinguish whether the described referent has an operational correlate
+-- (operational register) or is a formal term referring to a non-operational
+-- concept such as actual infinity (formal register). This clarification
+-- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+--
 -- Path B (Riesz representation) instead:
 --   (1) Represents f as an inner product via Riesz: f(v) = ⟪ξ, v⟫_M.
 --   (2) Extends to g(w) := ⟪ξ, w⟫_E for all w : E — a concrete map.

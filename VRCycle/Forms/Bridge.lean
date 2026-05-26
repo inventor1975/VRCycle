@@ -27,6 +27,14 @@
 -- objects in VR-Sets Lean (the operational register), bridge theorems make
 -- the two-register structure explicit in Lean.
 --
+-- **Clarification on register language (added 2026-05-26):**
+-- The two-register language describes modes of description, not separate
+-- ontological levels. All descriptions are operational acts; the registers
+-- distinguish whether the described referent has an operational correlate
+-- (operational register) or is a formal term referring to a non-operational
+-- concept such as actual infinity (formal register). This clarification
+-- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+--
 -- ## Cross-cycle dependency chain
 --
 -- `bridge_AFA` uses `AFA_Refuted` from VR-Sets Stage 10 (Modes.lean).

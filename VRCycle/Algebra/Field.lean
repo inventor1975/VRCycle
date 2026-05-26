@@ -279,7 +279,15 @@ class OperationalField (K : Type*) extends Field K where
   - A predicate encoding an explicit construction witness (v0.4.0+).
 
   The predicate need not be decidable. Classical mathematics applies within
-  the formal register K; operationality is a layer on top. -/
+  the formal register K; operationality is a layer on top.
+
+  **Clarification on register language (added 2026-05-26):**
+  The two-register language describes modes of description, not separate
+  ontological levels. All descriptions are operational acts; the registers
+  distinguish whether the described referent has an operational correlate
+  (operational register) or is a formal term referring to a non-operational
+  concept such as actual infinity (formal register). This clarification
+  aligns with the expanded operational position recorded in VR-UNIQUENESS.md. -/
   IsOperational : K → Prop
   /-- The additive identity `0 : K` is operational. -/
   zero_isOperational : IsOperational 0

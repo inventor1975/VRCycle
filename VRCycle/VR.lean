@@ -20,6 +20,15 @@ namespace VR
 -- Preprint, A1: «F is identified with ∅ at the logical level».
 -- This is a semantic identification of two points: F in VRBool and void in VRObj —
 -- the same base point viewed in two registers (logical and ontological).
+--
+-- **Clarification on register language (added 2026-05-26):**
+-- The two-register language describes modes of description, not separate
+-- ontological levels. All descriptions are operational acts; the registers
+-- distinguish whether the described referent has an operational correlate
+-- (operational register) or is a formal term referring to a non-operational
+-- concept such as actual infinity (formal register). This clarification
+-- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
+--
 -- In this formalisation the identification is not used by any VR theorem.
 -- If a future work (VR-Sets, VR-Forms) requires a formal bridge, it will be
 -- introduced at that point.
