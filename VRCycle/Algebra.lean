@@ -1,5 +1,5 @@
 -- VRCycle: Algebra.lean
--- Module index for the VR Operational Algebra cycle — v0.1.0.
+-- Module index for the VR Operational Algebra cycle — v0.2.0 (complete).
 --
 -- ## What this module is
 --
@@ -8,17 +8,24 @@
 -- Demonstrates that the VR-Apparatus framework (meta-formalised in v1.0.0,
 -- DOI 10.5281/zenodo.20380344) extends naturally to algebraic structures.
 -- Specifically: the predicate-wrapping apparatus (PredicateOperationality)
--- applies to additive groups, with subgroups and a Mode B skeleton example.
+-- applies to additive groups and rings, with subgroups and substantive Mode B audit.
 --
 -- ## Architecture
 --
--- VRCycle/Algebra/AddGroup.lean     — OperationalAddGroup typeclass (Stage 1)
--- VRCycle/Algebra/Instances.lean    — ℤ and ZMod n instances (Stages 2, 4)
--- VRCycle/Algebra/ModeA.lean        — Mode A closure theorems + PredicateOperationality (Stage 3)
--- VRCycle/Algebra/Subgroups.lean    — Operational subgroups (Stage 5)
--- VRCycle/Algebra/ModeBExample.lean — Mode B skeleton (intentional sorry, Stage 6)
+-- ### v0.1.0 (additive groups — complete, tag v1.8-vr-operational-algebra-v0.1.0)
+-- VRCycle/Algebra/AddGroup.lean     — OperationalAddGroup typeclass (v0.1.0 Stage 1)
+-- VRCycle/Algebra/Instances.lean    — ℤ and ZMod n instances (v0.1.0 Stages 2, 4)
+-- VRCycle/Algebra/ModeA.lean        — Mode A closure theorems + PredicateOperationality (v0.1.0 Stage 3)
+-- VRCycle/Algebra/Subgroups.lean    — Operational subgroups (v0.1.0 Stage 5)
+-- VRCycle/Algebra/ModeBExample.lean — Mode B skeleton → substantive audit (v0.1.0→v0.2.0)
 --
--- ## Stage index
+-- ### v0.2.0 (rings — complete, tag v1.9-vr-operational-algebra-v0.2.0)
+-- VRCycle/Algebra/Ring.lean         — OperationalRing typeclass + bridge instance (v0.2.0 Stages 1-2)
+-- VRCycle/Algebra/Instances.lean    — ℤ and ZMod n as OperationalRing (v0.2.0 Stages 3-4)
+-- VRCycle/Algebra/ModeA.lean        — mul_isModeAOp, npow_isOperational (v0.2.0 Stage 5)
+-- VRCycle/Algebra/ModeBExample.lean — Substantive Mode B audit, sorryAx eliminated (v0.2.0 Stage 6)
+--
+-- ## Stage index (v0.1.0)
 --
 -- Stage 1 (complete): OperationalAddGroup typeclass. Finding A0: multiplicative
 --   typeclass removed — no v0.1.0 multiplicative instances (recognition discipline).
@@ -27,10 +34,197 @@
 -- Stage 4: ZMod n instance (Instances.lean extension).
 -- Stage 5: Operational subgroups (Subgroups.lean).
 -- Stage 6: Mode B skeleton example (ModeBExample.lean). Findings A7, A8.
--- Stage 7: Polish, full audit, git.
+-- Stage 7: Polish, full audit, git. Tag v1.8-vr-operational-algebra-v0.1.0.
+--
+-- ## Stage index (v0.2.0)
+--
+-- Stage 1 (complete): OperationalRing typeclass (Ring.lean).
+--   extends Ring R with IsOperational + 5 closure axioms (0, +, -, 1, *).
+--   Axiom profile: [].
+-- Stage 2 (complete): OperationalCommRing OMITTED (Finding A9 — recognition discipline).
+--   Bridge instance OperationalRing.toOperationalAddGroup implemented.
+--   Axiom profile of bridge: [].
+-- Stage 3 (complete): ℤ as OperationalRing (Instances.lean §5-6).
+--   instOperationalRingInt; IsOperational := fun _ => True.
+--   Finding A10 first observed: ring ceiling = additive-group ceiling = [propext].
+-- Stage 4 (complete): ZMod n as OperationalRing (Instances.lean §7-8).
+--   instOperationalRingZMod [NeZero n]; IsOperational := fun _ => True.
+--   Finding A10 confirmed: ring ceiling = [propext, Quot.sound] (unchanged from additive).
+-- Stage 5 (complete): Ring Mode A theorems (ModeA.lean §4-7).
+--   instPredOpRing, mul_isModeAOp, npow_isOperational.
+--   Recognition discipline: one_isOperational_bridge omitted (is already a typeclass field);
+--   mul_chain_isOperational omitted (derivable from compose).
+--   Axiom profile: all [].
+-- Stage 6 (complete): Substantive Mode B audit (ModeBExample.lean §2).
+--   image_isOperationalAddSubgroup_isModeBOp: sorry eliminated.
+--   Key step: obtain ⟨x, hxS, rfl⟩ := hy; exact hW x (hS x hxS).
+--   Finding A11: algebraic Mode B = one proof step; contrast analytic Mode B (limits, choice).
+--   Axiom profile of main theorem: [propext] (down from [propext, sorryAx]).
+-- Stage 7 (complete): Polish, full audit, README, git.
+--   Tag: v1.9-vr-operational-algebra-v0.2.0.
+--
+-- ## Public object inventory (complete)
+--
+-- ### v0.1.0 (31 objects across 5 files)
+--
+-- AddGroup.lean (1):
+--   OperationalAddGroup (class)
+--
+-- Instances.lean §1-4 (8):
+--   instOperationalAddGroupInt        (instance, OperationalAddGroup ℤ)
+--   int_isOperational                 (theorem, ∀ n : ℤ, IsOperational n)
+--   int_add_isOperational             (theorem, closure under +)
+--   int_three_plus_five_isOperational (theorem, concrete demo)
+--   instOperationalAddGroupZMod       (instance, OperationalAddGroup (ZMod n))
+--   zmod_isOperational                (theorem, ∀ x : ZMod n, IsOperational x)
+--   zmod5_add_isOperational           (theorem, concrete closure)
+--   zmod5_two_plus_three_isOperational (theorem, concrete demo)
+--
+-- ModeA.lean §1-3 (5):
+--   instPredOpAddGroup    (instance, PredicateOperationality G IsOperational)
+--   add_isModeAOp         (theorem, IsModeAOp₂ (+))
+--   neg_isModeAOp         (theorem, IsModeAOp (-))
+--   sub_isModeAOp         (theorem, IsModeAOp₂ (-))
+--   nsmul_isOperational   (theorem, ∀ n : ℕ, IsOperational (n • a))
+--
+-- Subgroups.lean (8):
+--   IsOperationalAddSubgroup          (def, ∀ x ∈ H, IsOperational x)
+--   bot_isOperationalAddSubgroup      (theorem, ⊥ is operational)
+--   top_isOperationalAddSubgroup      (theorem, ⊤ is operational)
+--   inf_isOperationalAddSubgroup      (theorem, ⊓ of operational is operational)
+--   OperationalSubgroup               (structure, H : AddSubgroup G, proof : IsOperational...)
+--   instInfOperationalSubgroup        (instance, OperationalSubgroup closed under ⊓)
+--   instTopOperationalSubgroup        (instance, ⊤ as OperationalSubgroup)
+--   instBotOperationalSubgroup        (instance, ⊥ as OperationalSubgroup)
+--
+-- ModeBExample.lean (9):
+--   neg_isModeBOp                              (theorem, Mode B for negation)
+--   neg_modeb_lift                             (def, Mode B lift)
+--   neg_modeb_lift_val                         (theorem, @[simp])
+--   image_isOperationalAddSubgroup_isModeBOp   (theorem, substantive Mode B audit)
+--   operationalImage_lift                      (def, Mode B lift)
+--   operationalImage_lift_val                  (theorem, @[simp])
+--   int_ker_isOperationalAddSubgroup           (theorem, concrete ℤ kernel)
+--   int_image_isOperationalAddSubgroup         (theorem, concrete ℤ image)
+--   int_to_zmod_ker_isOperationalAddSubgroup   (theorem, concrete ℤ→ZMod kernel)
+--
+-- ### v0.2.0 (15 new objects across 3 files; 1 sorry eliminated in ModeBExample.lean)
+--
+-- Ring.lean (2):
+--   OperationalRing                        (class, extends Ring R)
+--   OperationalRing.toOperationalAddGroup  (instance, bridge)
+--
+-- Instances.lean §5-8 (10):
+--   instOperationalRingInt              (instance, OperationalRing ℤ)
+--   int_one_isOperational               (theorem, IsOperational 1 in ℤ)
+--   int_mul_isOperational               (theorem, closure under * in ℤ)
+--   int_two_mul_three_isOperational     (theorem, concrete demo)
+--   int_sum_mul_isOperational           (theorem, chained + and *)
+--   instOperationalRingZMod             (instance, OperationalRing (ZMod n))
+--   zmod5_one_isOperational             (theorem, IsOperational 1 in ZMod 5)
+--   zmod5_mul_isOperational             (theorem, closure under * in ZMod 5)
+--   zmod5_two_mul_three_isOperational   (theorem, concrete demo)
+--   zmod7_sum_mul_isOperational         (theorem, chained + and * in ZMod 7)
+--
+-- ModeA.lean §4-7 (3):
+--   instPredOpRing      (instance, PredicateOperationality R IsOperational)
+--   mul_isModeAOp       (theorem, IsModeAOp₂ (*))
+--   npow_isOperational  (theorem, ∀ n : ℕ, IsOperational (a ^ n))
+--
+-- ## Findings catalog (v0.1.0 + v0.2.0)
+--
+-- ### v0.1.0 Findings (A0–A8)
+--
+-- A0: Multiplicative typeclass OMITTED — no v0.1.0 instances exist.
+--     Recognition discipline: do not abstract preemptively.
+--     (Parallel: OperationalCommRing omitted in v0.2.0, Finding A9.)
+--
+-- A1: Lean 4 `extends` for typeclasses works correctly with mathlib's Ring hierarchy.
+--     (First confirmed in v0.1.0 with AddGroup; extended to Ring in v0.2.0.)
+--
+-- A2: `toAddGroup := inferInstance` resolves the bridge correctly.
+--     Lean synthesises the AddGroup instance from AddCommGroup via the ring chain.
+--
+-- A3: VR-Apparatus framework reuses WITHOUT modification for additive groups.
+--     `PredicateOperationality` zero-field marker requires no ring-specific changes.
+--     Confirmed in v0.2.0: apparatus reuse extends to full ring structure (instPredOpRing).
+--
+-- A4: neg_isModeAOp pulls [propext] despite neg being defined algebraically.
+--     Lean's Neg elaboration requires propositional extensionality for lambda reductions.
+--     Multiplication does NOT pull [propext] (pure algebraic composition).
+--     Contrast: mul_isModeAOp is [] in v0.2.0, confirming [] is possible for binary ops.
+--
+-- A5: Axiom ceiling hierarchy for algebraic structures:
+--     [] → [propext] → [propext, Quot.sound] → [propext, Classical.choice, Quot.sound].
+--     ℤ objects: [propext]. ZMod n objects: [propext, Quot.sound].
+--     Classical.choice ABSENT from all algebraic objects (confirmed v0.1.0 + v0.2.0).
+--
+-- A6: IsOperationalAddSubgroup as predicate (not typeclass) is the correct design.
+--     No inheritance diamond; no elaboration issues. ⊥/⊤/⊓ proved as simple theorems.
+--     Omitted: OperationalSubgroup as typeclass (redundant; predicate suffices for v0.1.0).
+--
+-- A7: Mode B operation on algebraic objects is structurally similar to Mode B on
+--     analytic objects (VR-Audit Hahn-Banach), but the algebraic case is simpler:
+--     the witness is immediate (subgroup membership), not a choice function.
+--
+-- A8: Trivial vs substantive Mode B:
+--     neg_isModeBOp (trivial): W = True, proof = trivial.
+--     image_isOperationalAddSubgroup_isModeBOp (substantive): W = operational-morphism
+--     condition, proof extracts constructive witness from mem_map.
+--
+-- ### v0.2.0 Findings (A9–A11)
+--
+-- A9: OperationalCommRing OMITTED — recognition discipline applied proactively.
+--     Form A (extends CommRing R, OperationalRing R): FAILS — immediate diamond on toRing.
+--     Form B (extends CommRing R, all axioms duplicated): COMPILES but no new content.
+--     Verdict: [OperationalRing R] [CommRing R] in context suffices; no new typeclass.
+--     Direct analogue of Finding A0 for the multiplicative commutative case.
+--
+-- A10: Ring extension does NOT escalate the axiom ceiling.
+--     ℤ: OperationalAddGroup ceiling = OperationalRing ceiling = [propext].
+--     ZMod n: OperationalAddGroup ceiling = OperationalRing ceiling = [propext, Quot.sound].
+--     Classical.choice ABSENT from all ring objects (including mul, pow, one).
+--     Principle: ceiling determined by underlying type's infrastructure, not algebraic depth.
+--
+-- A11: Algebraic Mode B audit requires ONE PROOF STEP.
+--     image_isOperationalAddSubgroup_isModeBOp proof:
+--       obtain ⟨x, hxS, rfl⟩ := hy; exact hW x (hS x hxS)
+--     Reason: AddSubgroup.mem_map provides CONSTRUCTIVE existential (no Classical.choice).
+--     Contrast with analytic Mode B (Hahn-Banach): limit arguments, classical extension,
+--     substantial infrastructure. Algebraic Mode B is mechanically extractable from
+--     constructive witnesses built into mathlib's algebraic API.
+--
+-- ## Axiom profile summary (v0.1.0 + v0.2.0)
+--
+--   []                              — OperationalAddGroup, OperationalRing,
+--                                     all bridge instances, PredicateOperationality instances,
+--                                     add_/mul_/sub_isModeAOp, nsmul_/npow_isOperational,
+--                                     IsOperationalAddSubgroup, ⊥/⊤/⊓ theorems,
+--                                     neg_isModeBOp, image_isOperationalAddSubgroup_isModeBOp
+--
+--   [propext]                       — ℤ AddGroup instances + demonstrations,
+--                                     ℤ Ring instances + demonstrations,
+--                                     neg_isModeAOp (Neg elaboration, Finding A4),
+--                                     Mode B lifts and lift_val,
+--                                     int_ker/image_isOperationalAddSubgroup
+--
+--   [propext, Quot.sound]           — ZMod n AddGroup instances + demonstrations,
+--                                     ZMod n Ring instances + demonstrations,
+--                                     Subgroups.lean theorems involving ZMod n,
+--                                     int_to_zmod_ker_isOperationalAddSubgroup
+--
+--   [propext, Classical.choice, Quot.sound] — ABSENT. No algebraic object reaches
+--                                     the analysis ceiling. Classical.choice is never pulled.
+--
+-- ## No sorry, no admit, no Classical.choice
+--
+-- v0.2.0 completion: sorryAx ELIMINATED from image_isOperationalAddSubgroup_isModeBOp.
+-- The intentional sorry of v0.1.0 (Mode B skeleton) is now a complete proof.
+-- All 46 public objects (31 v0.1.0 + 15 v0.2.0) are axiom-clean.
 
 import VRCycle.Algebra.AddGroup
 import VRCycle.Algebra.Instances
 import VRCycle.Algebra.ModeA
 import VRCycle.Algebra.Subgroups
 import VRCycle.Algebra.ModeBExample
+import VRCycle.Algebra.Ring

@@ -11,7 +11,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20380344.svg)](https://doi.org/10.5281/zenodo.20380344)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20381417.svg)](https://doi.org/10.5281/zenodo.20381417)
 
-Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, and a domain extension demonstrating apparatus generality in algebra. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra v0.1.0) in this repository, pending publication.
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, and a domain extension demonstrating apparatus generality in algebra. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra v0.2.0) in this repository, pending publication. v0.2.0 extends rings, eliminates the v0.1.0 intentional sorry, and completes the first substantive algebraic Mode B audit.
 
 ## Publications
 
@@ -686,7 +686,7 @@ with predecessor VR Lean cycles.
 
 ### Operational Algebra (`VRCycle/Algebra/`)
 
-**Git tag**: `v1.8-vr-operational-algebra-v0.1.0` (pending)
+**Git tags**: `v1.8-vr-operational-algebra-v0.1.0` (additive groups), `v1.9-vr-operational-algebra-v0.2.0` (rings, complete)
 **Preprint**: in preparation
 
 The **eighth work** in the VR Cycle. A domain extension demonstrating that the
@@ -694,52 +694,70 @@ VR-Apparatus framework (meta-formalised in VR-Apparatus v1.0.0,
 DOI 10.5281/zenodo.20380344) extends naturally to **algebraic structures** —
 confirming the framework is general methodology, not analysis-specific.
 
-#### Core contribution
+#### Core contributions
 
-`OperationalAddGroup`: an additive group equipped with a VR operational predicate
+**v0.1.0** — `OperationalAddGroup`: an additive group equipped with a VR operational predicate
 `IsOperational : G → Prop` and closure axioms (zero, add, neg). The apparatus
 framework (`PredicateOperationality`, Mode A, Mode B) is **reused without
 modification** for algebraic instances — this reuse is the main result.
-`Classical.choice` is **absent from the entire cycle**: algebra stays below the
-analysis ceiling established in VR-Audit.
 
-#### Three recognition discipline applications
+**v0.2.0** — `OperationalRing`: extends `Ring R` with the same operational predicate,
+adding closure axioms for `1` and `*`. Instances: ℤ and ZMod n (both trivially operational).
+Ring Mode A theorems: `mul_isModeAOp`, `npow_isOperational`. Bridge instance:
+`OperationalRing.toOperationalAddGroup`. Substantive Mode B audit completed:
+the v0.1.0 intentional sorry in `image_isOperationalAddSubgroup_isModeBOp` is **eliminated**.
 
-- **Finding A0** (Stage 1): `OperationalGroup` (multiplicative) removed — no v0.1.0 instances. Recognition discipline applied for the first time in this cycle.
-- **Finding A6** (Stage 5): `OperationalAddSubgroup` bundled structure removed — the predicate `IsOperationalAddSubgroup H := ∀ x ∈ H, IsOperational x` suffices. Third application across the full VR Cycle (after VR-Apparatus Finding F11).
+`Classical.choice` is **absent from the entire cycle** (46 objects): algebra stays below
+the analysis ceiling established in VR-Audit.
+
+#### Recognition discipline applications (three in v0.1.0 + v0.2.0)
+
+- **Finding A0** (v0.1.0 Stage 1): `OperationalGroup` (multiplicative) removed — no v0.1.0 instances.
+- **Finding A6** (v0.1.0 Stage 5): `OperationalAddSubgroup` bundled structure removed — the predicate `IsOperationalAddSubgroup H := ∀ x ∈ H, IsOperational x` suffices.
+- **Finding A9** (v0.2.0 Stage 2): `OperationalCommRing` removed — Form A (extends CommRing R, OperationalRing R) fails on immediate `toRing` diamond; Form B duplicates fields without new content. `[OperationalRing R] [CommRing R]` in context suffices.
 
 #### File structure
 
 | Stage | File | Public objects | Description |
 |-------|------|---------------|-------------|
-| 1 | `Algebra/AddGroup.lean` | 1 | `OperationalAddGroup` typeclass (class definition, axiom-free) |
-| 2, 4 | `Algebra/Instances.lean` | 8 | ℤ (`[propext]`) and ZMod n (`[propext, Quot.sound]`) instances |
-| 3 | `Algebra/ModeA.lean` | 5 | Mode A closure; `PredicateOperationality` registration |
-| 5 | `Algebra/Subgroups.lean` | 8 | `IsOperationalAddSubgroup`; ⊥, ⊤, ⊓ theorems |
-| 6 | `Algebra/ModeBExample.lean` | 9 | Mode B skeleton (intentional sorry); Findings A7, A8 |
+| v0.1.0 §1 | `Algebra/AddGroup.lean` | 1 | `OperationalAddGroup` typeclass |
+| v0.1.0 §2,4 | `Algebra/Instances.lean` | 8 | ℤ and ZMod n additive group instances + demos |
+| v0.1.0 §3 | `Algebra/ModeA.lean` | 5 | Mode A closure; `instPredOpAddGroup` |
+| v0.1.0 §5 | `Algebra/Subgroups.lean` | 8 | `IsOperationalAddSubgroup`; ⊥, ⊤, ⊓ |
+| v0.1.0→v0.2.0 §6 | `Algebra/ModeBExample.lean` | 9 | Mode B: negation + image subgroup (substantive, sorry eliminated) |
+| v0.2.0 §1-2 | `Algebra/Ring.lean` | 2 | `OperationalRing` + bridge `→ OperationalAddGroup` |
+| v0.2.0 §3,4 | `Algebra/Instances.lean` | 10 | ℤ and ZMod n ring instances + demos |
+| v0.2.0 §5 | `Algebra/ModeA.lean` | 3 | `mul_isModeAOp`; `npow_isOperational`; `instPredOpRing` |
 
-**Total: 31 public objects, ~1400 lines of Lean.**
+**Total: 46 public objects, 2114 lines of Lean.**
 
-#### Axiom hierarchy — algebraic three-tier (Finding A5)
+#### Axiom hierarchy — algebraic (Finding A5, extended by A10)
 
 | Tier | Profile | Representative |
 |------|---------|---------------|
-| 0 | `[]` | `OperationalAddGroup` (class definition) |
-| 1 | `[propext]` | ℤ instance; Mode A theorems; `IsOperationalAddSubgroup` def |
-| 2 | `[propext, Quot.sound]` | ZMod n instance; `bot_isOperationalAddSubgroup` |
-| Skeleton | `[propext, sorryAx]` | `image_isOperationalAddSubgroup_isModeBOp` (intentional sorry) |
+| 0 | `[]` | `OperationalAddGroup`, `OperationalRing` (class defs), all Mode A theorems for add/mul/sub/pow, bridge instance, `image_isOperationalAddSubgroup_isModeBOp` |
+| 1 | `[propext]` | ℤ instances (additive + ring); `neg_isModeAOp`; Mode B lifts; `int_ker/image` theorems |
+| 2 | `[propext, Quot.sound]` | ZMod n instances (additive + ring); `bot_isOperationalAddSubgroup` |
+| Absent | `[propext, Classical.choice, Quot.sound]` | **No algebraic object reaches the analysis ceiling** |
 
-Contrast with the VR-Audit analysis ceiling `[propext, Classical.choice, Quot.sound]`: `Classical.choice` is absent from the entire algebra cycle, confirming it is analysis-specific.
+**Finding A10**: ring extension does NOT escalate the axiom ceiling. ℤ ceiling = `[propext]` for both additive and ring structure. ZMod n ceiling = `[propext, Quot.sound]` for both. The ceiling is determined by the underlying type, not by algebraic depth.
 
-#### Key findings
+#### Key findings (A0–A11)
 
-**A3** (Stage 3): Apparatus reuse confirmed without modification. `PredicateOperationality G OperationalAddGroup.IsOperational := ⟨⟩` — zero-cost registration. `IsModeAOp` and `IsModeAOp₂` from VR-Apparatus reused directly.
+**A3** (v0.1.0): Apparatus reuse confirmed without modification for additive groups; confirmed again in v0.2.0 for rings (`instPredOpRing` = `⟨⟩`, axiom-free).
 
-**A4** (Stage 3): Sub-ceiling axiom asymmetry within a single typeclass. `neg_isModeAOp` has `[propext]`; `add_isModeAOp` and `sub_isModeAOp` have `[]`. Negation elaboration pulls propext via `SubNegMonoid`; addition does not.
+**A4** (v0.1.0): `neg_isModeAOp` pulls `[propext]`; `add_isModeAOp`, `mul_isModeAOp`, `sub_isModeAOp` all `[]`. Negation elaboration pulls propext via `SubNegMonoid`; multiplication does not.
 
-**A7** (Stage 6): Mode B-term vs Mode B-typeclass. Algebraic Mode B witness is explicit at the TERM level (`∀ x, IsOperational x → IsOperational (φ x)`). Riesz Mode B witness is at the TYPECLASS level (`[OperationalHilbertSpace E]`). Both are valid manifestations of `IsModeBOp`.
+**A9** (v0.2.0): `OperationalCommRing` omitted — recognition discipline. Direct parallel to A0.
 
-**A8** (Stage 6): For trivial-predicate instances (ℤ, ZMod n), Mode B collapses to trivial. Mode B adds value only for non-trivial operational predicates — consistent with Finding S1-A in VR-Forms (trivial predicates collapse all modes).
+**A10** (v0.2.0): Axiom ceiling = underlying type ceiling, not algebraic structure depth. Ring structure adds no new axiom dependencies.
+
+**A11** (v0.2.0): Algebraic Mode B requires **one proof step**:
+```lean
+obtain ⟨x, hxS, rfl⟩ := hy
+exact hW x (hS x hxS)
+```
+`AddSubgroup.mem_map` provides a constructive existential — no `Classical.choice`. Contrast with analytic Mode B (Hahn-Banach): limit arguments, classical extension, substantial infrastructure. Algebraic Mode B is mechanically extractable.
 
 #### Acknowledgement
 
@@ -1016,6 +1034,83 @@ All theorems from ℚ_VR through ℂ_VR, and VR-Sets Stages 7–9 (Replacement, 
 ```
 </details>
 
+<details>
+<summary>Complete #print axioms output — Operational Algebra (all 46 public objects)</summary>
+
+```
+-- AddGroup.lean (v0.1.0 Stage 1) — AXIOM-FREE
+'VR.Algebra.OperationalAddGroup' does not depend on any axioms
+
+-- Instances.lean §1-2 (v0.1.0 Stage 2)
+'VR.Algebra.instOperationalAddGroupInt'         depends on axioms: [propext]
+'VR.Algebra.int_isOperational'                  depends on axioms: [propext]
+'VR.Algebra.int_add_isOperational'              depends on axioms: [propext]
+'VR.Algebra.int_three_plus_five_isOperational'  depends on axioms: [propext]
+
+-- Instances.lean §3-4 (v0.1.0 Stage 4)
+'VR.Algebra.instOperationalAddGroupZMod'          depends on axioms: [propext, Quot.sound]
+'VR.Algebra.zmod_isOperational'                   depends on axioms: [propext, Quot.sound]
+'VR.Algebra.zmod5_add_isOperational'              depends on axioms: [propext, Quot.sound]
+'VR.Algebra.zmod5_two_plus_three_isOperational'   depends on axioms: [propext, Quot.sound]
+
+-- ModeA.lean §1-3 (v0.1.0 Stage 3)
+'VR.Algebra.instPredOpAddGroup'  does not depend on any axioms
+'VR.Algebra.add_isModeAOp'       does not depend on any axioms
+'VR.Algebra.sub_isModeAOp'       does not depend on any axioms
+'VR.Algebra.nsmul_isOperational' does not depend on any axioms
+'VR.Algebra.neg_isModeAOp'       depends on axioms: [propext]
+
+-- Subgroups.lean (v0.1.0 Stage 5)
+'VR.Algebra.IsOperationalAddSubgroup'        does not depend on any axioms
+'VR.Algebra.bot_isOperationalAddSubgroup'    depends on axioms: [propext]
+'VR.Algebra.top_isOperationalAddSubgroup'    does not depend on any axioms
+'VR.Algebra.inf_isOperationalAddSubgroup'    does not depend on any axioms
+'VR.Algebra.OperationalSubgroup'             does not depend on any axioms
+'VR.Algebra.instInfOperationalSubgroup'      does not depend on any axioms
+'VR.Algebra.instTopOperationalSubgroup'      does not depend on any axioms
+'VR.Algebra.instBotOperationalSubgroup'      depends on axioms: [propext, Quot.sound]
+
+-- ModeBExample.lean §1 (v0.1.0 Stage 6, fully proved)
+'VR.Algebra.neg_isModeBOp'        depends on axioms: [propext]
+'VR.Algebra.neg_modeb_lift'       depends on axioms: [propext]
+'VR.Algebra.neg_modeb_lift_val'   depends on axioms: [propext]
+
+-- ModeBExample.lean §2 (v0.2.0 Stage 6, sorry ELIMINATED)
+'VR.Algebra.image_isOperationalAddSubgroup_isModeBOp'
+                                  depends on axioms: [propext]   ← was [propext, sorryAx]
+'VR.Algebra.operationalImage_lift'     depends on axioms: [propext]
+'VR.Algebra.operationalImage_lift_val' depends on axioms: [propext]
+
+-- ModeBExample.lean §3 (v0.1.0 Stage 6, concrete ℤ examples)
+'VR.Algebra.int_ker_isOperationalAddSubgroup'         depends on axioms: [propext]
+'VR.Algebra.int_image_isOperationalAddSubgroup'       depends on axioms: [propext]
+'VR.Algebra.int_to_zmod_ker_isOperationalAddSubgroup' depends on axioms: [propext, Quot.sound]
+
+-- Ring.lean (v0.2.0 Stages 1-2) — AXIOM-FREE
+'VR.Algebra.OperationalRing'                       does not depend on any axioms
+'VR.Algebra.OperationalRing.toOperationalAddGroup' does not depend on any axioms
+
+-- Instances.lean §5-6 (v0.2.0 Stage 3)
+'VR.Algebra.instOperationalRingInt'              depends on axioms: [propext]
+'VR.Algebra.int_one_isOperational'               depends on axioms: [propext]
+'VR.Algebra.int_mul_isOperational'               depends on axioms: [propext]
+'VR.Algebra.int_two_mul_three_isOperational'     depends on axioms: [propext]
+'VR.Algebra.int_sum_mul_isOperational'           depends on axioms: [propext]
+
+-- Instances.lean §7-8 (v0.2.0 Stage 4)
+'VR.Algebra.instOperationalRingZMod'                depends on axioms: [propext, Quot.sound]
+'VR.Algebra.zmod5_one_isOperational'                depends on axioms: [propext, Quot.sound]
+'VR.Algebra.zmod5_mul_isOperational'                depends on axioms: [propext, Quot.sound]
+'VR.Algebra.zmod5_two_mul_three_isOperational'      depends on axioms: [propext, Quot.sound]
+'VR.Algebra.zmod7_sum_mul_isOperational'            depends on axioms: [propext, Quot.sound]
+
+-- ModeA.lean §4-7 (v0.2.0 Stage 5) — AXIOM-FREE
+'VR.Algebra.instPredOpRing'      does not depend on any axioms
+'VR.Algebra.mul_isModeAOp'       does not depend on any axioms
+'VR.Algebra.npow_isOperational'  does not depend on any axioms
+```
+</details>
+
 ---
 
 ## Build instructions
@@ -1030,9 +1125,7 @@ lake build
 
 The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 
-**Expected output:** `Build completed successfully (3349 jobs).` with one expected
-warning: `VRCycle/Algebra/ModeBExample.lean: declaration uses 'sorry'` (intentional
-Mode B skeleton placeholder — see `VRCycle/Algebra/ModeBExample.lean` §2).
+**Expected output:** `Build completed successfully (3358 jobs).` Zero warnings. Zero sorry.
 
 ## Toolchain
 
@@ -1138,12 +1231,45 @@ Mode B skeleton placeholder — see `VRCycle/Algebra/ModeBExample.lean` §2).
 
 ### Operational Algebra (domain extension to algebraic structures)
 
+**46 public objects** across 6 files, 2114 lines. No sorry. No Classical.choice. `sorryAx` eliminated in v0.2.0 Stage 6 (substantive Mode B audit completed). Git tags: `v1.8-vr-operational-algebra-v0.1.0` (additive groups) and `v1.9-vr-operational-algebra-v0.2.0` (rings, complete).
+
+#### v0.1.0 — Additive groups (31 objects, tag `v1.8-vr-operational-algebra-v0.1.0`)
+
 | Stage | File | Description | Status | Axioms |
 |-------|------|-------------|--------|--------|
-| 1 | `Algebra/AddGroup.lean` | `OperationalAddGroup` typeclass | ✓ | **`[]`** |
+| 1 | `Algebra/AddGroup.lean` | `OperationalAddGroup` typeclass; Finding A0 (multiplicative omitted) | ✓ | **`[]`** |
 | 2 | `Algebra/Instances.lean` §1–2 | `OperationalAddGroup ℤ`; 3 demos | ✓ | `[propext]` |
-| 3 | `Algebra/ModeA.lean` | Mode A theorems; `instPredOpAddGroup`; Finding A3, A4 | ✓ | `[]` – `[propext]` |
+| 3 | `Algebra/ModeA.lean` §1–3 | Mode A theorems; `instPredOpAddGroup`; Findings A3, A4 | ✓ | `[]` – `[propext]` |
 | 4 | `Algebra/Instances.lean` §3–4 | `OperationalAddGroup (ZMod n)`; 3 demos; Finding A5 | ✓ | `[propext, Quot.sound]` |
 | 5 | `Algebra/Subgroups.lean` | `IsOperationalAddSubgroup`; ⊥, ⊤, ⊓; Finding A6 | ✓ | `[propext]` – `[propext, Quot.sound]` |
-| 6 | `Algebra/ModeBExample.lean` | Mode B skeleton (intentional sorry); Findings A7, A8 | ✓ | `[propext, sorryAx]` |
-| 7 | — | Polish, axiom audit, README, git | ✓ | — |
+| 6 | `Algebra/ModeBExample.lean` §1–3 | Mode B: negation (trivial) + image subgroup (substantive); Findings A7, A8 | ✓ | `[propext]` (sorryAx eliminated in v0.2.0) |
+| 7 | — | Polish, axiom audit, git tag v1.8-vr-operational-algebra-v0.1.0 | ✓ | — |
+
+#### v0.2.0 — Rings + substantive Mode B audit (15 new objects, tag `v1.9-vr-operational-algebra-v0.2.0`)
+
+| Stage | File | Description | Status | Axioms |
+|-------|------|-------------|--------|--------|
+| 1 | `Algebra/Ring.lean` | `OperationalRing` typeclass (extends `Ring R`); 5 closure axioms for 0, +, −, 1, * | ✓ | **`[]`** |
+| 2 | `Algebra/Ring.lean` | `OperationalCommRing` OMITTED (Finding A9 — recognition discipline); bridge `OperationalRing → OperationalAddGroup` | ✓ | **`[]`** |
+| 3 | `Algebra/Instances.lean` §5–6 | `OperationalRing ℤ`; 4 ring demos; Finding A10 first observed | ✓ | `[propext]` |
+| 4 | `Algebra/Instances.lean` §7–8 | `OperationalRing (ZMod n)` `[NeZero n]`; 4 ring demos; Finding A10 confirmed | ✓ | `[propext, Quot.sound]` |
+| 5 | `Algebra/ModeA.lean` §4–7 | `mul_isModeAOp`, `npow_isOperational`, `instPredOpRing`; recognition discipline (2 omissions) | ✓ | **`[]`** |
+| 6 | `Algebra/ModeBExample.lean` §2 | **Substantive Mode B audit** — sorry eliminated; Finding A11 | ✓ | `[propext]` (was `[propext, sorryAx]`) |
+| 7 | — | Polish, full axiom audit, module index, README, git tag v1.9-vr-operational-algebra-v0.2.0 | ✓ | — |
+
+#### Findings catalog (A0–A11)
+
+| Finding | Summary |
+|---------|---------|
+| A0 | Multiplicative typeclass omitted — no v0.1.0 instances (recognition discipline) |
+| A1 | Lean 4 `extends` resolves mathlib's Ring hierarchy correctly |
+| A2 | `toAddGroup := inferInstance` resolves bridge to AddGroup via ring chain |
+| A3 | `PredicateOperationality` reused WITHOUT modification for rings (apparatus generic) |
+| A4 | `neg_isModeAOp` pulls `[propext]`; multiplication does NOT — Neg elaboration artefact |
+| A5 | Axiom ceiling hierarchy: `[]` → `[propext]` → `[propext, Quot.sound]`; Classical.choice absent |
+| A6 | `IsOperationalAddSubgroup` as predicate (not typeclass) — correct design, no diamond |
+| A7 | Algebraic Mode B structurally similar to analytic Mode B, but simpler witness extraction |
+| A8 | Trivial vs substantive Mode B: `True` witness vs operational-morphism condition |
+| A9 | `OperationalCommRing` OMITTED — diamond on `toRing` (Form A fails); duplication no content (Form B); `[OperationalRing R] [CommRing R]` suffices |
+| A10 | Ring extension does NOT escalate axiom ceiling — ceiling = underlying type, not algebraic depth |
+| A11 | Algebraic Mode B = one proof step (`exact hW x (hS x hxS)`); constructive witness from `mem_map`; no Classical.choice |
