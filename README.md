@@ -1266,7 +1266,7 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 
 ### Operational Algebra (domain extension to algebraic structures)
 
-**46 public objects** across 6 files, 2114 lines. No sorry. No Classical.choice. `sorryAx` eliminated in v0.2.0 Stage 6 (substantive Mode B audit completed). Git tags: `v1.8-vr-operational-algebra-v0.1.0` (additive groups) and `v1.9-vr-operational-algebra-v0.2.0` (rings, complete).
+**55 public objects** across 8 files, 3202 lines. No sorry. No admit. `sorryAx` eliminated in v0.2.0 Stage 6. Logically constructive throughout — `Classical.choice` absent from all logical content; two objects carry it as import-context noise (Finding A15). Git tags: `v1.8-vr-operational-algebra-v0.1.0` (additive groups), `v1.9-vr-operational-algebra-v0.2.0` (rings), `v1.10-vr-operational-algebra-v0.3.0` (fields + multiplicative groups).
 
 #### v0.1.0 — Additive groups (31 objects, tag `v1.8-vr-operational-algebra-v0.1.0`)
 
@@ -1292,19 +1292,36 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 | 6 | `Algebra/ModeBExample.lean` §2 | **Substantive Mode B audit** — sorry eliminated; Finding A11 | ✓ | `[propext]` (was `[propext, sorryAx]`) |
 | 7 | — | Polish, full axiom audit, module index, README, git tag v1.9-vr-operational-algebra-v0.2.0 | ✓ | — |
 
-#### Findings catalog (A0–A11)
+#### v0.3.0 — Fields + multiplicative groups + ℚ (9 new objects, tag `v1.10-vr-operational-algebra-v0.3.0`)
+
+| Stage | File | Description | Status | Axioms |
+|-------|------|-------------|--------|--------|
+| 1 | `Algebra/MulGroup.lean` | `OperationalGroup` typeclass (multiplicative); Finding A12 anticipated | ✓ | **`[]`** |
+| 2 | `Algebra/Field.lean` | `OperationalField` typeclass (extends `Field K`); bridge `→ OperationalRing` | ✓ | `[propext, Quot.sound]` |
+| 3 | `Algebra/Instances.lean` §9–10 | `OperationalField ℚ`; `OperationalRing ℚ` (bridge); Finding A14 | ✓ | `[propext, Quot.sound]` |
+| 4 | `Algebra/ModeA.lean` §8–10 | mul/inv/div/npow/zpow Mode A for `OperationalGroup`; inv for field; Finding A15 | ✓ | `[]` – `[propext, Quot.sound]`* |
+| 5 | `Algebra/Field.lean` | `OperationalField.toOperationalGroupUnits` — Units bridge; Finding A12 CLOSED | ✓ | `[propext, Classical.choice, Quot.sound]`* |
+| 6 | — | Polish, full axiom audit, module index, README, git tag v1.10-vr-operational-algebra-v0.3.0 | ✓ | — |
+
+\* Import-context ceiling escalation (Finding A15). Logical ceiling: `[propext, Quot.sound]`.
+
+#### Findings catalog (A0–A15)
 
 | Finding | Summary |
 |---------|---------|
 | A0 | Multiplicative typeclass omitted — no v0.1.0 instances (recognition discipline) |
 | A1 | Lean 4 `extends` resolves mathlib's Ring hierarchy correctly |
 | A2 | `toAddGroup := inferInstance` resolves bridge to AddGroup via ring chain |
-| A3 | `PredicateOperationality` reused WITHOUT modification for rings (apparatus generic) |
+| A3 | `PredicateOperationality` reused WITHOUT modification — apparatus generic across AddGroup, Ring, Field |
 | A4 | `neg_isModeAOp` pulls `[propext]`; multiplication does NOT — Neg elaboration artefact |
-| A5 | Axiom ceiling hierarchy: `[]` → `[propext]` → `[propext, Quot.sound]`; Classical.choice absent |
+| A5 | Logical axiom ceiling hierarchy: `[]` → `[propext]` → `[propext, Quot.sound]`; `Classical.choice` absent from all logical content |
 | A6 | `IsOperationalAddSubgroup` as predicate (not typeclass) — correct design, no diamond |
 | A7 | Algebraic Mode B structurally similar to analytic Mode B, but simpler witness extraction |
 | A8 | Trivial vs substantive Mode B: `True` witness vs operational-morphism condition |
 | A9 | `OperationalCommRing` OMITTED — diamond on `toRing` (Form A fails); duplication no content (Form B); `[OperationalRing R] [CommRing R]` suffices |
 | A10 | Ring extension does NOT escalate axiom ceiling — ceiling = underlying type, not algebraic depth |
 | A11 | Algebraic Mode B = one proof step (`exact hW x (hS x hxS)`); constructive witness from `mem_map`; no Classical.choice |
+| A12 | Recognition discipline REVERSAL — `OperationalGroup` (multiplicative) omitted at A0 (no instances); revived at v0.3.0 (anticipated); justified concretely by `toOperationalGroupUnits` (Stage 5). Loop closed. |
+| A13 | Apparatus reuse confirmed for Field — third structure (after AddGroup, Ring). Finding A3 generalises to entire algebraic hierarchy. |
+| A14 | ℚ axiom ceiling `[propext, Quot.sound]` — identical to ℤ and ZMod n; rational arithmetic same constructive depth as integer arithmetic |
+| A15 | Import-context ceiling escalation — `Mathlib.Data.Real.Basic` (via apparatus chain) changes `Inv K` resolution for generic `[Field K]`, injecting `Classical.choice` into two proof terms. Logical ceiling remains `[propext, Quot.sound]`; programme remains logically constructive. |
