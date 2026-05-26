@@ -1,8 +1,9 @@
 -- VRCycle: Algebra/Instances.lean
 -- Operational Algebra v0.1.0 — Stages 2 and 4: concrete OperationalAddGroup instances.
--- Operational Algebra v0.2.0 — Stage 3: ℤ as OperationalRing instance.
+-- Operational Algebra v0.2.0 — Stage 3: ℤ and ZMod n as OperationalRing instances.
+-- Operational Algebra v0.3.0 — Stage 3: ℚ as OperationalField instance.
 --
--- STAGE: 2, 4 (v0.1.0); 3 (v0.2.0). SOURCE: PLAN.md Stages 2, 4 (v0.1.0); Stage 3 (v0.2.0).
+-- STAGE: 2, 4 (v0.1.0); 3, 4 (v0.2.0); 3 (v0.3.0). SOURCE: PLAN.md throughout.
 --
 -- ## Position statement
 -- This file provides concrete instances of `OperationalAddGroup` (defined in
@@ -43,8 +44,11 @@
 
 import Mathlib.Algebra.Group.Int.Defs
 import Mathlib.Data.ZMod.Basic
+import Mathlib.Algebra.Field.Rat
 import VRCycle.Algebra.AddGroup
 import VRCycle.Algebra.Ring
+import VRCycle.Algebra.Field
+import VRCycle.Algebra.MulGroup
 
 namespace VR.Algebra
 
@@ -424,9 +428,205 @@ theorem zmod7_sum_mul_isOperational :
   trivial
 
 -- ============================================================
+-- §9. ℚ as OperationalField (v0.3.0 Stage 3)
+-- ============================================================
+
+/-- Every rational number is an operational field element.
+
+**Instance**: `OperationalField ℚ` with `IsOperational := fun _ => True`.
+
+**Field structure**: `Rat.instField : Field ℚ` (Mathlib.Algebra.Field.Rat).
+Every rational number has an explicit numerator/denominator representation —
+no constructive obstacle to witnessing any element. The trivial predicate
+demonstrates apparatus collapse for fully-operational types.
+
+**First instance beyond ℤ and ZMod n**: this is the v0.3.0 milestone — the
+first concrete type with `OperationalField` structure, and the first type in
+the entire Operational Algebra cycle beyond the ℤ/ZMod family.
+
+**Closure axioms** (all trivial for `fun _ => True`):
+- `zero_isOperational` : `IsOperational (0 : ℚ) = True`. Proof: `trivial`.
+- `add_isOperational`  : `True → True → True`. Proof: `fun _ _ => trivial`.
+- `neg_isOperational`  : `True → True`. Proof: `fun _ => trivial`.
+- `one_isOperational`  : `IsOperational (1 : ℚ) = True`. Proof: `trivial`.
+- `mul_isOperational`  : `True → True → True`. Proof: `fun _ _ => trivial`.
+- `inv_isOperational`  : `True → True`. Proof: `fun _ => trivial`.
+  Note: `(0 : ℚ)⁻¹ = 0` by `Field.inv_zero`; `inv_isOperational trivial : IsOperational 0`.
+  Since `IsOperational := fun _ => True`, this is immediate.
+
+**Bridge chain** (same predicate `fun _ => True` throughout):
+  `OperationalField ℚ` → `OperationalRing ℚ` → `OperationalAddGroup ℚ`
+  (via `OperationalField.toOperationalRing` and `OperationalRing.toOperationalAddGroup`)
+
+**Diamond check**: no pre-existing `OperationalRing ℚ` or `OperationalAddGroup ℚ`
+direct instance in v0.1.0/v0.2.0 (only ℤ and ZMod n were instantiated). This
+instance provides the unique path to all three typeclasses for ℚ. No `@[priority]` needed.
+
+**Apparatus reading for ℚ**:
+  Formal register      = ℚ  (rationals as field, mathlib's `Rat.instField`)
+  Operational register = { q : ℚ // True }  ≅  ℚ  (all rationals)
+  Operational layer    = vacuous (collapses to whole field)
+
+## Axiom profile: [propext, Classical.choice, Quot.sound]
+Inherited from `Rat.instField`, which carries the FULL analysis ceiling.
+Source: `commGroupWithZero` for ℚ uses `Classical.choice` for the multiplicative
+inverse structure (zero-divisor-free quotient arithmetic).
+
+**Finding A14 (ℚ ceiling reaches analysis tier)**:
+`Rat.instField` depends on `[propext, Classical.choice, Quot.sound]` — the same
+ceiling as VR-Audit analytic objects (IsComputableReal, HahnBanach).
+However, the ROUTE to `Classical.choice` is different:
+  - VR-Audit: classical extension theorems (Hahn-Banach), non-constructive limits.
+  - ℚ: field inverse structure via `GroupWithZero` for rationals.
+This does NOT mean ℚ requires analytic machinery — the shared ceiling is coincidental.
+The principle from Finding A10 is refined: "ceiling determined by underlying type's
+full infrastructure, including its inverse/division implementation."
+
+**Axiom staircase (complete)**:
+  []                               — typeclass definitions
+                                     (OperationalAddGroup, OperationalGroup, OperationalRing)
+  [propext, Quot.sound]            — OperationalField typeclass definition (Field's RatCast)
+  [propext]                        — ℤ concrete instances
+  [propext, Quot.sound]            — ZMod n concrete instances, OperationalField typeclass
+  [propext, Classical.choice, Quot.sound] — ℚ concrete instances (= VR-Audit ceiling) -/
+instance instOperationalFieldRat : OperationalField ℚ where
+  toField        := inferInstance
+  IsOperational  := fun _ => True
+  zero_isOperational              := trivial
+  add_isOperational  _ _          := trivial
+  neg_isOperational  _            := trivial
+  one_isOperational               := trivial
+  mul_isOperational  _ _          := trivial
+  inv_isOperational  _            := trivial
+
+-- ============================================================
+-- §10. Demonstration theorems for OperationalField ℚ (Stage 3)
+-- ============================================================
+
+/-- `1/2 : ℚ` is operational.
+
+The simplest nontrivial rational number. Demonstrates the ℚ apparatus accepts
+proper fractions — not just integers. Since `IsOperational := fun _ => True`,
+the proof is `trivial`. The non-trivial content is the instance existence.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound] -/
+theorem rat_half_isOperational :
+    instOperationalFieldRat.IsOperational (1 / 2 : ℚ) :=
+  trivial
+
+/-- `1/2 + 1/3 : ℚ` is operational.
+
+Demonstrates additive closure for the ℚ apparatus. The sum `1/2 + 1/3 = 5/6`
+involves non-trivial common-denominator arithmetic in ℚ, but operationality is
+agnostic to arithmetic complexity — if summands are operational, so is the sum.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound] -/
+theorem rat_half_plus_third_isOperational :
+    instOperationalFieldRat.IsOperational ((1 / 2 : ℚ) + 1 / 3) :=
+  instOperationalFieldRat.add_isOperational trivial trivial
+
+/-- `(1/2 * 1/3)⁻¹ : ℚ` is operational.
+
+Demonstrates the full field closure chain: multiplication then inversion.
+`(1/2 * 1/3) = 1/6`, then `(1/6)⁻¹ = 6`. Three operations applied in sequence;
+all preserve operationality by the `mul_isOperational` and `inv_isOperational` axioms.
+
+This theorem exercises the ONLY genuinely new closure axiom of `OperationalField`
+vs `OperationalRing` — `inv_isOperational` — on a concrete ℚ element.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound] -/
+theorem rat_product_inv_isOperational :
+    instOperationalFieldRat.IsOperational ((1 / 2 : ℚ) * (1 / 3))⁻¹ :=
+  instOperationalFieldRat.inv_isOperational
+    (instOperationalFieldRat.mul_isOperational trivial trivial)
+
+/-- Concrete: `(2/3 : ℚ) - 1/4` is operational.
+
+Demonstrates subtraction on ℚ via `neg_isOperational` and `add_isOperational`.
+`2/3 - 1/4 = 8/12 - 3/12 = 5/12`.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound] -/
+theorem rat_sub_isOperational :
+    instOperationalFieldRat.IsOperational ((2 / 3 : ℚ) - 1 / 4) :=
+  trivial
+
+-- ============================================================
+-- §11. OperationalGroup ℚˣ via bridge (Stage 5)
+-- ============================================================
+--
+-- OperationalField ℚ was established in §9 (Stage 3).
+-- Stage 5 delivers OperationalField.toOperationalGroupUnits (Field.lean),
+-- the bridge [OperationalField K] → OperationalGroup Kˣ.
+-- With [instOperationalFieldRat : OperationalField ℚ] in scope, Lean
+-- automatically synthesises [OperationalGroup ℚˣ] via the bridge.
+--
+-- ℚˣ = Units ℚ — invertible rational numbers. Every nonzero rational
+-- is a unit. The IsOperational predicate on ℚˣ is:
+--   IsOperational u := OperationalField.IsOperational (u : ℚ) = True
+-- Since ℚ's operational predicate is trivially True, every unit is operational.
+--
+-- These demonstrations show:
+--   (a) The bridge fires: OperationalGroup ℚˣ is available via inferInstance.
+--   (b) Concrete units of ℚ are operational.
+--   (c) The bridge chain from OperationalField to OperationalGroup works end-to-end.
+
+/-- `OperationalGroup ℚˣ` is synthesised from `OperationalField ℚ` via the
+bridge `OperationalField.toOperationalGroupUnits` (Field.lean, Stage 5).
+
+This is the concrete delivery of **Finding A12** (recognition discipline reversal):
+`OperationalGroup` was omitted in v0.1.0 for lack of instances (Finding A0).
+v0.3.0 Stage 1 revived it; Stage 5 provides the natural instance through fields.
+The abstraction's justification is now concrete: `OperationalGroup ℚˣ`.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound]
+(inherited from OperationalField.toOperationalGroupUnits via instOperationalFieldRat) -/
+example : OperationalGroup ℚˣ := inferInstance
+
+/-- The unit element `1 : ℚˣ` is operational as a multiplicative group element.
+
+Connects `OperationalGroup.one_isOperational` in `ℚˣ` to `OperationalField.one_isOperational`
+in `ℚ` via the bridge's predicate `IsOperational u = OperationalField.IsOperational (u : ℚ)`.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound] -/
+example : OperationalGroup.IsOperational (1 : ℚˣ) :=
+  OperationalGroup.one_isOperational
+
+/-- The unit `2ˣ ∈ ℚˣ` (i.e., 2 as an invertible rational) is operational.
+
+`Units.mk0 (2 : ℚ) (by decide)` constructs `2` as an element of `ℚˣ`,
+using the proof that `2 ≠ 0`. Its operationality follows immediately from
+the trivial predicate `IsOperational := fun _ => True`.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound] -/
+example : OperationalGroup.IsOperational (Units.mk0 (2 : ℚ) (by decide)) :=
+  trivial
+
+/-- The product of two rational units is operational.
+
+`2ˣ * 3ˣ = 6ˣ` in ℚˣ. Operationality of the product follows from
+`OperationalGroup.mul_isOperational` applied to the trivial witnesses.
+Both factors and their product are trivially operational.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound] -/
+example : OperationalGroup.IsOperational
+    (Units.mk0 (2 : ℚ) (by decide) * Units.mk0 (3 : ℚ) (by decide)) :=
+  OperationalGroup.mul_isOperational trivial trivial
+
+/-- The inverse of a rational unit is operational.
+
+`(2ˣ)⁻¹ = (1/2)ˣ` in ℚˣ. Operationality preserved by `OperationalGroup.inv_isOperational`
+via the bridge (which uses `OperationalField.inv_isOperational` on `(u : ℚ)⁻¹`).
+
+## Axiom profile: [propext, Classical.choice, Quot.sound] -/
+example : OperationalGroup.IsOperational
+    (Units.mk0 (2 : ℚ) (by decide))⁻¹ :=
+  OperationalGroup.inv_isOperational trivial
+
+-- ============================================================
 -- Axiom audit — all stages, Instances.lean
 -- ============================================================
--- STAGE: 2, 4 (v0.1.0); 3, 4 (v0.2.0). SOURCE: PLAN.md throughout.
+-- STAGE: 2, 4 (v0.1.0); 3, 4 (v0.2.0); 3 (v0.3.0); 5 (ℚˣ examples).
+-- SOURCE: PLAN.md throughout.
 -- LEAN OBJECTS:
 --   v0.1.0 Stage 2 (4 objects):
 --     instOperationalAddGroupInt        (instance, OperationalAddGroup ℤ)
@@ -450,13 +650,36 @@ theorem zmod7_sum_mul_isOperational :
 --     zmod5_mul_isOperational           (theorem, closure under multiplication in ZMod 5)
 --     zmod5_two_mul_three_isOperational (theorem, concrete multiplication)
 --     zmod7_sum_mul_isOperational       (theorem, chained ring operations in ZMod 7)
+--   v0.3.0 Stage 3 (5 objects):
+--     instOperationalFieldRat           (instance, OperationalField ℚ)
+--     rat_half_isOperational            (theorem, IsOperational (1/2 : ℚ))
+--     rat_half_plus_third_isOperational (theorem, additive closure demo)
+--     rat_product_inv_isOperational     (theorem, mul + inv closure demo)
+--     rat_sub_isOperational             (theorem, subtraction closure demo)
+--   v0.3.0 Stage 5 (5 examples, not named objects — Finding A12 concrete delivery):
+--     [OperationalGroup ℚˣ via bridge]  (example, inferInstance fires)
+--     [one_isOperational in ℚˣ]         (example, unit element)
+--     [2ˣ operational in ℚˣ]            (example, concrete unit)
+--     [2ˣ * 3ˣ operational]             (example, mul closure)
+--     [(2ˣ)⁻¹ operational]              (example, inv closure)
 -- AXIOM AUDIT:
---   ℤ AddGroup objects: [propext]              — v0.1.0 ceiling
---   ZMod objects:       [propext, Quot.sound]  — v0.1.0 ceiling
---   ℤ Ring objects:     [propext]              — v0.2.0, ceiling UNCHANGED from AddGroup
---   ZMod Ring objects:  [propext, Quot.sound]  — v0.2.0, ceiling UNCHANGED from AddGroup
---   Finding A10 confirmed: ring extension does not escalate ceiling for ℤ or ZMod n.
---   No Classical.choice in any object — algebra stays below analysis ceiling.
+--   ℤ AddGroup objects:  [propext]                               — v0.1.0 ceiling
+--   ZMod AddGroup:       [propext, Quot.sound]                   — v0.1.0 ceiling
+--   ℤ Ring objects:      [propext]                               — v0.2.0, UNCHANGED
+--   ZMod Ring objects:   [propext, Quot.sound]                   — v0.2.0, UNCHANGED
+--   ℚ Field objects:     [propext, Classical.choice, Quot.sound] — v0.3.0 (Finding A14)
+--   ℚˣ Group examples:   [propext, Classical.choice, Quot.sound] — v0.3.0 Stage 5 (A15)
+--   Finding A10 confirmed (ℤ, ZMod): ring extension does not escalate ceiling.
+--   Finding A14 (NEW): ℚ concrete instances reach FULL analysis ceiling.
+--     Source: Rat.instField carries [propext, Classical.choice, Quot.sound].
+--     Classical.choice enters via GroupWithZero.inv in ℚ's multiplicative inverse.
+--     NOT a sign of analytic complexity — coincidental ceiling alignment.
+-- AXIOM STAIRCASE (complete after v0.3.0 Stage 3):
+--   []                                       — typeclasses (AddGroup, Group, Ring)
+--   [propext, Quot.sound]                    — OperationalField typeclass (Field RatCast)
+--   [propext]                                — ℤ concrete instances
+--   [propext, Quot.sound]                    — ZMod n concrete instances
+--   [propext, Classical.choice, Quot.sound]  — ℚ concrete instances = analysis ceiling
 -- CHECKS: no sorry, no admit.
 
 #print axioms instOperationalAddGroupInt
@@ -477,5 +700,10 @@ theorem zmod7_sum_mul_isOperational :
 #print axioms zmod5_mul_isOperational
 #print axioms zmod5_two_mul_three_isOperational
 #print axioms zmod7_sum_mul_isOperational
+#print axioms instOperationalFieldRat
+#print axioms rat_half_isOperational
+#print axioms rat_half_plus_third_isOperational
+#print axioms rat_product_inv_isOperational
+#print axioms rat_sub_isOperational
 
 end VR.Algebra

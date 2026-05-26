@@ -76,6 +76,8 @@ import VRCycle.Apparatus.ModeA
 import VRCycle.Algebra.AddGroup
 import VRCycle.Algebra.Instances
 import VRCycle.Algebra.Ring
+import VRCycle.Algebra.MulGroup
+import VRCycle.Algebra.Field
 
 namespace VR.Algebra
 
@@ -347,6 +349,270 @@ example : OperationalRing.IsOperational ((2 : ZMod 5) ^ 3) :=
   npow_isOperational (ha := trivial) 3
 
 -- ============================================================
+-- §8. OperationalGroup Mode A theorems (v0.3.0 Stage 4)
+-- ============================================================
+--
+-- Namespace: VR.Algebra.MulGroup
+-- Reason: v0.2.0 has `VR.Algebra.mul_isModeAOp` for OperationalRing.
+-- MulGroup theorems use a nested namespace to avoid the name collision.
+-- Full names: VR.Algebra.MulGroup.mul_isModeAOp, .inv_isModeAOp, etc.
+--
+-- Symmetry with additive side (v0.1.0 §1-2):
+--   add_isModeAOp    ↔  MulGroup.mul_isModeAOp
+--   neg_isModeAOp    ↔  MulGroup.inv_isModeAOp
+--   sub_isModeAOp    ↔  MulGroup.div_isModeAOp
+--   nsmul_isOp       ↔  MulGroup.npow_isOperational  (ℕ-power)
+--   [absent v0.1.0]  ↔  MulGroup.zpow_isOperational  (ℤ-power — NEW, richer than additive)
+--
+-- Vitaly's Stage 4 question: does multiplicative side become richer due to
+-- DivInvMonoid/Field infrastructure? Answer: YES — zpow (ℤ-exponentiation)
+-- is available for any Group via DivInvMonoid.zpow, but v0.1.0 additive side
+-- only proved nsmul (ℕ). The additive analogue would be zsmul : ℤ → G → G
+-- from SubNegMonoid, but was deferred in v0.1.0.
+--
+-- Design decision: include zpow_isOperational in Stage 4 to fully exploit
+-- Group structure. This makes MulGroup Mode A complete: all Group operations
+-- (1, *, ⁻¹, /, npow, zpow) have Mode A certificates.
+-- Additive zsmul_isOperational left as noted gap (consistent: v0.1.0 was silent on it).
+
+namespace VR.Algebra.MulGroup
+
+/-- `OperationalGroup G` registers as a predicate-wrapping apparatus.
+
+**Finding A3 extension (third structure)**: `PredicateOperationality` applies to
+multiplicative groups without modification. The same zero-field marker mechanism
+used for additive groups (v0.1.0) and rings (v0.2.0) works identically here.
+This confirms the apparatus framework is genuinely generic over (T, P) pairs,
+independent of whether the algebraic structure is additive or multiplicative.
+
+**Predicate note**: when `[OperationalGroup G]` is in context, this instance
+provides `PredicateOperationality G OperationalGroup.IsOperational`. If also
+`[OperationalField K]` (which gives `OperationalGroup Kˣ` in Stage 5), then
+the predicate is `OperationalGroup.IsOperational` for the units group. No conflict.
+
+## Axiom profile: [] -/
+instance instPredOpMulGroup {G : Type*} [OperationalGroup G] :
+    PredicateOperationality G OperationalGroup.IsOperational := ⟨⟩
+
+/-- Multiplication is a Mode A binary operation for `OperationalGroup G`.
+
+**Statement**: `(· * ·)` preserves the operational predicate — if a and b are
+operational, so is a * b.
+
+**Proof**: immediate from `mul_isOperational`, the closure axiom of `OperationalGroup`.
+
+**Namespace**: `VR.Algebra.MulGroup` to avoid collision with `VR.Algebra.mul_isModeAOp`
+(v0.2.0, for `OperationalRing`). Full name: `VR.Algebra.MulGroup.mul_isModeAOp`.
+
+**Apparatus reading**: multiplication lifts to a binary operation on
+`{ g : G // IsOperational g }` at zero cost (via `modeA_liftFn₂`).
+
+**Finding A3 for multiplicative groups**: apparatus reuse without modification.
+`IsModeAOp₂` from VRCycle.Apparatus.ModeA requires no changes for the
+multiplicative context, just as it required none for rings.
+
+## Axiom profile: [] -/
+theorem mul_isModeAOp {G : Type*} [OperationalGroup G] :
+    PredicateOperationality.IsModeAOp₂
+      (P := OperationalGroup.IsOperational (G := G)) (· * ·) :=
+  fun _ _ ha hb => OperationalGroup.mul_isOperational ha hb
+
+/-- Inversion is a Mode A unary operation for `OperationalGroup G`.
+
+**Statement**: `(·⁻¹)` preserves the operational predicate.
+
+**Proof**: immediate from `inv_isOperational`, the closure axiom for inversion.
+
+**Multiplicative analogue of `neg_isModeAOp`** (v0.1.0): same structure, `⁻¹` in
+place of `-`. The axiom profile is expected to mirror Finding A4 (neg_isModeAOp
+pulled [propext] due to Neg elaboration); verify in audit.
+
+## Axiom profile: [propext] (predicted — Inv elaboration, cf. Finding A4) -/
+theorem inv_isModeAOp {G : Type*} [OperationalGroup G] :
+    PredicateOperationality.IsModeAOp
+      (P := OperationalGroup.IsOperational (G := G)) (·⁻¹) :=
+  fun _ ha => OperationalGroup.inv_isOperational ha
+
+/-- Division is a Mode A binary operation for `OperationalGroup G`.
+
+**Statement**: `(· / ·)` preserves the operational predicate.
+
+**Derivation**: `a / b = a * b⁻¹` in any `Group G` (from `div_eq_mul_inv`,
+available via `DivInvMonoid`). Closure follows from `mul_isOperational` and
+`inv_isOperational`.
+
+**Multiplicative analogue of `sub_isModeAOp`** (v0.1.0): same simp-path pattern.
+`sub_isModeAOp` used `sub_eq_add_neg`; this uses `div_eq_mul_inv`.
+Expected axiom profile `[]` (simp-path bypasses propext, cf. sub_isModeAOp).
+
+## Axiom profile: [] (predicted — simp-path like sub_isModeAOp) -/
+theorem div_isModeAOp {G : Type*} [OperationalGroup G] :
+    PredicateOperationality.IsModeAOp₂
+      (P := OperationalGroup.IsOperational (G := G)) (· / ·) :=
+  fun a b ha hb => by
+    simp only [div_eq_mul_inv]
+    exact OperationalGroup.mul_isOperational ha (OperationalGroup.inv_isOperational hb)
+
+/-- Natural number powers preserve operationality for `OperationalGroup G`.
+
+**Statement**: if `a : G` is operational and `n : ℕ`, then `a ^ n` is operational.
+
+**Proof**: by induction on `n`.
+- Base case `n = 0`: `a^0 = 1` (by `pow_zero`); `1` is operational by `one_isOperational`.
+- Inductive step `n → n+1`: `a^(n+1) = a^n * a` (by `pow_succ`); IH + `ha` + `mul_isOperational`.
+
+**Parallel structure**:
+  nsmul_isOperational (v0.1.0):  `n • a` by ℕ induction, `zero_nsmul`/`succ_nsmul`.
+  npow_isOperational (v0.2.0):   `a ^ n` by ℕ induction, `pow_zero`/`pow_succ` (for Ring).
+  This theorem (v0.3.0):         `a ^ n` by ℕ induction, `pow_zero`/`pow_succ` (for Group).
+
+The proof is identical to v0.2.0's `npow_isOperational` but over `OperationalGroup`
+(which has `one_isOperational` and `mul_isOperational` but NOT `zero_isOperational`).
+Both are in scope without conflict: v0.2.0's theorem takes `[OperationalRing R]`;
+this theorem takes `[OperationalGroup G]`. Lean resolves by typeclass parameter.
+
+## Axiom profile: [] -/
+theorem npow_isOperational {G : Type*} [OperationalGroup G] {a : G}
+    (ha : OperationalGroup.IsOperational a) :
+    ∀ n : ℕ, OperationalGroup.IsOperational (a ^ n)
+  | 0     => by rw [pow_zero]; exact OperationalGroup.one_isOperational
+  | n + 1 => by
+      rw [pow_succ]
+      exact OperationalGroup.mul_isOperational (npow_isOperational ha n) ha
+
+/-- Integer powers preserve operationality for `OperationalGroup G`.
+
+**Statement**: if `a : G` is operational and `n : ℤ`, then `a ^ n` is operational.
+
+**Proof**: by case analysis on `n : ℤ`.
+- `Int.ofNat n`: `a ^ (↑n : ℤ) = a ^ n` (by `zpow_natCast`); operational by `npow_isOperational`.
+- `Int.negSucc n`: `a ^ (Int.negSucc n) = (a ^ (n+1))⁻¹` (by `zpow_negSucc`);
+  `a ^ (n+1)` is operational by `npow_isOperational`; `⁻¹` preserves by `inv_isOperational`.
+
+**Why zpow and not just npow?**
+`Group G extends DivInvMonoid G` which provides `zpow : ℤ → G → G`. Integer exponentiation
+is native to groups via their inverse structure — negative powers `a^(-n) = (a^n)⁻¹`.
+This is genuinely NEW compared to v0.1.0 (additive side only proved `nsmul` for ℕ) and
+v0.2.0 (ring `npow_isOperational` for ℕ). The v0.3.0 multiplicative group is richer:
+the full integer exponent range is operational.
+
+**Enrichment over additive side**: v0.1.0 has `nsmul_isOperational` (ℕ-scalar). The ℤ-scalar
+analogue (`zsmul_isOperational`) was not proved in v0.1.0 (additive groups do have
+`zsmul : ℤ → G → G` via SubNegMonoid). Stage 4 proves the multiplicative version here;
+the additive gap is noted as a possible v0.4.0 addition.
+
+## Axiom profile: [] (predicted — natCast case from npow, negSucc case from inv + npow)
+
+**Proof note**: `rw [zpow_natCast]` fails — after pattern matching on `Int.ofNat n`,
+the goal contains `a ^ (Int.ofNat n : ℤ)` while `zpow_natCast` rewrites `a ^ (↑n : ℤ)`
+(syntactically different via Nat.cast vs Int.ofNat, though definitionally equal).
+Using `exact` directly works: Lean's unification handles definitional equality.
+`zpow` defaults to `zpowRec` for generic Group, which reduces `Int.ofNat n → a ^ n`
+and `Int.negSucc n → (a ^ (n+1))⁻¹` definitionally. -/
+theorem zpow_isOperational {G : Type*} [OperationalGroup G] {a : G}
+    (ha : OperationalGroup.IsOperational a) :
+    ∀ n : ℤ, OperationalGroup.IsOperational (a ^ n)
+  | Int.ofNat n   => by
+      change OperationalGroup.IsOperational (a ^ (n : ℤ))
+      rw [zpow_natCast]; exact npow_isOperational ha n
+  | Int.negSucc n => by
+      rw [zpow_negSucc]
+      exact OperationalGroup.inv_isOperational (npow_isOperational ha (n + 1))
+
+end VR.Algebra.MulGroup
+
+-- ============================================================
+-- §9. OperationalField Mode A (v0.3.0 Stage 4)
+-- ============================================================
+--
+-- OperationalField → OperationalRing → OperationalAddGroup (via bridges).
+-- Therefore ALL ring Mode A theorems (§5) apply automatically to OperationalField
+-- via the bridge: mul_isModeAOp, npow_isOperational, add_isModeAOp, etc.
+--
+-- The ONLY genuinely new Mode A theorem for OperationalField is:
+--   inv_isModeAOp_field : IsModeAOp (P := OperationalField.IsOperational) (·⁻¹)
+-- This mirrors MulGroup.inv_isModeAOp but is stated for OperationalField (different P).
+--
+-- PredicateOperationality instance: OperationalField → OperationalRing gives
+-- instPredOpRing, but that uses OperationalRing.IsOperational. Since the bridge
+-- sets OperationalRing.IsOperational := OperationalField.IsOperational definitionally,
+-- instPredOpRing fires. For directness and safety, we add instPredOpField explicitly.
+
+/-- `OperationalField K` registers as a predicate-wrapping apparatus.
+
+**Finding A3 extension (fourth structure)**: apparatus reuse confirmed for fields.
+Same zero-cost `⟨⟩` pattern as AddGroup, Ring, and MulGroup. No modification.
+
+**Relationship to instPredOpRing**: when `[OperationalField K]` is in scope,
+the bridge `toOperationalRing` fires, and `instPredOpRing` provides
+`PredicateOperationality K OperationalRing.IsOperational`. This instance provides
+`PredicateOperationality K OperationalField.IsOperational` — same predicate
+definitionally, declared directly for syntactic safety.
+
+## Axiom profile: [propext, Quot.sound] (inherited from OperationalField, via Field) -/
+instance instPredOpField {K : Type*} [OperationalField K] :
+    PredicateOperationality K OperationalField.IsOperational := ⟨⟩
+
+/-- Multiplicative inversion is a Mode A unary operation for `OperationalField K`.
+
+**Statement**: `(·⁻¹)` preserves the operational predicate — if a is operational,
+so is a⁻¹.
+
+**Proof**: immediate from `inv_isOperational`, the closure axiom of `OperationalField`.
+
+**Relationship to MulGroup.inv_isModeAOp**: both are Mode A theorems for inversion.
+MulGroup.inv_isModeAOp works for any `[OperationalGroup G]`.
+This theorem works for any `[OperationalField K]` — a different typeclass, different P.
+After Stage 5 (Units bridge), `[OperationalField K] → OperationalGroup Kˣ`, and
+`MulGroup.inv_isModeAOp` will apply to `Kˣ`. This theorem applies to `K` directly.
+
+**Concrete use**: `OperationalField.IsOperational (a⁻¹)` when `IsOperational a`.
+For ℚ: `inv_isOperational : IsOperational (1/2 : ℚ) → IsOperational (1/2)⁻¹`.
+
+**Finding A15 — import-context ceiling escalation**:
+The axiom profile of this theorem is `[propext, Classical.choice, Quot.sound]`,
+which is the ANALYSIS ceiling, not the algebraic `[propext, Quot.sound]`.
+This is NOT because the logic of `inv_isOperational` requires `Classical.choice`.
+
+Root cause: `VRCycle.Apparatus.ModeA` (imported above) transitively imports
+`VRCycle.Audit.Computable`, which imports `Mathlib.Data.Real.Basic`.
+`Mathlib.Data.Real.Basic` introduces many Mathlib instances into the elaboration
+context, including ones that change how Lean resolves `Inv K` for a generic
+`[Field K]`. When `(·⁻¹)` is elaborated in the type of `IsModeAOp ... (·⁻¹)`,
+Lean selects a resolution path (influenced by these imported instances) that
+involves `Classical.choice`. This is an **import-context effect**, not a
+logical property of the theorem.
+
+Contrast with `instPredOpField` (same `OperationalField` ceiling, `⟨⟩` proof,
+no `(·⁻¹)` in the type): `[propext, Quot.sound]` — no `Classical.choice`.
+The `Classical.choice` enters only when `(·⁻¹)` is elaborated in the ModeA context.
+
+## Axiom profile: [propext, Classical.choice, Quot.sound]
+## (import-context effect — Finding A15; logical ceiling is [propext, Quot.sound]) -/
+theorem inv_isModeAOp_field {K : Type*} [OperationalField K] :
+    PredicateOperationality.IsModeAOp
+      (P := OperationalField.IsOperational (K := K)) (·⁻¹) :=
+  fun _ ha => OperationalField.inv_isOperational ha
+
+-- ============================================================
+-- §10. Concrete demonstrations — OperationalField Mode A applied to ℚ
+-- ============================================================
+
+/-- `inv_isModeAOp_field` specialised to ℚ: inversion is Mode A for the ℚ apparatus. -/
+example : PredicateOperationality.IsModeAOp
+    (P := OperationalField.IsOperational (K := ℚ)) (·⁻¹) :=
+  inv_isModeAOp_field
+
+/-- Concrete: `(1/2 : ℚ)⁻¹` is operational via Mode A certificate. -/
+example : OperationalField.IsOperational ((1 / 2 : ℚ)⁻¹) :=
+  inv_isModeAOp_field (1 / 2) trivial
+
+/-- Finding A3 confirmed for OperationalField: apparatus applies at zero cost.
+`instPredOpField` fires as `⟨⟩` with no additional obligations. -/
+example : PredicateOperationality ℚ OperationalField.IsOperational :=
+  inferInstance
+
+-- ============================================================
 -- Axiom audit — Stages 3 (v0.1.0) and 5 (v0.2.0), ModeA.lean
 -- ============================================================
 -- STAGE: 3 (v0.1.0); 5 (v0.2.0). SOURCE: PLAN.md Stage 3 (v0.1.0); Stage 5 (v0.2.0).
@@ -379,6 +645,35 @@ example : OperationalRing.IsOperational ((2 : ZMod 5) ^ 3) :=
 --     npow_isOperational  []         — induction on ℕ (cf. nsmul_isOperational)
 -- Finding A3 confirmed for rings: apparatus reuse without modification.
 -- Finding A4 ring analogue: multiplication is [] like addition; no propext.
+--   v0.3.0 Stage 4 (9 objects):
+--     MulGroup.instPredOpMulGroup  (instance, PredicateOperationality G IsOperational)
+--     MulGroup.mul_isModeAOp       (theorem, IsModeAOp₂ (*))
+--     MulGroup.inv_isModeAOp       (theorem, IsModeAOp (·⁻¹))
+--     MulGroup.div_isModeAOp       (theorem, IsModeAOp₂ (/))
+--     MulGroup.npow_isOperational  (theorem, ∀ n : ℕ, IsOperational (a ^ n))
+--     MulGroup.zpow_isOperational  (theorem, ∀ n : ℤ, IsOperational (a ^ n))
+--     instPredOpField              (instance, PredicateOperationality K IsOperational)
+--     inv_isModeAOp_field          (theorem, IsModeAOp (·⁻¹) for OperationalField)
+-- AXIOM AUDIT (v0.3.0 confirmed by build):
+--     MulGroup.instPredOpMulGroup  []         — zero-field marker (confirmed)
+--     MulGroup.mul_isModeAOp       []         — pure algebraic (confirmed)
+--     MulGroup.inv_isModeAOp       [propext]  — Inv elaboration, Finding A4 (confirmed)
+--     MulGroup.div_isModeAOp       []         — simp-path, cf. sub_isModeAOp (confirmed)
+--     MulGroup.npow_isOperational  []         — ℕ induction (confirmed)
+--     MulGroup.zpow_isOperational  []         — Int case split (confirmed)
+--     instPredOpField              [propext, Quot.sound]  — Field ceiling (confirmed)
+--     inv_isModeAOp_field          [propext, Classical.choice, Quot.sound]
+--                                  — import-context effect, Finding A15 (confirmed)
+--                                    Logical ceiling is [propext, Quot.sound];
+--                                    Classical.choice enters via Mathlib.Data.Real.Basic
+--                                    (through apparatus import chain) affecting Inv K
+--                                    elaboration in the IsModeAOp type. Contrast:
+--                                    instPredOpField [propext, Quot.sound] — no (·⁻¹)
+--                                    in type, no import-context escalation.
+-- Finding A3 extended: apparatus applies to MulGroup and Field (4th structure).
+-- Finding A15: import-context ceiling escalation — elaborating (·⁻¹) in Field K context
+--   when Mathlib.Data.Real.Basic is transitively imported escalates from [propext, Quot.sound]
+--   to [propext, Classical.choice, Quot.sound]. This is an import effect, not logic.
 -- CHECKS: no sorry, no admit.
 
 #print axioms instPredOpAddGroup
@@ -389,5 +684,13 @@ example : OperationalRing.IsOperational ((2 : ZMod 5) ^ 3) :=
 #print axioms instPredOpRing
 #print axioms mul_isModeAOp
 #print axioms npow_isOperational
+#print axioms VR.Algebra.MulGroup.instPredOpMulGroup
+#print axioms VR.Algebra.MulGroup.mul_isModeAOp
+#print axioms VR.Algebra.MulGroup.inv_isModeAOp
+#print axioms VR.Algebra.MulGroup.div_isModeAOp
+#print axioms VR.Algebra.MulGroup.npow_isOperational
+#print axioms VR.Algebra.MulGroup.zpow_isOperational
+#print axioms instPredOpField
+#print axioms inv_isModeAOp_field
 
 end VR.Algebra

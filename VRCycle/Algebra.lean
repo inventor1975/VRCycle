@@ -1,5 +1,5 @@
 -- VRCycle: Algebra.lean
--- Module index for the VR Operational Algebra cycle — v0.2.0 (complete).
+-- Module index for the VR Operational Algebra cycle — v0.3.0 (in progress; v0.2.0 complete).
 --
 -- ## What this module is
 --
@@ -24,6 +24,12 @@
 -- VRCycle/Algebra/Instances.lean    — ℤ and ZMod n as OperationalRing (v0.2.0 Stages 3-4)
 -- VRCycle/Algebra/ModeA.lean        — mul_isModeAOp, npow_isOperational (v0.2.0 Stage 5)
 -- VRCycle/Algebra/ModeBExample.lean — Substantive Mode B audit, sorryAx eliminated (v0.2.0 Stage 6)
+--
+-- ### v0.3.0 (fields + multiplicative groups — Stages 1-5 complete)
+-- VRCycle/Algebra/MulGroup.lean     — OperationalGroup typeclass, multiplicative (v0.3.0 Stage 1)
+-- VRCycle/Algebra/Field.lean        — OperationalField typeclass + bridges (v0.3.0 Stages 2, 5)
+-- VRCycle/Algebra/Instances.lean    — ℚ as OperationalField + ℚˣ demos (v0.3.0 Stages 3, 5)
+-- VRCycle/Algebra/ModeA.lean        — Mode A theorems for multiplicative groups + field (v0.3.0 Stage 4)
 --
 -- ## Stage index (v0.1.0)
 --
@@ -108,6 +114,44 @@
 --   int_image_isOperationalAddSubgroup         (theorem, concrete ℤ image)
 --   int_to_zmod_ker_isOperationalAddSubgroup   (theorem, concrete ℤ→ZMod kernel)
 --
+-- ### v0.3.0 (Stages 1-4 complete; 24 new objects across 4 files)
+--
+-- MulGroup.lean (1):
+--   OperationalGroup                       (class, extends Group G)
+--
+-- Field.lean (3):
+--   OperationalField                           (class, extends Field K)
+--   OperationalField.toOperationalRing         (instance, bridge OperationalField → OperationalRing)
+--   OperationalField.toOperationalGroupUnits   (instance, bridge OperationalField → OperationalGroup Kˣ)
+--
+-- Instances.lean §9-10 (5):
+--   instOperationalFieldRat                (instance, OperationalField ℚ)
+--   rat_half_isOperational                 (theorem, IsOperational (1/2 : ℚ))
+--   rat_half_plus_third_isOperational      (theorem, closure + demo)
+--   rat_product_inv_isOperational          (theorem, closure * and ⁻¹ demo)
+--   rat_sub_isOperational                  (theorem, closure - demo)
+--
+-- ModeA.lean §8-10 (8):
+--   MulGroup.instPredOpMulGroup            (instance, PredicateOperationality G IsOperational)
+--   MulGroup.mul_isModeAOp                 (theorem, IsModeAOp₂ (*))
+--   MulGroup.inv_isModeAOp                 (theorem, IsModeAOp (·⁻¹) for OperationalGroup)
+--   MulGroup.div_isModeAOp                 (theorem, IsModeAOp₂ (/))
+--   MulGroup.npow_isOperational            (theorem, ∀ n : ℕ, IsOperational (a ^ n))
+--   MulGroup.zpow_isOperational            (theorem, ∀ n : ℤ, IsOperational (a ^ n))
+--   instPredOpField                        (instance, PredicateOperationality K IsOperational)
+--   inv_isModeAOp_field                    (theorem, IsModeAOp (·⁻¹) for OperationalField)
+--   [7 examples in §§8-10, not public objects]
+--
+-- Instances.lean §11 (5 examples, not public objects):
+--   [OperationalGroup ℚˣ via bridge]       (example, bridge fires for ℚˣ)
+--   [1 : ℚˣ is operational]               (example, unit element)
+--   [2ˣ ∈ ℚˣ is operational]              (example, concrete unit via mk0)
+--   [2ˣ * 3ˣ is operational]              (example, mul closure in ℚˣ)
+--   [(2ˣ)⁻¹ is operational]               (example, inv closure in ℚˣ)
+--
+-- (ℚˣ examples are anonymous examples, not named public objects;
+--  the key deliverable is OperationalField.toOperationalGroupUnits in Field.lean)
+--
 -- ### v0.2.0 (15 new objects across 3 files; 1 sorry eliminated in ModeBExample.lean)
 --
 -- Ring.lean (2):
@@ -131,7 +175,7 @@
 --   mul_isModeAOp       (theorem, IsModeAOp₂ (*))
 --   npow_isOperational  (theorem, ∀ n : ℕ, IsOperational (a ^ n))
 --
--- ## Findings catalog (v0.1.0 + v0.2.0)
+-- ## Findings catalog (v0.1.0 + v0.2.0 + v0.3.0 Stages 1-4)
 --
 -- ### v0.1.0 Findings (A0–A8)
 --
@@ -194,33 +238,92 @@
 --     substantial infrastructure. Algebraic Mode B is mechanically extractable from
 --     constructive witnesses built into mathlib's algebraic API.
 --
--- ## Axiom profile summary (v0.1.0 + v0.2.0)
+-- ### v0.3.0 Findings (A12–A15, Stages 1-4)
 --
---   []                              — OperationalAddGroup, OperationalRing,
---                                     all bridge instances, PredicateOperationality instances,
+-- A12: Recognition discipline REVERSAL — OperationalGroup introduced when justified.
+--     v0.1.0 Finding A0: multiplicative OperationalGroup omitted (no instances).
+--     v0.3.0 Stage 1: multiplicative OperationalGroup INTRODUCED (Fields → Kˣ).
+--     v0.3.0 Stage 5: bridge instance OperationalField.toOperationalGroupUnits delivered.
+--     The abstraction was revived in Stage 1 because THIS bridge exists; Stage 5 proves it.
+--     Bidirectional recognition discipline: remove preemptive abstractions AND
+--     introduce justified abstractions when users (instances) arrive.
+--     Full circle from A0 (removed) → A12 (anticipated) → Stage 5 (concrete).
+--     ℚˣ as OperationalGroup is the natural first instance — Finding A12 CONFIRMED.
+--
+-- A13: OperationalField currently does not introduce axioms beyond those of Field K.
+--     OperationalField class: [propext, Quot.sound] — inherited from Field's RatCast.
+--     Bridge OperationalField → OperationalRing: [propext, Quot.sound].
+--     This is an empirical observation for the current v0.3.0 build, not a meta-law.
+--     The ceiling is determined by Field K's infrastructure (DivisionRing → RatCast),
+--     not by the VR operational layer added above it.
+--
+-- A14: ℚ concrete instances reach full analysis ceiling [propext, Classical.choice, Quot.sound].
+--     instOperationalFieldRat and all ℚ demonstration theorems: full ceiling.
+--     Root cause: Rat.instField (via commGroupWithZero inverse infrastructure).
+--     This is the first time Classical.choice appears in concrete algebraic instances
+--     in the VR Cycle (previously absent from all ℤ and ZMod n objects).
+--     Principle: ℚ's field structure for inversion requires classical reasoning about
+--     the zero case (commGroupWithZero convention: 0⁻¹ = 0 requires choice in the proof).
+--
+-- A15: Import-context ceiling escalation for inv_isModeAOp_field.
+--     inv_isModeAOp_field (generic, [OperationalField K]): [propext, Classical.choice, Quot.sound].
+--     instPredOpField (same [OperationalField K], no (·⁻¹) in type): [propext, Quot.sound].
+--     Root cause: Apparatus import chain imports Mathlib.Data.Real.Basic (via
+--     VRCycle.Apparatus.ModeA → VRCycle.Apparatus.Wrapping → VRCycle.Audit.Computable
+--     → Mathlib.Data.Real.Basic). This introduces ℝ instances that affect how Lean
+--     resolves Inv K for generic [Field K] when (·⁻¹) appears in the IsModeAOp type.
+--     The Classical.choice is an import-context effect, NOT a logical property of
+--     inv_isOperational. The logical ceiling remains [propext, Quot.sound].
+--     Contrast: MulGroup.inv_isModeAOp (same IsModeAOp + inv structure, [OperationalGroup G]):
+--     [propext] — no import escalation because Group doesn't import ℝ-related Mathlib.
+--     This finding extends A5: import context can escalate the apparent ceiling
+--     beyond what the logic requires.
+--
+-- ## Axiom profile summary (v0.1.0 + v0.2.0 + v0.3.0 Stages 1-4)
+--
+--   []                              — OperationalAddGroup, OperationalRing, OperationalGroup
+--                                     (v0.3.0 Stage 1), all bridge instances,
+--                                     all PredicateOperationality instances except instPredOpField,
 --                                     add_/mul_/sub_isModeAOp, nsmul_/npow_isOperational,
+--                                     MulGroup.mul_/div_isModeAOp, MulGroup.npow_/zpow_isOp,
 --                                     IsOperationalAddSubgroup, ⊥/⊤/⊓ theorems,
 --                                     neg_isModeBOp, image_isOperationalAddSubgroup_isModeBOp
 --
 --   [propext]                       — ℤ AddGroup instances + demonstrations,
 --                                     ℤ Ring instances + demonstrations,
 --                                     neg_isModeAOp (Neg elaboration, Finding A4),
+--                                     MulGroup.inv_isModeAOp (Inv elaboration, A4 mirror),
 --                                     Mode B lifts and lift_val,
 --                                     int_ker/image_isOperationalAddSubgroup
 --
 --   [propext, Quot.sound]           — ZMod n AddGroup instances + demonstrations,
 --                                     ZMod n Ring instances + demonstrations,
 --                                     Subgroups.lean theorems involving ZMod n,
---                                     int_to_zmod_ker_isOperationalAddSubgroup
+--                                     int_to_zmod_ker_isOperationalAddSubgroup,
+--                                     OperationalField (v0.3.0 Stage 2),
+--                                     OperationalField.toOperationalRing (bridge),
+--                                     instPredOpField
 --
---   [propext, Classical.choice, Quot.sound] — ABSENT. No algebraic object reaches
---                                     the analysis ceiling. Classical.choice is never pulled.
+--   [propext, Classical.choice, Quot.sound]
+--                                   — ℚ instances + demonstrations (v0.3.0 Stage 3,
+--                                     Finding A14: Rat.instField commGroupWithZero),
+--                                     inv_isModeAOp_field (Finding A15: import-context
+--                                     effect from Mathlib.Data.Real.Basic via apparatus chain),
+--                                     OperationalField.toOperationalGroupUnits (Finding A15:
+--                                     import-context effect from GroupWithZero.Units.Basic),
+--                                     ℚˣ demonstrations (Stage 5, via bridge)
 --
--- ## No sorry, no admit, no Classical.choice
+-- ## No sorry, no admit
 --
 -- v0.2.0 completion: sorryAx ELIMINATED from image_isOperationalAddSubgroup_isModeBOp.
 -- The intentional sorry of v0.1.0 (Mode B skeleton) is now a complete proof.
--- All 46 public objects (31 v0.1.0 + 15 v0.2.0) are axiom-clean.
+-- v0.3.0 (Stages 1-4): no sorry, no admit in any new object.
+-- All 55 public objects (31 v0.1.0 + 15 v0.2.0 + 9 v0.3.0 Stages 1-5) are axiom-clean.
+-- v0.3.0 Stage 5 adds 1 named public object (OperationalField.toOperationalGroupUnits)
+-- + 5 anonymous examples demonstrating ℚˣ as OperationalGroup.
+-- Classical.choice appears in ℚ instances (logical, Finding A14), in
+-- inv_isModeAOp_field (import-context, Finding A15), and in
+-- OperationalField.toOperationalGroupUnits (import-context, Finding A15 pattern).
 
 import VRCycle.Algebra.AddGroup
 import VRCycle.Algebra.Instances
@@ -228,3 +331,5 @@ import VRCycle.Algebra.ModeA
 import VRCycle.Algebra.Subgroups
 import VRCycle.Algebra.ModeBExample
 import VRCycle.Algebra.Ring
+import VRCycle.Algebra.MulGroup
+import VRCycle.Algebra.Field

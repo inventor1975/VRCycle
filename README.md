@@ -11,7 +11,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20380344.svg)](https://doi.org/10.5281/zenodo.20380344)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20381417.svg)](https://doi.org/10.5281/zenodo.20381417)
 
-Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, and a domain extension demonstrating apparatus generality in algebra. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra v0.2.0) in this repository, pending publication. v0.2.0 extends rings, eliminates the v0.1.0 intentional sorry, and completes the first substantive algebraic Mode B audit.
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, and a domain extension demonstrating apparatus generality in algebra. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra v0.3.0) in this repository, pending publication. v0.3.0 completes the algebraic hierarchy (groups → rings → fields), introduces ℚ as the first field instance, delivers the `OperationalGroup Kˣ` bridge instance (Finding A12, recognition discipline reversal confirmed concrete), and closes the bidirectional recognition discipline loop.
 
 ## Publications
 
@@ -686,7 +686,7 @@ with predecessor VR Lean cycles.
 
 ### Operational Algebra (`VRCycle/Algebra/`)
 
-**Git tags**: `v1.8-vr-operational-algebra-v0.1.0` (additive groups), `v1.9-vr-operational-algebra-v0.2.0` (rings, complete)
+**Git tags**: `v1.8-vr-operational-algebra-v0.1.0` (additive groups), `v1.9-vr-operational-algebra-v0.2.0` (rings), `v1.10-vr-operational-algebra-v0.3.0` (fields + multiplicative groups)
 **Preprint**: in preparation
 
 The **eighth work** in the VR Cycle. A domain extension demonstrating that the
@@ -707,14 +707,38 @@ Ring Mode A theorems: `mul_isModeAOp`, `npow_isOperational`. Bridge instance:
 `OperationalRing.toOperationalAddGroup`. Substantive Mode B audit completed:
 the v0.1.0 intentional sorry in `image_isOperationalAddSubgroup_isModeBOp` is **eliminated**.
 
-`Classical.choice` is **absent from the entire cycle** (46 objects): algebra stays below
-the analysis ceiling established in VR-Audit.
+**v0.3.0** — Completes the algebraic hierarchy: **groups → rings → fields**.
+- `OperationalGroup` (multiplicative): revived from v0.1.0 Finding A0 — justified by field unit groups (Finding A12, recognition discipline reversal).
+- `OperationalField`: extends `Field K` with `inv_isOperational`. Bridge `→ OperationalRing`.
+- ℚ as `OperationalField` — first instance beyond ℤ and ZMod n.
+- `OperationalField.toOperationalGroupUnits`: bridge `[OperationalField K] → OperationalGroup Kˣ` — the concrete justification for `OperationalGroup`'s revival. **Recognition discipline loop CLOSED**.
+- Mode A theorems for multiplicative groups: `mul_isModeAOp`, `inv_isModeAOp`, `div_isModeAOp`, `npow_isOperational`, `zpow_isOperational` (ℤ-exponentiation — new vs additive side).
 
-#### Recognition discipline applications (three in v0.1.0 + v0.2.0)
+#### Classical.choice — honest framing (v0.3.0)
 
+Prior cycles: `Classical.choice` absent from all 46 algebraic objects (v0.1.0 + v0.2.0).
+
+v0.3.0 introduces two objects with `Classical.choice` in their elaborated proof terms:
+- `inv_isModeAOp_field` (`ModeA.lean`)
+- `OperationalField.toOperationalGroupUnits` (`Field.lean`)
+
+**Both are import-context effects** (Finding A15), **not logical requirements**:
+- `Mathlib.Algebra.GroupWithZero.Units.Basic` (resp. apparatus chain importing `Mathlib.Data.Real.Basic`) changes how Lean resolves `Inv K` for generic `[Field K]` in the elaboration context, injecting `Classical.choice` into proof terms that use `(·⁻¹)` in `IsModeAOp` types or `Units.val_inv_eq_inv_val` rewrites.
+- Without these imports (tested), the same theorems elaborate with `[propext, Quot.sound]`.
+- **Logical ceiling** of v0.3.0 algebra remains `[propext, Quot.sound]` (field infrastructure) — no classical reasoning is required by the VR operational content.
+- `OperationalField`, `OperationalField.toOperationalRing`, and `instPredOpField` (same import context, no `(·⁻¹)` in their types) remain `[propext, Quot.sound]`, confirming the effect is scoped to `Inv K` elaboration.
+
+#### Recognition discipline applications (six total across v0.1.0–v0.3.0)
+
+**Removals** (five):
 - **Finding A0** (v0.1.0 Stage 1): `OperationalGroup` (multiplicative) removed — no v0.1.0 instances.
 - **Finding A6** (v0.1.0 Stage 5): `OperationalAddSubgroup` bundled structure removed — the predicate `IsOperationalAddSubgroup H := ∀ x ∈ H, IsOperational x` suffices.
-- **Finding A9** (v0.2.0 Stage 2): `OperationalCommRing` removed — Form A (extends CommRing R, OperationalRing R) fails on immediate `toRing` diamond; Form B duplicates fields without new content. `[OperationalRing R] [CommRing R]` in context suffices.
+- **Finding A9** (v0.2.0 Stage 2): `OperationalCommRing` removed — diamond conflict; no new content.
+- v0.2.0 Stage 5: `one_isOperational_bridge` omitted — alias with no content.
+- v0.2.0 Stage 5: `mul_chain_isOperational` omitted — derivable from `mul_isModeAOp`.
+
+**Introduction** (one — **first documented introduction in cycle**):
+- **Finding A12** (v0.3.0 Stage 1, confirmed Stage 5): `OperationalGroup` REVIVED — field unit groups (`Kˣ`) provide the natural multiplicative instance that was absent in v0.1.0. The bridge `OperationalField.toOperationalGroupUnits` is the concrete justification. **Bidirectional recognition discipline**: remove preemptive abstractions; introduce when natural justification arrives.
 
 #### File structure
 
@@ -728,36 +752,47 @@ the analysis ceiling established in VR-Audit.
 | v0.2.0 §1-2 | `Algebra/Ring.lean` | 2 | `OperationalRing` + bridge `→ OperationalAddGroup` |
 | v0.2.0 §3,4 | `Algebra/Instances.lean` | 10 | ℤ and ZMod n ring instances + demos |
 | v0.2.0 §5 | `Algebra/ModeA.lean` | 3 | `mul_isModeAOp`; `npow_isOperational`; `instPredOpRing` |
+| v0.3.0 §1 | `Algebra/MulGroup.lean` | 1 | `OperationalGroup` typeclass (multiplicative) |
+| v0.3.0 §2,5 | `Algebra/Field.lean` | 3 | `OperationalField`; bridge `→ OperationalRing`; bridge `→ OperationalGroup Kˣ` |
+| v0.3.0 §3,5 | `Algebra/Instances.lean` | 5 | ℚ field instance + demos; ℚˣ demos (anonymous) |
+| v0.3.0 §4 | `Algebra/ModeA.lean` | 8 | MulGroup Mode A (6 objects) + Field Mode A (2 objects) |
 
-**Total: 46 public objects, 2114 lines of Lean.**
+**Total: 55 named public objects (31 v0.1.0 + 15 v0.2.0 + 9 v0.3.0).**
 
-#### Axiom hierarchy — algebraic (Finding A5, extended by A10)
+#### Axiom hierarchy — algebraic (Finding A5, extended by A10, A14, A15)
 
-| Tier | Profile | Representative |
-|------|---------|---------------|
-| 0 | `[]` | `OperationalAddGroup`, `OperationalRing` (class defs), all Mode A theorems for add/mul/sub/pow, bridge instance, `image_isOperationalAddSubgroup_isModeBOp` |
-| 1 | `[propext]` | ℤ instances (additive + ring); `neg_isModeAOp`; Mode B lifts; `int_ker/image` theorems |
-| 2 | `[propext, Quot.sound]` | ZMod n instances (additive + ring); `bot_isOperationalAddSubgroup` |
-| Absent | `[propext, Classical.choice, Quot.sound]` | **No algebraic object reaches the analysis ceiling** |
+| Tier | Profile | Representative objects |
+|------|---------|----------------------|
+| 0 | `[]` | `OperationalAddGroup`, `OperationalRing`, `OperationalGroup`; all Mode A theorems for add/mul/sub/div/pow/zpow; bridge instances (AddGroup, Ring); `image_isOperationalAddSubgroup_isModeBOp` |
+| 1 | `[propext]` | ℤ instances (additive + ring); `neg_isModeAOp`, `MulGroup.inv_isModeAOp`; Mode B lifts; `int_ker/image` theorems |
+| 2 | `[propext, Quot.sound]` | ZMod n instances; `OperationalField`; bridges `→ OperationalRing`, `→ OperationalAddGroup`; `instPredOpField` |
+| 3 | `[propext, Classical.choice, Quot.sound]` | ℚ instances (Finding A14); `inv_isModeAOp_field`, `toOperationalGroupUnits` (**import-context effect**, Finding A15 — logical ceiling remains tier 2) |
 
-**Finding A10**: ring extension does NOT escalate the axiom ceiling. ℤ ceiling = `[propext]` for both additive and ring structure. ZMod n ceiling = `[propext, Quot.sound]` for both. The ceiling is determined by the underlying type, not by algebraic depth.
+**Finding A10**: axiom ceiling = underlying type ceiling, not algebraic depth. Confirmed for rings (v0.2.0); field infrastructure sets a new algebraic ceiling at tier 2.
 
-#### Key findings (A0–A11)
+**Finding A14** (v0.3.0): ℚ concrete instances reach the full analysis ceiling. Source: `Rat.instField` carries classical infrastructure for multiplicative inverses via `GroupWithZero`.
 
-**A3** (v0.1.0): Apparatus reuse confirmed without modification for additive groups; confirmed again in v0.2.0 for rings (`instPredOpRing` = `⟨⟩`, axiom-free).
+**Finding A15** (v0.3.0): import-context ceiling escalation. `Mathlib.Algebra.GroupWithZero.Units.Basic` (and `Mathlib.Data.Real.Basic` via apparatus chain) change the elaboration path for `(·⁻¹)` in `[Field K]` contexts, injecting `Classical.choice` into proof terms without logical requirement.
 
-**A4** (v0.1.0): `neg_isModeAOp` pulls `[propext]`; `add_isModeAOp`, `mul_isModeAOp`, `sub_isModeAOp` all `[]`. Negation elaboration pulls propext via `SubNegMonoid`; multiplication does not.
+#### Key findings (A0–A15)
 
-**A9** (v0.2.0): `OperationalCommRing` omitted — recognition discipline. Direct parallel to A0.
+**A3** (v0.1.0, extended through v0.3.0): Apparatus reuse confirmed for four algebraic structures — AddGroup, Ring, Group, Field. `PredicateOperationality` instance = `⟨⟩` in all cases.
 
-**A10** (v0.2.0): Axiom ceiling = underlying type ceiling, not algebraic structure depth. Ring structure adds no new axiom dependencies.
+**A4** (v0.1.0, confirmed v0.3.0): `neg_isModeAOp` and `inv_isModeAOp` pull `[propext]`; all binary operations (`add`, `mul`, `sub`, `div`) are `[]`. Unary inversion (additive and multiplicative) elaborates through `Neg`/`Inv` infrastructure touching propext; binary closure does not.
 
-**A11** (v0.2.0): Algebraic Mode B requires **one proof step**:
-```lean
-obtain ⟨x, hxS, rfl⟩ := hy
-exact hW x (hS x hxS)
-```
-`AddSubgroup.mem_map` provides a constructive existential — no `Classical.choice`. Contrast with analytic Mode B (Hahn-Banach): limit arguments, classical extension, substantial infrastructure. Algebraic Mode B is mechanically extractable.
+**A10** (v0.2.0): Axiom ceiling = underlying type ceiling, not algebraic depth.
+
+**A11** (v0.2.0): Algebraic Mode B requires one proof step (constructive witness from `AddSubgroup.mem_map`, no `Classical.choice`).
+
+**A12** (v0.3.0): Recognition discipline reversal — `OperationalGroup` omitted (A0), revived (Stage 1), justified concretely by `OperationalField.toOperationalGroupUnits` (Stage 5). First documented *introduction* in the recognition discipline pattern (previously: removals only).
+
+**A13** (v0.3.0): `OperationalField` does not escalate beyond `Field K`'s axiom profile. Consistent with A10: ceiling determined by type infrastructure, not operational layer.
+
+**A14** (v0.3.0): ℚ reaches full analysis ceiling via `Rat.instField`'s classical inverse infrastructure.
+
+**A15** (v0.3.0): Import-context ceiling escalation. Certain Mathlib imports change how `Inv K` resolves for generic `[Field K]`, affecting axiom profiles of theorems where `(·⁻¹)` appears in elaborated types. Two objects affected: `inv_isModeAOp_field`, `toOperationalGroupUnits`. Logical content does not require `Classical.choice`.
+
+**zpow_isOperational** (v0.3.0, new vs additive side): Group has `zpow : ℤ → G → G` natively via `DivInvMonoid`; `zpow_isOperational` proves ℤ-exponentiation preserves operationality. The additive analogue (`zsmul_isOperational`) was not proved in v0.1.0 and is deferred to v0.4.0.
 
 #### Acknowledgement
 
