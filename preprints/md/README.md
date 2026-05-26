@@ -12,4 +12,3 @@ Converted from PDF using `pdftotext -layout` (poppler 24.02.0).
 | VR-Forms | [PDF](../VR_Forms_EN_v1_0_1.pdf) | [MD](VR_Forms_EN_v1_0_1.md) | [10.5281/zenodo.20355939](https://doi.org/10.5281/zenodo.20355939) |
 | VR-Audit | [PDF](../VR-Audit_v1.0.0.pdf) | [MD](VR-Audit_v1.0.0.md) | [10.5281/zenodo.20364111](https://doi.org/10.5281/zenodo.20364111) |
 | VR-Sets-ZFA | [PDF](../VR-Sets-ZFA_v1.0.0.pdf) | [MD](VR-Sets-ZFA_v1.0.0.md) | [10.5281/zenodo.20369346](https://doi.org/10.5281/zenodo.20369346) |
-| VR-Sets-ZFA (Russian) | [PDF](../VR-Sets-ZFA_RU_v1.0.0.pdf) | [MD](VR-Sets-ZFA_RU_v1.0.0.md) | [10.5281/zenodo.20369346](https://doi.org/10.5281/zenodo.20369346) |
