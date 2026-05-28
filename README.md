@@ -11,11 +11,11 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20380344.svg)](https://doi.org/10.5281/zenodo.20380344)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20381417.svg)](https://doi.org/10.5281/zenodo.20381417)
 
-Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, and a domain extension demonstrating apparatus generality in algebra. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra **v1.0.0** — stable release) in this repository, pending Zenodo paired publication. v1.0.0 delivers the complete algebraic hierarchy (groups → rings → fields → modules), 64 public objects across 9 files, Findings A0–A19, and the closed Recognition Discipline Loop (bidirectional, confirmed v0.3.0–v0.4.0). Companion preprint in preparation; Zenodo submission deferred for paired publication.
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, a domain extension demonstrating apparatus generality in algebra, and constructive predicative formal topology with the binary Tychonoff theorem. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra **v1.0.0** — stable release, git tag `v1.12-vr-operational-algebra-v1.0.0`) and **ninth work** (VR-Topology **v1.0.0**, git tag `v1.13-vr-topology-v1.0.0`) in this repository, both pending Zenodo submission. Algebra: 64 public objects, Findings A0–A19, closed Recognition Discipline Loop. Topology: ~85+ public objects, binary Tychonoff, zero `Classical.choice` including Order.Frame bridge.
 
 ## Publications
 
-Fourteen Zenodo records (seven works × Lean + preprint). All Lean formalisations are in this repository under the listed git tags.
+Fourteen Zenodo records (seven works × Lean + preprint). Two further works (Operational Algebra v1.0.0, VR-Topology v1.0.0) are in this repository under the git tags below, pending Zenodo submission. All Lean formalisations are in this repository under the listed git tags.
 
 | # | Work | Zenodo DOI | Git tag |
 |---|------|-----------|---------|
@@ -33,6 +33,7 @@ Fourteen Zenodo records (seven works × Lean + preprint). All Lean formalisation
 | 12 | **VR-Sets-ZFA (Lean)** | [**10.5281/zenodo.20368268**](https://doi.org/10.5281/zenodo.20368268) | **`v1.5-vr-sets-zfa`** |
 | 13 | **VR-Apparatus v1.0.0 (Lean)** | [**10.5281/zenodo.20380344**](https://doi.org/10.5281/zenodo.20380344) | **`v1.7-vr-apparatus-1.0.0`** |
 | 14 | **VR-Apparatus v1.0.0 (preprint)** | [**10.5281/zenodo.20381417**](https://doi.org/10.5281/zenodo.20381417) | — |
+| 15 | **VR-Topology v1.0.0 (Lean)** | — *(Zenodo pending)* | **`v1.13-vr-topology-v1.0.0`** |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 
@@ -834,6 +835,95 @@ with predecessor VR Lean cycles.
 
 ---
 
+### VR-Topology (`VRCycle/Topology/`)
+
+**Lean: git tag `v1.13-vr-topology-v1.0.0` — Zenodo submission pending**
+
+The ninth work in the VR Cycle. VR-Topology is a **constructive predicative formalisation of formal topology** in Lean 4, proving the binary Tychonoff theorem for compact formal topologies — with zero `Classical.choice` throughout, including the bridge to mathlib's classical `Order.Frame` infrastructure.
+
+#### Position in the VR Cycle
+
+| # | Cycle | Tag | Nature |
+|---|-------|-----|--------|
+| 1 | VR. A Formal System | v1.0-vr | Foundational (primitives, arithmetic) |
+| 2 | VR-Numbers | v1.1-vr-numbers | Foundational (ℤ, ℚ, ℝ, ℂ over VR-ℕ) |
+| 3 | VR-Sets | v1.2-vr-sets | Foundational (ZFC, ZFA boundary) |
+| 4 | VR-Forms | v1.3-vr-forms | Foundational (two-register apparatus) |
+| 5 | VR-Audit | v1.4-vr-audit-hb-hilbert | Applied (first VR-Audit application) |
+| 6 | VR-Sets-ZFA | v1.5-vr-sets-zfa | Foundational (ZFA extension, AFA as theorem) |
+| 7 | VR-Apparatus | v1.7-vr-apparatus-1.0.0 | Meta (apparatus formalisation) |
+| 8 | Operational Algebra | v1.12-vr-operational-algebra-v1.0.0 | Domain extension (algebraic structures) |
+| **9** | **VR-Topology** | **v1.13-vr-topology-v1.0.0** | **Domain extension (formal topology)** |
+
+#### Core architectural principle: formal topology, not frames
+
+VR-Topology uses **formal topology** (Coquand 1992, Sambin–Smith–Valentini 2003) — coverage relations on posets — rather than frames as complete lattices. The distinction is forced by Lean 4's universe hierarchy: a `FreeFrame(generators)` construction requires a `Set (FreeFramePre G) → FreeFramePre G` field, which Lean 4 rejects via its positivity check. This was **T0** — the cycle's founding architectural pivot, caught before any Lean code was committed. Formal topology places the coverage relation `cov : S → Set S → Prop` entirely in `Prop`, with no universe inflation.
+
+#### Main theorem
+
+```lean
+def tychonoff_binary
+    (T₁ T₂ : FormalTopology)
+    [inst₁ : OperationalFormalTopology T₁]
+    [inst₂ : OperationalFormalTopology T₂]
+    [DecidableEq T₁.S] [DecidableEq T₂.S]
+    [DecidableRel T₁.le] [DecidableRel T₂.le]
+    (w₁ : CompactWitness T₁ inst₁.basicCov)
+    (w₂ : CompactWitness T₂ inst₂.basicCov)
+    [DecidablePred (· ∈ w₁.F)] [DecidablePred (· ∈ w₂.F)] :
+    CompactWitness (FormalTopology.prod T₁ T₂)
+                   (OperationalFormalTopology.instProd T₁ T₂).basicCov
+```
+
+Binary Tychonoff for formal topology (Vickers 2006 Theorem 19, constructive version): the binary product of compact formal topologies is compact. Mode B audit object: multi-step constructive proof (~480 active lines across five helper theorems and assembly). Axiom profile: **`[propext, Quot.sound]`**, zero `Classical.choice`.
+
+The decidability hypotheses (T16) are explicit: Lean 4's `List`-based compactness machinery — replacing `Finset`, which inherits `Classical.choice` via `Multiset` (T13) — requires decidable equality, order, and compactness-set membership as explicit typeclass parameters.
+
+#### File structure (`VRCycle/Topology/`)
+
+| Stage | File | Public objects | Description |
+|-------|------|---------------|-------------|
+| 1 | `FormalTopology.lean` | 14 | `FormalTopology` structure; `CoverGen` inductive; `ofPresentation`; five coverage axioms (`cov_refl`, `cov_trans`, `cov_ref_mono`, `cov_local`, `cov_meet`); four derived theorems |
+| 2 | `Operational.lean` | 16 | `IsDescribable` data class (T3); `OpCoverGen` inductive; `OperationalFormalTopology` class; `toCoverGen`/`toOpCov` bridge theorems; `ofPresentation`; Unit and Bool instances |
+| 3 | `Continuous.lean` | 10 | `ContinuousMap` structure; `OpContinuous`; identity and composition; Mode A theorems `id_isModeAOp`, `comp_isModeAOp` |
+| 4 | `Product.lean` | 11 | `FormalTopology.prod`; `prodLe`, `prodBasicCov`, `opProdBasicCov`; `proj₁`, `proj₂`; all `[]` |
+| 5 | `Compact.lean` | 10 | `CompactWitness` (List-based, T13); `listLowerOrder`; `OperationalCompact`; `implies_classical_compact`; Unit and Bool operational compact instances |
+| 6+6b | `Tychonoff.lean` | 14+ | `tychonoff_binary` (Mode B audit); five `prodF.*` helper theorems; `prodWitness`; `Unit × Bool` concrete operational compactness instance (T20 R3 concrete-only path) |
+| 7 | `Bridge.lean` | 10 | `IsSaturated`, `SatSet`, `saturate`; `instCompleteLattice`; **`instFrame`** (bridge to mathlib `Order.Frame`, constructive) |
+
+**Total: ~85+ public objects, ~2863 lines of Lean.**
+
+#### Axiom profile
+
+**Zero `Classical.choice` across all public objects — including the bridge to mathlib's classical `Order.Frame` infrastructure.** This was an unexpected positive deviation: Stage 7's plan expected frame distributivity to require classical machinery from mathlib's lattice infrastructure. The coverage induction proves it constructively.
+
+| Profile | Count | Representative objects |
+|---------|-------|----------------------|
+| `[]` axiom-free | ~50 | All of Stages 1 and 4; `CoverGen`, `FormalTopology`, `OpCoverGen`, `OperationalFormalTopology`, `CompactWitness`, `OperationalCompact`, `IsSaturated`, `SatSet`; `ContinuousMap.id`, `ContinuousMap.comp` |
+| `[propext]` | ~4 | `cov_meet_iter`, `product_decomposition_lemma`, `prodF_set_invariant`, `IsDescribable.instSingleton` |
+| `[propext, Quot.sound]` | ~22 | **`tychonoff_binary`**, **`instFrame`**, `OpContinuous.id/comp`, `prodF_cover_closure`, compact instances |
+| `[propext, Classical.choice, Quot.sound]` | **0** | — |
+
+#### Key methodological observations (selected T-findings)
+
+1. **T0 — Frame infeasibility pivot**: free-frame construction fails Lean 4's positivity check (universe inflation). Formal topology is not a fallback — it is the mathematically correct constructive setting. Caught at initial reconnaissance, before any Lean code committed. Founded the cycle's entire architecture.
+
+2. **T6/T13 — Classical.choice avoidance via custom implementations**: `Nat.unpair_pair` (T6) and mathlib's `Finset` (T13) both transitively pull `Classical.choice`. Resolved by custom bit-interleaving pairing (`IsDescribable` namespace) and replacing `CompactWitness.F : Set (Finset T.S)` with `Set (List T.S)` (~268 lines discarded, ~245 rewritten). Lean core's `List` carries no Classical dependency.
+
+3. **T7 — `cov_meet` as product infrastructure**: Coquand's minimal 4-axiom coverage condition is insufficient for the product universal property. Vickers's product construction requires `cov_meet` (Sambin's meet axiom: `a ◁ V₁ → a ◁ V₂ → a ◁ (V₁ ∩ V₂)`). Added as fifth axiom to `FormalTopology`; trivial for `ofPresentation`-built topologies. This was the critical infrastructure for Stage 7 frame distributivity.
+
+4. **T21 — `iSup_pos` bridge for Order.Frame**: Stage 7 frame distributivity requires bridging mathlib's `⨆ b ∈ S, A ⊓ b` elaboration (nested conditional `iSup`) against the explicit `sSup S' := saturate (⋃ U ∈ S', U.1)`. The `iSup_pos` lemma (`(⨆ h : p, f h) = f hp` given `hp : p`) provides the bridge in ~5 lines once identified.
+
+5. **Constructive frame bridge**: `instFrame` is proved constructively at `[propext, Quot.sound]`. Together with `tychonoff_binary` at the same profile, VR-Topology occupies the **multistep constructive** position on the Mode B audit spectrum — the first such work in the VR cycle, and the first with a constructive bridge to mainstream classical mathematical infrastructure.
+
+6. **18 T-findings, all pre-code**: T0–T21 (with T18 skipped, T4/T10 absorbed). 7 of 18 are architect-direction errors caught by implementer paper-sketch before any incorrect Lean code was committed. Full catalog in `T_FINDINGS.md`.
+
+#### Acknowledgement
+
+Developed using **Claude Opus 4.7** in both architectural and implementation roles — architect (PLAN documents, halts, sub-plans) and implementer (Lean code, axiom audit) — under human curator Vitaly Reznik. Both AI roles carried by Opus 4.7 in this work (Variant A workflow). Structural separation of roles — not model diversity — is what sustains recognition discipline.
+
+---
+
 ## What this formalisation does NOT claim
 
 **Ontological theses.** The preprint makes claims about minimalism, Leibnizian void, and the operational character of objects. These are interpretive layers on top of the formal system. This Lean formalisation verifies formal derivability given a specific translation into Lean types — not the philosophical claims themselves.
@@ -1416,3 +1506,19 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 | A13 | Apparatus reuse confirmed for Field — third structure (after AddGroup, Ring). Finding A3 generalises to entire algebraic hierarchy. |
 | A14 | ℚ axiom ceiling `[propext, Quot.sound]` — identical to ℤ and ZMod n; rational arithmetic same constructive depth as integer arithmetic |
 | A15 | Import-context ceiling escalation — `Mathlib.Data.Real.Basic` (via apparatus chain) changes `Inv K` resolution for generic `[Field K]`, injecting `Classical.choice` into two proof terms. Logical ceiling remains `[propext, Quot.sound]`; programme remains logically constructive. |
+
+### VR-Topology (formal topology, binary Tychonoff)
+
+**~85+ public objects** across 7 files. No sorry. No admit. **Zero `Classical.choice` across the entire tower** including bridge to mathlib `Order.Frame`. Git tag: `v1.13-vr-topology-v1.0.0`.
+
+| Stage | File | Description | Status | Axioms |
+|-------|------|-------------|--------|--------|
+| 1 | `Topology/FormalTopology.lean` | `FormalTopology`, `CoverGen`, `ofPresentation`; five coverage axioms as theorems; four derived theorems | ✓ | **`[]`** |
+| 2 | `Topology/Operational.lean` | `IsDescribable`, `OpCoverGen`, `OperationalFormalTopology`, bridge theorems; Unit/Bool instances | ✓ | `[]`–`[propext, Quot.sound]` |
+| 3 | `Topology/Continuous.lean` | `ContinuousMap`, `OpContinuous`; identity, composition; Mode A theorems | ✓ | `[]`–`[propext, Quot.sound]` |
+| 4 | `Topology/Product.lean` | Binary product, `prodLe`, `prodBasicCov`, projections | ✓ | **`[]`** |
+| 5 | `Topology/Compact.lean` | `CompactWitness` (List-based, T13); `OperationalCompact`; `implies_classical_compact`; Unit/Bool instances | ✓ | `[]`–`[propext, Quot.sound]` |
+| 6 | `Topology/Tychonoff.lean` | **`tychonoff_binary`** (Mode B audit; ~480 lines) | ✓ | **`[propext, Quot.sound]`** |
+| 6b | `Topology/Tychonoff.lean` | `Unit × Bool` concrete operational compactness instance | ✓ | `[propext, Quot.sound]` |
+| 7 | `Topology/Bridge.lean` | **`instFrame`** (bridge to mathlib `Order.Frame`, constructive) | ✓ | **`[propext, Quot.sound]`** |
+| Tag | — | Full axiom audit (FINAL_AXIOM_AUDIT.md), T_FINDINGS.md, git tag `v1.13-vr-topology-v1.0.0` | ✓ | — |
