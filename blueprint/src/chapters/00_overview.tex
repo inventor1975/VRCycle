@@ -1,7 +1,227 @@
 \chapter{Overview}
 \label{chap:overview}
 
-% Written last (Stage 10) — placeholder for synthesis chapter.
-% Will describe the three-layer architecture, the dependency graph as a whole,
-% the mathlib foundations (ZFSet, PFunctor.M, Riesz), and the four-tier
-% axiom profile across the VR Cycle.
+This chapter is a map, not a summary.  Its purpose is to let a reader who
+opens the blueprint for the first time see, in a few minutes, what the VR
+Cycle is, what its nine modules are for, how they depend on one another,
+and which chapter to read next.  It states no theorems and cites no Lean
+objects; each later chapter does that for its own material.
+
+%──────────────────────────────────────────────────────────────────────
+\section{What VR is}
+\label{sec:overview_what}
+
+VR is an operational reconstruction of mathematics from a single
+ontological primitive --- the empty object~$\emptyset$ --- through a small
+fixed repertoire of operations: succession~($t$) and implication~($\to$)
+in the formal system, and reference~($\in$) once sets enter.  Every
+mathematical object in the cycle is built as an operation on~$\emptyset$;
+no further primitives are admitted.  The discipline is uniform across all
+nine works: an object is introduced together with an explicit account of
+how it is operationally constructed and what logical axioms its
+construction depends upon.
+
+From this root the cycle climbs through the natural numbers, the integers,
+rationals, reals and complex numbers, the ZF and ZFA set universes, a
+two-register apparatus separating operational from formal reasoning,
+operational algebra over the standard structures, an operational
+Hahn--Banach theorem via Riesz representation, and a point-free binary
+Tychonoff theorem.  Each step is formalised in Lean~4 and carries a
+documented axiom profile, so that the logical cost of every object is
+visible rather than implicit.
+
+VR is built \emph{on} mathlib, not parallel to it.  The operational set
+type \texttt{OSet} is mathlib's well-founded \texttt{ZFSet} used directly;
+the anti-foundational universe \texttt{OSetZFA} is constructed from
+mathlib's \texttt{PFunctor.M} coinductive machinery; the operational
+Hilbert space wraps mathlib's classical \texttt{InnerProductSpace}; and
+the topology bridge instantiates mathlib's \texttt{Order.Frame}.  The
+contribution of the cycle is the coherent synthesis erected above this
+foundation, from one root through arithmetic, sets, apparatus and
+applications --- not a replacement of the foundation, and not any single
+hidden capability of one module.
+
+%──────────────────────────────────────────────────────────────────────
+\section{The three architectural layers}
+\label{sec:overview_layers}
+
+The nine modules organise into three layers.
+
+\textbf{Layer~I --- Foundation} (Chapters~\ref{chap:vr}, \ref{chap:numbers},
+\ref{chap:sets} and~\ref{chap:setszfa}).  The vertical from~$\emptyset$
+upward: the VR formal system fixes the ontology and recovers Peano
+arithmetic; VR-Numbers builds the number systems on it; VR-Sets realises
+the ZFC universe through \texttt{OSet}; and VR-Sets-ZFA realises the
+anti-foundational universe through \texttt{OSetZFA}.  The two set-theoretic
+universes are connected by the \texttt{embedOSet} bridge, so that the
+well-founded and non-well-founded worlds sit in one development rather than
+two.
+
+\textbf{Layer~II --- Methodology} (Chapters~\ref{chap:forms}
+and~\ref{chap:apparatus}).  VR-Forms introduces the two-register apparatus
+that distinguishes what is operationally constructed from what is formally
+asserted.  VR-Apparatus generalises that apparatus into a reusable
+framework: the two operationality modes (\texttt{PredicateOperationality},
+\texttt{ReferenceOperationality}), the two transit modes (Mode~A and
+Mode~B), and \texttt{InterApparatusMorphism} connecting them.  This layer
+is where the discipline used implicitly across the foundation is made
+explicit and portable.
+
+\textbf{Layer~III --- Applications} (Chapters~\ref{chap:audit},
+\ref{chap:algebra} and~\ref{chap:topology}).  VR-Audit applies the
+apparatus to functional analysis, deriving an operational Hahn--Banach
+theorem from Riesz representation and exhibiting Mode~B on a classical
+analytic result.  VR-Algebra reuses the apparatus across additive groups,
+rings, fields and modules, exercising both Mode~A and Mode~B in algebra.
+VR-Topology transfers the apparatus to an unfamiliar domain, proving a
+choice-free point-free binary Tychonoff.
+
+The dependency direction is strict: each Layer~III application uses
+methodology from Layer~II, which in turn rests on the foundation in
+Layer~I.  No arrow runs the other way.  This is the \texttt{\textbackslash
+uses} chain made visible in the dependency graph.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Dependency structure}
+\label{sec:overview_deps}
+
+The dependency graph is methodological, not chronological.  VR-Audit was
+completed and published before VR-Apparatus, yet it depends on the
+apparatus as the canonical Mode~B instance; the blueprint records the
+methodological dependency because that is what a reader needs in order to
+navigate the work, not the order in which the modules happened to be
+written.  Reading the graph as a timeline would therefore mislead; it is a
+map of logical support.
+
+The full dependency graph is rendered separately as the
+\href{dep_graph_document.html}{dependency graph} accompanying this
+blueprint, where each node links to the corresponding chapter and the
+chapter-to-chapter edges are shown visually.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Axiom profile across the cycle}
+\label{sec:overview_axioms}
+
+Every public object in the cycle has been audited with \texttt{\#print
+axioms}, and the results fall into four tiers.
+
+\begin{itemize}
+\item \texttt{[]} --- axiom-free.  The entire VR formal system
+(Chapter~\ref{chap:vr}) sits here, as do selected objects in every other
+module.  Nothing beyond Lean's definitional framework is used.
+
+\item \texttt{[Quot.sound]} --- quotient soundness only.  A sub-ceiling
+first isolated in VR-Apparatus (Finding~S2-B), below the usual
+constructive ceiling.
+
+\item \texttt{[propext, Quot.sound]} --- propositional extensionality with
+quotient soundness.  This is the cycle's standard constructive ceiling.
+VR-Topology reaches it for \texttt{tychonoff\_binary} even though the
+classical Tychonoff theorem is equivalent to the Axiom of Choice; the
+point-free formulation is what makes the choice-free profile attainable.
+
+\item \texttt{[propext, Classical.choice, Quot.sound]} --- the full mathlib
+ceiling.  It enters only through black-box dependence on mathlib's
+classical theorems: Riesz representation in VR-Audit, and the ordinal,
+foundation and choice mechanisms behind \texttt{ZFSet} in VR-Sets.
+\end{itemize}
+
+The methodological point is not that the cycle avoids
+\texttt{Classical.choice} as an end in itself.  It is that the cycle
+documents precisely where choice enters and structures the apparatus so
+that classical machinery lives in the formal register without contaminating
+the operational register.  This is the two-register discipline of VR-Forms
+applied to the cycle's own logical accounting.
+
+%──────────────────────────────────────────────────────────────────────
+\section{What to read first}
+\label{sec:overview_reading}
+
+Different readers will want different entry points.
+
+A reader interested in foundations and axiomatic minimalism should start
+with the VR formal system (Chapter~\ref{chap:vr}), which is self-contained,
+axiom-free, and lays out the cycle's ontological position from~$\emptyset$.
+VR-Sets (Chapter~\ref{chap:sets}) then shows how that position extends to set
+theory through \texttt{OSet}.
+
+A reader interested in constructive analysis and proof mining should
+compare VR-Audit (Chapter~\ref{chap:audit}) with VR-Topology
+(Chapter~\ref{chap:topology}): two contrasting analytic settings, one reaching
+its result through Mode~B over a black-box Riesz representation, the other
+through a point-free formulation that avoids choice entirely.
+
+A reader interested in formalisation methodology should read VR-Apparatus
+(Chapter~\ref{chap:apparatus}), the meta-work that formalises the framework
+used implicitly throughout the cycle, and then VR-Algebra
+(Chapter~\ref{chap:algebra}), which confirms the framework's transferability
+across algebraic structures.
+
+A reader interested in non-well-founded set theory should turn to
+VR-Sets-ZFA (Chapter~\ref{chap:setszfa}), which formalises the Anti-Foundation
+Axiom as a theorem, obtained from the final-coalgebra property of
+\texttt{CoPSet} via mathlib's \texttt{PFunctor.M}.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Position relative to existing programmes}
+\label{sec:overview_position}
+
+VR is a synthesis, not a discovery of new mathematics.  Each component
+piece has an identifiable predecessor, and the blueprint acknowledges them
+plainly.
+
+\begin{itemize}
+\item \textbf{Hilbert.}  The formal--ideal distinction is reframed by the
+two-register apparatus (Chapter~\ref{chap:forms}), with the conservativity
+relation between the registers made a machine-verified claim rather than an
+informal one.
+
+\item \textbf{Bishop.}  The cycle shares Bishop's constructive discipline
+but differs in strategy: where Bishop rejects classical reasoning, VR
+accommodates it inside the formal register and keeps it out of the
+operational one.
+
+\item \textbf{Aczel.}  The Anti-Foundation Axiom is Aczel's; VR-Sets-ZFA
+(Chapter~\ref{chap:setszfa}) contributes its formalisation as a theorem in
+Lean using coinductive types, not the axiom itself.
+
+\item \textbf{Coquand, Vickers and Sambin.}  VR-Topology
+(Chapter~\ref{chap:topology}) uses their formal-topology framework directly;
+the chapter is explicit that the contribution is transferability of the
+apparatus, not a result within the point-free programme.
+
+\item \textbf{Kohlenbach.}  Mode~B's extraction of operational content from
+a classical theorem is structurally close in spirit to proof mining, though
+the apparatus is distinct from the Dialectica interpretation.
+\end{itemize}
+
+What is new is none of these pieces individually.  It is the coherent,
+machine-verified synthesis that runs from a single root through arithmetic,
+two set universes, the apparatus, and three applications --- one organism
+rather than nine separate notes.  Making that connectivity visible, before
+the reader looks at any single chapter, is the work of this overview.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Provenance and reproducibility}
+\label{sec:overview_provenance}
+
+The Lean~4 formalisation lives at
+\href{https://github.com/inventor1975/VRCycle}{github.com/inventor1975/VRCycle}.
+The toolchain is pinned in the repository's \texttt{lean-toolchain} file;
+\texttt{lake build} compiles the cycle without warnings, and the axiom
+profiles quoted throughout the blueprint are produced by \texttt{\#print
+axioms} run on every public object.
+
+Archival records are deposited on Zenodo: eight preprint records and seven
+Lean software releases.  Two modules are cited differently by deliberate
+decision --- VR-Algebra by GitHub tag without a separate Lean DOI, a
+workflow simplification, and VR-Topology by repository path, as it has no
+companion preprint.
+
+The cycle was developed between 15 and 28~May~2026 using AI assistance in
+the Variant~A pattern: a human curator directing an architect model
+(Claude Opus~4.7) that produced specifications, and an executor model
+(Claude Sonnet~4.6) that implemented them in Lean.  The repository
+README carries the full account of authoring; it is recorded here as a
+plain fact about how the cycle was produced, not as a framing of the
+mathematics, which stands or falls on the machine-checked proofs.
