@@ -1,7 +1,650 @@
 \chapter{VR-Numbers}
 \label{chap:numbers}
+\uses{chap:vr}
 
-% Stage 2 — ℤ_VR, ℚ_VR, ℝ_VR, ℂ_VR; isomorphisms to mathlib types.
-% Classical-free boundary: ℤ_VR at [propext, Quot.sound],
-% ℚ_VR onward at [propext, Classical.choice, Quot.sound].
-% \uses{chap:vr}
+\section{Position}
+
+VR-Numbers constructs the integers~$\mathbb{Z}_{\mathrm{VR}}$, rationals~$\mathbb{Q}_{\mathrm{VR}}$,
+reals~$\mathbb{R}_{\mathrm{VR}}$, and complex numbers~$\mathbb{C}_{\mathrm{VR}}$ as successive
+operational superstructures over the VR natural numbers~$\mathrm{VRObj}$.
+Each numerical domain is introduced as a formal language of expressions with an equivalence
+relation; no level uses ordered pairs as ontological objects.
+The single ontological primitive is~$\emptyset$; all number systems are
+operational constructions of increasing depth over it (§\,VI.4 of the preprint).
+
+The isomorphisms with mathlib's \texttt{Int}, \texttt{Rat}, \texttt{Real}, and
+\texttt{Complex} are proved as explicit structure terms with named fields for
+bijectivity and operation preservation---the same pattern as \texttt{VR\_PA\_iso}
+in Chapter~\ref{chap:vr}.  The chapter establishes a structural axiom-profile
+boundary: $\mathbb{Z}_{\mathrm{VR}}$ is constructive (\texttt{[propext, Quot.sound]}),
+while $\mathbb{Q}_{\mathrm{VR}}$ and all subsequent levels require
+\texttt{Classical.choice} due to a structural dependency in mathlib's rational
+arithmetic.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Integers $\mathbb{Z}_{\mathrm{VR}}$}
+\label{sec:integers}
+
+\begin{definition}[Formal language of subtraction]
+\label{def:IntExpr}
+\lean{VR.Numbers.IntExpr}
+\leanok
+\uses{def:VRObj}
+\texttt{IntExpr} is an inductive type with a single constructor
+$\texttt{mk} : \mathrm{VRObj} \to \mathrm{VRObj} \to \mathrm{IntExpr}$,
+representing the syntactic expression $a \ominus b$ where $a, b \in \mathrm{VRObj}$.
+Access is exclusively via pattern matching; no projections are named
+(\S\,VI.5, item~1 of the preprint).
+\end{definition}
+
+\begin{definition}[Integer equivalence]
+\label{def:intEq}
+\lean{VR.Numbers.intEq}
+\leanok
+\uses{def:IntExpr, def:vadd}
+$\texttt{intEq}(a \ominus b,\, c \ominus d) \;\Longleftrightarrow\;
+\texttt{vadd}\,a\,d = \texttt{vadd}\,b\,c$.
+Equivalence of two subtraction expressions, mirroring the standard integer
+construction via natural-number pairs.
+\end{definition}
+
+\begin{theorem}[\texttt{intEq} is an equivalence relation]
+\label{thm:intEq_equiv}
+\lean{VR.Numbers.intEq_refl, VR.Numbers.intEq_symm, VR.Numbers.intEq_trans}
+\leanok
+\uses{def:intEq, thm:T1, thm:T2}
+Reflexivity uses T1 (commutativity).  Symmetry uses T1 and transitivity
+in $\mathrm{VRObj}$.  Transitivity reduces to right cancellation of
+\texttt{vadd}, which is an explicit private lemma \texttt{vadd\_cancel}
+(proved by induction on~$c$ using \texttt{P4\_succ\_inj}).
+\end{theorem}
+
+\begin{definition}[Operations on \texttt{IntExpr}]
+\label{def:int_ops_expr}
+\lean{VR.Numbers.iadd, VR.Numbers.imul, VR.Numbers.ineg, VR.Numbers.isub}
+\leanok
+\uses{def:IntExpr, def:vadd, def:vmul}
+$(a \ominus b) \oplus (c \ominus d) := (a{+}c) \ominus (b{+}d)$;\quad
+$(a \ominus b) \otimes (c \ominus d) := (a{\times}c {+} b{\times}d) \ominus
+(a{\times}d {+} b{\times}c)$;\quad
+$\ominus(a \ominus b) := b \ominus a$;\quad
+$(a \ominus b) \ominus (c \ominus d) := (a{+}d) \ominus (b{+}c)$.
+Subtraction is definable as $e \ominus f = e \oplus \ominus f$
+(\texttt{isub\_via\_iadd\_ineg}, by \texttt{rfl}).
+\end{definition}
+
+\begin{theorem}[Left distributivity of \texttt{vmul}]
+\label{thm:vmul_distrib_right}
+\lean{VR.Numbers.vmul_distrib_right}
+\leanok
+\uses{def:vadd, def:vmul}
+$(a + b) \times c = a \times c + b \times c$ for all $a, b, c : \mathrm{VRObj}$.
+Proved by induction on~$c$; uses the private shuffle lemma \texttt{vadd\_swap}.
+This is left distributivity, absent from T1--T4 (\S\,VII of Chapter~\ref{chap:vr}).
+Its explicit proof is a methodological observation (see Remark~\ref{rem:vmul_distrib}).
+\end{theorem}
+
+\begin{theorem}[Well-definedness of operations]
+\label{thm:int_ops_wd}
+\lean{VR.Numbers.ineg_respects, VR.Numbers.iadd_respects,
+      VR.Numbers.imul_respects, VR.Numbers.isub_respects}
+\leanok
+\uses{def:intEq, def:int_ops_expr, thm:T1, thm:T2, thm:vmul_distrib_right}
+Each of \texttt{ineg}, \texttt{iadd}, \texttt{imul}, \texttt{isub} sends
+\texttt{intEq}-equivalent inputs to \texttt{intEq}-equivalent outputs.
+\texttt{iadd\_respects} uses \texttt{vadd\_swap};
+\texttt{imul\_respects} chains two private lemmas
+(\texttt{imul\_left\_respects} and \texttt{imul\_right\_respects}).
+\end{theorem}
+
+\begin{definition}[$\mathbb{Z}_{\mathrm{VR}}$ and lifted operations]
+\label{def:IntVR}
+\lean{VR.Numbers.IntVR, VR.Numbers.iaddQ, VR.Numbers.imulQ,
+      VR.Numbers.inegQ, VR.Numbers.isubQ, VR.Numbers.embedN}
+\leanok
+\uses{def:intEq, thm:int_ops_wd}
+$\mathbb{Z}_{\mathrm{VR}} := \mathrm{IntExpr} / \texttt{intEq}$ via
+\texttt{Quotient}.  Operations \texttt{iaddQ}, \texttt{imulQ},
+\texttt{inegQ}, \texttt{isubQ} are lifted via \texttt{Quotient.lift₂}
+using the well-definedness theorems; each lift invokes \texttt{Quot.sound}.
+The natural number $n$ embeds as $[n \ominus \emptyset]$ via \texttt{embedN}.
+\end{definition}
+
+\begin{theorem}[Canonical form]
+\label{thm:canonical_form}
+\lean{VR.Numbers.canonical_form}
+\leanok
+\uses{def:IntExpr, def:intEq, def:vadd}
+Every \texttt{IntExpr} is \texttt{intEq}-equivalent to either
+$(n \ominus \emptyset)$ (non-negative) or $(\emptyset \ominus n)$ (negative).
+Proved via the private \texttt{vadd\_comparable} lemma (constructive totality
+of the natural order on \texttt{VRObj}).
+\end{theorem}
+
+\begin{definition}[Isomorphism type $\mathbb{Z}_{\mathrm{VR}} \cong \mathbb{Z}$]
+\label{def:IntVRIntIso}
+\lean{VR.Numbers.IntVRIntIso}
+\leanok
+\uses{def:IntVR}
+The structure \texttt{IntVRIntIso} has seven fields:
+\texttt{forward} ($\mathbb{Z}_{\mathrm{VR}} \to \mathbb{Z}$),
+\texttt{backward} ($\mathbb{Z} \to \mathbb{Z}_{\mathrm{VR}}$),
+bijectivity (\texttt{right\_inv}, \texttt{left\_inv}), and
+preservation of \texttt{iaddQ}, \texttt{imulQ}, \texttt{inegQ}.
+\end{definition}
+
+\begin{theorem}[Theorem~II.6 --- $\mathbb{Z}_{\mathrm{VR}} \cong \mathbb{Z}$]
+\label{thm:T_II_6}
+\lean{VR.Numbers.Theorem_II_6_IntVR_Int}
+\leanok
+\uses{def:IntVRIntIso, def:IntVR, thm:canonical_form}
+The term \texttt{Theorem\_II\_6\_IntVR\_Int : IntVRIntIso} is constructed with
+\texttt{forward} mapping $[a \ominus b] \mapsto \texttt{O\_inv}(a) - \texttt{O\_inv}(b)$
+and \texttt{backward} mapping via \texttt{Int.ofNat}/\texttt{Int.negSucc} branches.
+Well-definedness: private bridge lemmas \texttt{O\_inv\_vadd} and \texttt{O\_inv\_vmul}.
+Bijectivity: \texttt{right\_inv\_int} and \texttt{left\_inv\_int}; the latter
+splits by \texttt{by\_cases} on a decidable inequality (no \texttt{Classical.choice}).
+Preservation of operations: by \texttt{push\_cast} + \texttt{ring} after rewriting
+with \texttt{O\_inv\_vadd}/\texttt{O\_inv\_vmul}.
+
+\noindent\axiomprofile{[propext, Quot.sound]} (no \texttt{Classical.choice}).
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Rationals $\mathbb{Q}_{\mathrm{VR}}$}
+\label{sec:rationals}
+
+\begin{definition}[Formal language of division]
+\label{def:RatExpr}
+\lean{VR.Numbers.RatExpr, VR.Numbers.NonZeroRatExpr}
+\leanok
+\uses{def:IntVR}
+\texttt{RatExpr} is an inductive type with constructor
+$\texttt{mk} : \mathbb{Z}_{\mathrm{VR}} \to \mathbb{Z}_{\mathrm{VR}} \to \mathrm{RatExpr}$,
+representing $a \oslash b$.  The subtype
+$\texttt{NonZeroRatExpr} := \{e : \mathrm{RatExpr} \mid e.\texttt{snd} \ne 0_{\mathbb{Z}}\}$
+restricts to expressions with nonzero denominator.  Access via pattern matching
+only; no named projections in the sense of §\,VI.5 item~1.
+\end{definition}
+
+\begin{definition}[Rational equivalence]
+\label{def:ratEq}
+\lean{VR.Numbers.ratEq}
+\leanok
+\uses{def:RatExpr, def:IntVR}
+$\texttt{ratEq}(a \oslash b,\, c \oslash d) \;\Longleftrightarrow\;
+\texttt{imulQ}\,a\,d = \texttt{imulQ}\,b\,c$
+(cross-multiplication on $\mathbb{Z}_{\mathrm{VR}}$).
+Defined on \texttt{NonZeroRatExpr}.
+\end{definition}
+
+\begin{theorem}[\texttt{ratEq} is an equivalence relation]
+\label{thm:ratEq_equiv}
+\lean{VR.Numbers.ratEq_refl, VR.Numbers.ratEq_symm, VR.Numbers.ratEq_trans}
+\leanok
+\uses{def:ratEq, thm:T_II_6}
+Reflexivity: \texttt{imulQ\_comm}.  Symmetry: swap and use commutativity.
+Transitivity: cancel the common factor via the private
+\texttt{Int\_mul\_right\_cancel}, which avoids \texttt{mul\_right\_cancel₀}
+(the latter pulls \texttt{Classical.choice} through mathlib's integral domain
+instance).  All three proofs stay in \texttt{[propext, Quot.sound]}.
+\end{theorem}
+
+\begin{definition}[Operations on $\mathrm{NonZeroRatExpr}$ and $\mathbb{Q}_{\mathrm{VR}}$]
+\label{def:rat_ops}
+\lean{VR.Numbers.iratAdd, VR.Numbers.iratMul, VR.Numbers.iratSub, VR.Numbers.iratDiv,
+      VR.Numbers.ratAdd, VR.Numbers.ratMul, VR.Numbers.ratSub, VR.Numbers.ratDiv}
+\leanok
+\uses{def:RatExpr, def:ratEq}
+Addition, multiplication, subtraction, and division on \texttt{NonZeroRatExpr}
+follow the standard cross-multiplication formulas; denominators are nonzero by
+\texttt{imulQ\_ne\_zero}.  Division has a junk value $p / 0_{\mathbb{Q}} := 0_{\mathbb{Q}}$.
+All four operations lift to $\mathbb{Q}_{\mathrm{VR}}$ via
+\texttt{Quotient.lift₂} using their respective respects theorems.
+\end{definition}
+
+\begin{definition}[$\mathbb{Q}_{\mathrm{VR}}$ and infrastructure]
+\label{def:RatVR}
+\lean{VR.Numbers.RatVR, VR.Numbers.zero_Q, VR.Numbers.nonZeroQ,
+      VR.Numbers.embedZ, VR.Numbers.RatVRRatIso}
+\leanok
+\uses{def:ratEq, def:IntVR}
+$\mathbb{Q}_{\mathrm{VR}} := \mathrm{NonZeroRatExpr} / \texttt{ratEq}$.
+Zero element $0_{\mathbb{Q}} := [0_{\mathbb{Z}} \oslash 1_{\mathbb{Z}}]$.
+Nonzero predicate \texttt{nonZeroQ} is defined via \texttt{Quotient.lift}
+using \texttt{propext} for well-definedness.
+Integer $a \in \mathbb{Z}_{\mathrm{VR}}$ embeds as $[a \oslash 1_{\mathbb{Z}}]$
+via \texttt{embedZ}.
+The structure \texttt{RatVRRatIso} has ten fields:
+bijection, preservation of $0$, $1$, addition, multiplication, subtraction,
+and division.
+\end{definition}
+
+\begin{theorem}[Theorem~III.6 --- $\mathbb{Q}_{\mathrm{VR}} \cong \mathbb{Q}$]
+\label{thm:T_III_6}
+\lean{VR.Numbers.Theorem_III_6_RatVR_Rat}
+\leanok
+\uses{def:RatVR, thm:ratEq_equiv, def:rat_ops}
+The term \texttt{Theorem\_III\_6\_RatVR\_Rat : RatVRRatIso} with
+\texttt{forwardQ}($[a \oslash b]$) $:= \texttt{forward}(a) \mathbin{/\!\!.} \texttt{forward}(b)$
+(mathlib's \texttt{Rat.divInt}) and
+\texttt{backwardQ}($r$) $:= [\texttt{backward}(r.\texttt{num}) \oslash \texttt{backward}({\uparrow}r.\texttt{den})]$.
+Operation preservation uses \texttt{Rat.divInt\_add\_divInt},
+\texttt{Rat.divInt\_mul\_divInt}, etc.
+
+\noindent\axiomprofile{[propext, Classical.choice, Quot.sound]}.
+\texttt{Classical.choice} enters here from the target type \texttt{Rat}: Lean~4 Core's
+\texttt{Rat.add} normalises via \texttt{Nat.gcd}, whose proof chain depends on
+\texttt{Classical.choice}.  This is structural and unavoidable; see
+Remark~\ref{rem:classical_boundary}.
+\end{theorem}
+
+\begin{theorem}[Canonical form of $\mathbb{Q}_{\mathrm{VR}}$]
+\label{thm:rat_canonical}
+\lean{VR.Numbers.Theorem_III_4_CanonicalForm}
+\leanok
+\uses{def:RatVR, thm:T_III_6}
+Every $q \in \mathbb{Q}_{\mathrm{VR}}$ equals
+$\texttt{backwardQ}(\texttt{forwardQ}(q))$, where $\texttt{forwardQ}(q)$
+is already in canonical form as a \texttt{Rat} (denominator positive,
+numerator and denominator coprime by \texttt{Rat.reduced}).
+The three canonicity properties from the preprint follow from this equality.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Reals $\mathbb{R}_{\mathrm{VR}}$}
+\label{sec:reals}
+
+\begin{definition}[Order and absolute value on $\mathbb{Q}_{\mathrm{VR}}$]
+\label{def:rat_order}
+\lean{VR.Numbers.ltRatVR, VR.Numbers.absRatVR}
+\leanok
+\uses{def:RatVR, thm:T_III_6}
+$p < q \;\Longleftrightarrow\; \texttt{forwardQ}(p) < \texttt{forwardQ}(q)$ in $\mathbb{Q}$.
+$|p| := \texttt{backwardQ}(|\texttt{forwardQ}(p)|)$.
+Both are transferred through the isomorphism; decidability of $<$ is
+inherited from \texttt{DecidableEq} on $\mathbb{Q}$.
+\end{definition}
+
+\begin{definition}[Cauchy sequences]
+\label{def:isFundamentalVR}
+\lean{VR.Numbers.isFundamentalVR, VR.Numbers.cauchyEqVR}
+\leanok
+\uses{def:RatVR, def:rat_order}
+$\texttt{isFundamentalVR}(a)$ holds when for every $\varepsilon > 0_{\mathbb{Q}}$
+there exists $N$ such that $|a(m) - a(n)| < \varepsilon$ for all $m, n \ge N$.
+$\texttt{cauchyEqVR}(a, b)$: for every $\varepsilon > 0_{\mathbb{Q}}$ there exists
+$N$ such that $|a(n) - b(n)| < \varepsilon$ for all $n \ge N$.
+Both are stated directly over $\mathbb{Q}_{\mathrm{VR}}$ using \texttt{ltRatVR}
+and \texttt{absRatVR}.
+\end{definition}
+
+\begin{theorem}[\texttt{cauchyEqVR} is an equivalence relation]
+\label{thm:cauchyEq_equiv}
+\lean{VR.Numbers.cauchyEqVR_refl, VR.Numbers.cauchyEqVR_symm,
+      VR.Numbers.cauchyEqVR_trans}
+\leanok
+\uses{def:isFundamentalVR}
+Reflexivity: \texttt{ratSub\_self} + \texttt{absRatVR\_zero}.  Symmetry:
+\texttt{absRatVR\_sub\_comm}.  Transitivity: triangle inequality via
+$\varepsilon/2$-splitting (\texttt{half\_exists}).
+All proofs lift through \texttt{forwardQ}/\texttt{forwardQ\_right\_inv}
+to $\mathbb{Q}$ identities.
+\end{theorem}
+
+\begin{definition}[$\mathbb{R}_{\mathrm{VR}}$ and operations]
+\label{def:RealVR}
+\lean{VR.Numbers.FundSeqVR, VR.Numbers.RealVR, VR.Numbers.realAdd,
+      VR.Numbers.realSub, VR.Numbers.realMul, VR.Numbers.realDiv,
+      VR.Numbers.embedQ, VR.Numbers.RealVRRealIso}
+\leanok
+\uses{def:isFundamentalVR, thm:cauchyEq_equiv}
+$\texttt{FundSeqVR}$ is the subtype of \texttt{isFundamentalVR} sequences.
+$\mathbb{R}_{\mathrm{VR}} := \texttt{FundSeqVR} / \texttt{cauchyEqVR}$.
+Operations \texttt{realAdd}, \texttt{realSub}, \texttt{realMul} are lifted
+via \texttt{Quotient.lift₂}; Cauchy-preservation and well-definedness are
+private.  Division \texttt{realDiv} is \texttt{noncomputable}: defined as
+$\texttt{backwardR}(\texttt{forwardR}(p) / \texttt{forwardR}(q))$ through
+the isomorphism.  Every rational $q \in \mathbb{Q}_{\mathrm{VR}}$ embeds
+as the constant sequence via \texttt{embedQ}.
+The structure \texttt{RealVRRealIso} has ten fields: bijection and preservation
+of $0$, $1$, addition, multiplication, subtraction, division.
+\end{definition}
+
+\begin{theorem}[Theorem~IV.7 --- $\mathbb{R}_{\mathrm{VR}} \cong \mathbb{R}$]
+\label{thm:T_IV_7}
+\lean{VR.Numbers.Theorem_IV_7_RealVR_Real}
+\leanok
+\uses{def:RealVR, thm:cauchyEq_equiv, thm:T_III_6}
+The term \texttt{Theorem\_IV\_7\_RealVR\_Real : RealVRRealIso} with
+\texttt{forwardR}($\llbracket a \rrbracket$) $:= \texttt{Real.mk}(\texttt{forwardQ} \circ a)$
+and \texttt{backwardR}($r$) $:= \llbracket \texttt{backwardQ} \circ r.\texttt{cauchy} \rrbracket$.
+Well-definedness: private bridge lemmas translating between
+\texttt{IsCauSeq} (mathlib) and \texttt{isFundamentalVR}.
+Operation preservation: \texttt{mk\_eq\_of\_pointwise} + \texttt{Real.mk\_add/mul/neg}.
+
+\noindent\axiomprofile{[propext, Classical.choice, Quot.sound]} (inherited from $\mathbb{Q}_{\mathrm{VR}}$).
+\end{theorem}
+
+\begin{remark}[$\mathbb{R}_{\mathrm{VR}}$ and computable reals]
+\label{rem:RealVR_computable}
+\lean{VR.Numbers.Theorem_IV_7_RealVR_Real}
+\leanok
+\uses{thm:T_IV_7}
+The preprint (§\,IV.1) restricts Cauchy sequences to those with finite
+algorithmic descriptions.  Lean~4 does not distinguish computable from
+non-computable functions at the type level: the type $\mathbb{N} \to
+\mathbb{Q}_{\mathrm{VR}}$ includes all total functions.  The operational
+restriction is a metatheoretic claim, not expressible as a Lean type predicate.
+The formal isomorphism \texttt{Theorem\_IV\_7\_RealVR\_Real} is proved without
+this restriction; the computable-reals interpretation is the operational
+reading of the same structure.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Complex $\mathbb{C}_{\mathrm{VR}}$}
+\label{sec:complex}
+
+\begin{definition}[$\mathbb{C}_{\mathrm{VR}}$]
+\label{def:ComplexVR}
+\lean{VR.Numbers.ComplexVR}
+\leanok
+\uses{def:RealVR}
+$\texttt{ComplexVR}$ is a structure with two fields
+$\texttt{fst} : \mathbb{R}_{\mathrm{VR}}$ (the F$\to$F axis, real component) and
+$\texttt{snd} : \mathbb{R}_{\mathrm{VR}}$ (the F$\to$T axis, imaginary component).
+See Remark~\ref{rem:A1_duality} for the ontological grounding.
+\end{definition}
+
+\begin{remark}[Two-dimensionality from A1 duality]
+\label{rem:A1_duality}
+\lean{VR.Numbers.ComplexVR, VR.A1_F_reaches_both, VR.A1_T_reaches_only_T}
+\leanok
+\uses{def:ComplexVR, thm:A1}
+Axiom~A1 has exactly two generating facts:
+\texttt{A1\_F\_reaches\_both} (from F, via $\to$, both values are reachable)
+and \texttt{A1\_T\_reaches\_only\_T} (from T, only T is reachable).
+These two facts motivate two independent axes of numerical extension: the
+F$\to$F axis unfolds the chain $\mathbb{N} \to \mathbb{Z} \to \mathbb{Q} \to
+\mathbb{R}_{\mathrm{VR}}$; the F$\to$T axis supports imaginary components.
+Two-dimensionality of $\mathbb{C}_{\mathrm{VR}}$ is structurally grounded
+in this duality, not postulated by ordered pairs.
+
+The algebraic coupling between the axes (the joining rule $i \otimes i := \ominus 1$)
+is a separate postulate encoded in the multiplication formula of \texttt{cmul};
+it is not derivable from A1 alone.
+\end{remark}
+
+\begin{definition}[Operations on $\mathbb{C}_{\mathrm{VR}}$]
+\label{def:complex_ops}
+\lean{VR.Numbers.czero, VR.Numbers.cone, VR.Numbers.embedR,
+      VR.Numbers.cadd, VR.Numbers.cmul, VR.Numbers.cconj, VR.Numbers.csub,
+      VR.Numbers.cabs, VR.Numbers.cdiv}
+\leanok
+\uses{def:ComplexVR, def:RealVR}
+$(a \oplus b\mathbf{i}) \oplus_{\mathbb{C}} (c \oplus d\mathbf{i})
+:= (a + c) \oplus (b + d)\mathbf{i}$ (\texttt{cadd}).
+$(a \oplus b\mathbf{i}) \otimes_{\mathbb{C}} (c \oplus d\mathbf{i})
+:= (a{\times}c \ominus b{\times}d) \oplus (a{\times}d \oplus b{\times}c)\mathbf{i}$
+(\texttt{cmul}; the term $\ominus(b {\times} d)$ encodes $i \otimes i = \ominus 1$).
+Conjugation: $\overline{a \oplus b\mathbf{i}} := a \oplus (\ominus b)\mathbf{i}$
+(\texttt{cconj}).
+Modulus \texttt{cabs} and division \texttt{cdiv} are \texttt{noncomputable},
+defined via \texttt{forwardC} and real/complex arithmetic in mathlib.
+The structure \texttt{ComplexVRComplexIso} has nine fields:
+bijection and preservation of $0$, $1$, addition, multiplication, conjugation.
+\end{definition}
+
+\begin{theorem}[Theorem~V.8 --- $\mathbb{C}_{\mathrm{VR}} \cong \mathbb{C}$]
+\label{thm:T_V_8}
+\lean{VR.Numbers.Theorem_V_8_ComplexVR_Complex}
+\leanok
+\uses{def:complex_ops, thm:T_IV_7}
+The term \texttt{Theorem\_V\_8\_ComplexVR\_Complex : ComplexVRComplexIso} with
+\texttt{forwardC}($p$) $:= \langle \texttt{forwardR}(p.\texttt{fst}),\,
+\texttt{forwardR}(p.\texttt{snd}) \rangle$
+(no quotient: \texttt{ComplexVR} is a plain structure).
+Multiplication preservation: two applications of \texttt{fR\_sub}/\texttt{fR\_mul}.
+Conjugation preservation: \texttt{Complex.star\_def} + \texttt{fR\_zero} for the
+sign-flip in the imaginary component.
+
+\noindent\axiomprofile{[propext, Classical.choice, Quot.sound]} (inherited from $\mathbb{R}_{\mathrm{VR}}$).
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Axiom profile boundary}
+\label{sec:numbers_axiom_boundary}
+
+\begin{remark}[\texttt{Classical.choice} enters at $\mathbb{Q}$]
+\label{rem:classical_boundary}
+\lean{VR.Numbers.Theorem_III_6_RatVR_Rat}
+\leanok
+\uses{thm:T_III_6, thm:T_II_6}
+The classical-free boundary in VR-Numbers lies between $\mathbb{Z}_{\mathrm{VR}}$
+and $\mathbb{Q}_{\mathrm{VR}}$:
+\begin{itemize}
+\item $\mathbb{Z}_{\mathrm{VR}}$ (§\,II -- §\,III, objects through
+  \texttt{Theorem\_II\_6\_IntVR\_Int}):
+  \axiomprofile{[propext, Quot.sound]}.
+\item $\mathbb{Q}_{\mathrm{VR}}$ and all subsequent levels:
+  \axiomprofile{[propext, Classical.choice, Quot.sound]}.
+\end{itemize}
+The cause is structural: Lean~4 Core's \texttt{Rat.add} normalises via
+\texttt{Nat.gcd} coprimality, whose proof chain depends on
+\texttt{Classical.choice}.  Confirmed via \texttt{\#print axioms
+Theorem\_III\_6\_RatVR\_Rat}.
+
+This dependency is in the \emph{target type} \texttt{Rat}, not in any
+VR-Numbers proof technique: replacing individual lemmas or tactics cannot
+remove it.  The boundary is a structural fact about how mathlib encodes
+rational arithmetic, not a defect of the VR construction.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{The \S\,VI.5 list of non-primitive objects}
+\label{sec:VI5}
+
+\begin{remark}[Six objects not introduced as ontological primitives]
+\label{rem:VI5_list}
+\lean{VR.Numbers.IntExpr, VR.Numbers.RatExpr, VR.Numbers.FundSeqVR,
+      VR.Numbers.ComplexVR}
+\leanok
+\uses{def:IntExpr, def:RatExpr, def:isFundamentalVR, def:ComplexVR}
+Following §\,VI.5 of the preprint, the following objects are absent as
+independent ontological entities:
+(1)~ordered pairs (both \texttt{IntExpr.mk} and \texttt{RatExpr.mk}
+    are formal binary operators accessed via pattern matching only);
+(2)~negative numbers (classes of $a \ominus b$, not a distinct primitive);
+(3)~fractions (classes of $a \oslash b$ with $b \ne 0$);
+(4)~real numbers (equivalence classes of Cauchy sequences of rationals);
+(5)~complex numbers (pairs of reals, but not ontological pairs---a
+    plain Lean structure whose fields are real components);
+(6)~zero (emerges as the class $[0_{\mathbb{Z}} \oslash 1_{\mathbb{Z}}]$ or as the
+    constant sequence at $0_{\mathbb{Q}}$, not as a primitive object).
+Each level is an operational construction of increasing depth over $\emptyset$.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Methodological observations}
+\label{sec:numbers_method}
+
+The following twelve remarks document observations from the formalisation
+that sharpen or extend the claims of the preprint (Part~VIII, v1.0.2).
+
+\begin{remark}[O1 --- \texttt{vadd\_cancel} as explicit lemma]
+\label{rem:vadd_cancel}
+\lean{VR.Numbers.intEq_trans}
+\leanok
+\uses{thm:intEq_equiv}
+Transitivity of \texttt{intEq} reduces to right cancellation of \texttt{vadd}:
+if $\texttt{vadd}\,a\,c = \texttt{vadd}\,b\,c$ then $a = b$.  This cancellation
+law (\texttt{vadd\_cancel}, private) is proved by induction on~$c$ using
+\texttt{P4\_succ\_inj}.  The preprint's ``direct verification'' conceals this
+dependency; the formalisation makes it explicit.
+\end{remark}
+
+\begin{remark}[O2 --- Left distributivity not in T1--T4]
+\label{rem:vmul_distrib}
+\lean{VR.Numbers.vmul_distrib_right}
+\leanok
+\uses{thm:vmul_distrib_right}
+T3 (\texttt{T3\_vmul\_distrib}) gives right distributivity
+$a \times (b + c) = a \times b + a \times c$.
+Left distributivity $(a + b) \times c = a \times c + b \times c$
+requires a separate inductive argument (\texttt{vmul\_distrib\_right}).
+Its absence from T1--T4 is a formalization finding parallel to
+Remark~O1.
+\end{remark}
+
+\begin{remark}[O3 --- \texttt{Quot.sound} first appears at $\mathbb{Z}_{\mathrm{VR}}$]
+\label{rem:quot_sound}
+\lean{VR.Numbers.IntVR}
+\leanok
+\uses{def:IntVR}
+\texttt{Quot.sound} is the only axiom beyond Part~I's axiom-free profile that
+enters VR-Numbers.  It appears at the first quotient construction
+(\texttt{IntVR}) and is unavoidable: without it, equivalence classes would be
+distinguishable as terms, destroying the mathematical content of the quotient.
+\texttt{Quot.sound} is not \texttt{Classical.choice} and does not break
+computability.
+\end{remark}
+
+\begin{remark}[O4 --- \texttt{propext} from Setoid API]
+\label{rem:propext_setoid}
+\lean{VR.Numbers.Theorem_II_6_IntVR_Int}
+\leanok
+\uses{thm:T_II_6}
+\texttt{propext} appears in $\mathbb{Z}_{\mathrm{VR}}$ (profile \texttt{[propext,
+Quot.sound]}) because Lean's \texttt{Setoid} API uses it internally.  It is
+not invoked as an inference principle in any VR proof; it surfaces as a
+kernel-level dependency of the quotient infrastructure.
+\end{remark}
+
+\begin{remark}[O5 --- \texttt{by\_cases} without \texttt{Classical.choice}]
+\label{rem:by_cases}
+\lean{VR.Numbers.left_inv_int}
+\leanok
+\uses{thm:T_II_6}
+The left-inverse proof (\texttt{left\_inv\_int}) splits on whether
+$\texttt{O\_inv}(b) \le \texttt{O\_inv}(a)$ using \texttt{by\_cases}.  This is
+a \emph{decidable} inequality on \texttt{Nat} (via \texttt{instDecidableNatLe})
+and does not invoke \texttt{Classical.choice}.  The \texttt{[propext,
+Quot.sound]} profile of \texttt{Theorem\_II\_6\_IntVR\_Int} is preserved.
+\end{remark}
+
+\begin{remark}[O6 --- \texttt{Int\_mul\_right\_cancel} avoids \texttt{Classical.choice}]
+\label{rem:int_cancel}
+\lean{VR.Numbers.ratEq_trans}
+\leanok
+\uses{thm:ratEq_equiv}
+Transitivity of \texttt{ratEq} requires right cancellation in $\mathbb{Z}$.
+The standard mathlib lemma \texttt{mul\_right\_cancel₀} pulls
+\texttt{Classical.choice} via the integral domain instance.
+The private \texttt{Int\_mul\_right\_cancel} avoids this by the route
+$(a - b) \times c = 0 \Rightarrow \texttt{natAbs}(a - b) \times \texttt{natAbs}(c) = 0
+\Rightarrow a = b$, using only core lemmas \texttt{Int.natAbs\_mul},
+\texttt{Int.natAbs\_eq\_zero}, \texttt{Nat.mul\_eq\_zero}, and \texttt{sub\_eq\_zero}.
+Profile: \texttt{[propext, Quot.sound]}.
+\end{remark}
+
+\begin{remark}[O7 --- \texttt{Classical.choice} structural in \texttt{Rat.add}]
+\label{rem:classical_structural}
+\lean{VR.Numbers.Theorem_III_6_RatVR_Rat}
+\leanok
+\uses{thm:T_III_6}
+\texttt{Classical.choice} in $\mathbb{Q}_{\mathrm{VR}}$ is inherited from the
+target type \texttt{Rat}, not introduced by any VR tactic or lemma.  Confirmed
+by \texttt{\#print axioms Rat.add} (no mathlib import needed).  No rewriting of
+individual lemmas in VR-Numbers can remove it.
+\end{remark}
+
+\begin{remark}[O8 --- Mathlib used as black box]
+\label{rem:mathlib_black_box}
+\lean{VR.Numbers.Theorem_II_6_IntVR_Int, VR.Numbers.Theorem_III_6_RatVR_Rat,
+      VR.Numbers.Theorem_IV_7_RealVR_Real, VR.Numbers.Theorem_V_8_ComplexVR_Complex}
+\leanok
+Each isomorphism theorem targets mathlib's \texttt{Int}, \texttt{Rat},
+\texttt{Real}, \texttt{Complex} as destinations, not re-derived structures.
+VR-Numbers is built \emph{on} mathlib, not parallel to it.  The isomorphisms
+provide the operational superstructure; mathlib provides the classical substrate.
+\end{remark}
+
+\begin{remark}[O9 --- Pairs absent as ontological objects (\S\,VI.5)]
+\label{rem:no_pairs}
+\lean{VR.Numbers.IntExpr, VR.Numbers.RatExpr}
+\leanok
+\uses{def:IntExpr, def:RatExpr}
+Neither \texttt{IntExpr} nor \texttt{RatExpr} has named accessor functions
+corresponding to ``first'' and ``second'' components.  Lean projections
+(\texttt{.1}, \texttt{.2}) exist but are not used; all access is via pattern
+matching.  The constructors \texttt{.mk} denote syntactic juxtaposition under
+a binary operator ($\ominus$, $\oslash$), not ordered-pair structure.
+\end{remark}
+
+\begin{remark}[O10 --- Operational depth (§\,VI.4)]
+\label{rem:depth}
+\lean{VR.Numbers.IntExpr, VR.Numbers.RatExpr, VR.Numbers.FundSeqVR}
+\leanok
+\uses{def:IntExpr, def:RatExpr, def:isFundamentalVR}
+The VR-Numbers hierarchy has three operational depths above $\emptyset$:
+depth~1 (\texttt{IntExpr}: formal subtractions of VRObj);
+depth~2 (\texttt{RatExpr}: formal divisions of $\mathbb{Z}_{\mathrm{VR}}$);
+depth~3 (\texttt{FundSeqVR}: sequences of $\mathbb{Q}_{\mathrm{VR}}$ values).
+$\mathbb{C}_{\mathrm{VR}}$ is depth~3 (a plain structure of two $\mathbb{R}_{\mathrm{VR}}$
+values, no additional quotienting).
+\end{remark}
+
+\begin{remark}[O11 --- Computable reals: metatheoretic restriction]
+\label{rem:computable_reals}
+\lean{VR.Numbers.Theorem_IV_7_RealVR_Real}
+\leanok
+\uses{thm:T_IV_7}
+The preprint restricts Cauchy sequences in $\mathbb{R}_{\mathrm{VR}}$ to those
+with finite algorithmic descriptions (§\,IV.1).  This restriction cannot be
+expressed as a Lean~4 type predicate: the type $\mathbb{N} \to
+\mathbb{Q}_{\mathrm{VR}}$ includes all total functions.
+\texttt{Theorem\_IV\_7\_RealVR\_Real} proves the structural isomorphism
+without this restriction.  The computable-reals reading is the operational
+interpretation of the isomorphism, verified at the metatheoretic level.
+\end{remark}
+
+\begin{remark}[O12 --- Two-dimensionality and the joining rule are separate]
+\label{rem:complex_two_things}
+\lean{VR.Numbers.ComplexVR, VR.Numbers.cmul}
+\leanok
+\uses{def:ComplexVR, def:complex_ops}
+The two-dimensionality of $\mathbb{C}_{\mathrm{VR}}$ (two real components)
+is grounded in the A1 duality (Remark~\ref{rem:A1_duality}).
+The algebraic coupling between the components---the joining rule
+$i \otimes i := \ominus 1$---is an independent postulate encoded in
+\texttt{cmul} via the term $\ominus(b \times d)$ in the real part.
+Without \texttt{cmul}, $\mathbb{C}_{\mathrm{VR}}$ is two independent copies
+of $\mathbb{R}_{\mathrm{VR}}$; \texttt{cmul} makes it a field.
+The preprint (§\,V.9) distinguishes these two contributions explicitly.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Axiom profile}
+\label{sec:numbers_axiom_profile}
+
+\axiomprofile{[propext, Quot.sound]} for $\mathbb{Z}_{\mathrm{VR}}$ and all
+objects through \texttt{Theorem\_II\_6\_IntVR\_Int}.
+\axiomprofile{[propext, Classical.choice, Quot.sound]} for $\mathbb{Q}_{\mathrm{VR}}$
+and all objects through \texttt{Theorem\_V\_8\_ComplexVR\_Complex}.
+
+The boundary is structural: it lies in Lean~4 Core's \texttt{Rat.add}, not in
+any VR construction choice.  The proof techniques of VR-Numbers (quotient
+lifting, bijection via \texttt{O}/\texttt{O\_inv}, operation preservation via
+\texttt{ring}/\texttt{omega}) do not introduce \texttt{Classical.choice}
+independently.
+
+%──────────────────────────────────────────────────────────────────────
+\section{References}
+\label{sec:numbers_refs}
+
+The preprint for this chapter is
+\zenodo{10.5281/zenodo.20352239}{VR-Numbers, v1.0.2} (23 May 2026).
+
+The Lean~4 formalisation is archived at
+\zenodo{10.5281/zenodo.20352057}{VR-Numbers Lean, v1.0.0} (23 May 2026),
+git tag \texttt{v1.1-vr-numbers}.
