@@ -440,7 +440,8 @@ any mathlib or VR-Sets module.  \texttt{Register} and \texttt{FormalTerm}
 are axiom-free.  This contrasts with VR-Numbers (imports mathlib's natural
 number infrastructure) and VR-Sets (imports mathlib's \texttt{ZFSet},
 inheriting \texttt{[propext, Quot.sound]}).  The base layer of VR-Forms is
-the most axiom-minimal foundation of the four VR Lean cycles.
+thus axiom-free \texttt{[]}, whereas the base layers of VR-Numbers and
+VR-Sets inherit logical axioms from their mathlib imports.
 \end{remark}
 
 \begin{remark}[Observation~2 --- Realisability inherits Classical-free closure of VR-Sets]
@@ -501,7 +502,10 @@ or stricter.  The actual result: 3 axiom-free objects (Stage~1), 15+ at
 correspond to the Classical-free closure layer of VR-Sets; non-realisable
 cases either reduce to \texttt{False} (\texttt{id}) or use
 \texttt{AFA\_Refuted} (Classical-free via inductive \texttt{PSet}).
-VR-Forms is the most axiom-minimal of the four VR Lean cycles.
+VR-Forms reaches \texttt{[propext, Quot.sound]} with zero
+\texttt{Classical.choice} throughout, whereas VR-Numbers, VR-Sets and
+VR-Sets-ZFA each reach the full
+\texttt{[propext, Classical.choice, Quot.sound]} ceiling.
 \end{remark}
 
 %──────────────────────────────────────────────────────────────────────
