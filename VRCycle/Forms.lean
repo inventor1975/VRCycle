@@ -15,9 +15,11 @@
 -- Stage 3: Transit.lean        — translate_pi, transit pattern, two-layer connection
 -- Stage 4: Bridge.lean         — bridge_AFA, bridge_Conjecture_IV_1/IV_2
 -- Stage 5: Examples.lean       — non-realisable examples, mixed formulas
+-- Stage 6: Substrate.lean      — Carrier, Operational, substrate totality
 
 import VRCycle.Forms.Language
 import VRCycle.Forms.Realisability
 import VRCycle.Forms.Transit
 import VRCycle.Forms.Bridge
 import VRCycle.Forms.Examples
+import VRCycle.Forms.Substrate
