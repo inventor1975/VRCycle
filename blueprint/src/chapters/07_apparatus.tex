@@ -1,9 +1,663 @@
 \chapter{VR-Apparatus}
 \label{chap:apparatus}
+\uses{chap:numbers, chap:sets, chap:setszfa, chap:forms, chap:audit}
 
-% Stage 7 — PredicateOperationality, ReferenceOperationality. IdentityNature.
-% Mode A (closure under predicate-preserving operations).
-% Mode B (classical operations with witnesses; Factorisable).
-% InterApparatusMorphism. Five-tier architecture.
-% Findings F1-F12 as blueprint items with \leanok and \uses{}.
-% \uses{chap:forms, chap:audit}
+\section{Position}
+\label{sec:apparatus_position}
+
+VR-Apparatus is the seventh work of the cycle and the methodological
+meta-work: it formalises the apparatus implicitly used across the six
+preceding works (VR, VR-Numbers, VR-Sets, VR-Forms, VR-Audit, VR-Sets-ZFA).
+Structurally it belongs to Layer~II (Methodology); the Applications
+(Layer~III) depend on it.
+
+\textbf{Recognition theme.} The apparatus was not invented for this work;
+it was present throughout the cycle.  The formalisation makes it explicit
+and reusable.  Recognition discipline governs the chapter: new abstractions
+are introduced only where the prior cycle genuinely requires them.  Three
+planned abstractions were explicitly dropped (Generic Register, DirectionalMorphism,
+ReferenceOperationality for Cauchy sequences) after reconnaissance showed
+they did not fit.
+
+\textbf{Architecture in brief.} Two apparatus modes
+(\texttt{PredicateOperationality}, \texttt{ReferenceOperationality}),
+two transit modes (Mode~A, Mode~B), \texttt{InterApparatusMorphism},
+\texttt{Factorisable} as canonical Mode~B witness, and
+\texttt{HasSeparabilityStructure} as formal domain hypothesis.  Five
+architectural levels.  68 public objects across 12 files.
+
+\noindent\axiomprofile{[]}: 40 objects (59\%).
+\axiomprofile{[Quot.sound]}: 7 objects (10\%, new sub-ceiling tier in v1.0.0).
+\axiomprofile{[propext, Quot.sound]}: 4 objects.
+\axiomprofile{[propext, Classical.choice, Quot.sound]}: 17 objects.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Architecture}
+\label{sec:apparatus_arch}
+
+\begin{definition}[Identity nature]
+\label{def:IdentityNature}
+\lean{VR.Apparatus.IdentityNature, VR.Apparatus.IdentityNature.AsPoint_ne_AsReference}
+\leanok
+\texttt{IdentityNature} is an inductive type with two constructors:
+
+\texttt{AsPoint} --- identity = position in a classical type.  Apparatus:
+predicate-wrapping.  A type $T$ provides the substrate; a predicate
+$P : T \to \mathrm{Prop}$ selects the operational sub-collection.
+Example: \texttt{IsComputableReal : ℝ → Prop}.
+
+\texttt{AsReference} --- identity = position in a membership graph.
+Apparatus: reference semantics.  A pre-set type $Q$ with setoid
+$[s : \texttt{Setoid}\,Q]$; the quotient $\texttt{Quotient}\,s$ is the
+operational type.  Example: \texttt{OSetZFA = Quotient CoPSet.instSetoid}.
+
+\texttt{AsPoint\_ne\_AsReference}: the two constructors are distinct, proved by
+\texttt{decide}.  \axiomprofile{[]} for both.
+
+\texttt{IdentityNature} is a \emph{usage-mode indicator}, not a type
+property.  The same type may appear as \texttt{AsPoint} in one context
+and \texttt{AsReference} in another (numbers are a canonical hybrid).
+\end{definition}
+
+\begin{definition}[Predicate-wrapping apparatus]
+\label{def:PredicateOperationality}
+\lean{VR.Apparatus.PredicateOperationality,
+      VR.Apparatus.PredicateOperationality.identityNature}
+\leanok
+\uses{def:IdentityNature}
+$\texttt{PredicateOperationality}\,(T : \mathrm{Type}^*)\,(P : T \to \mathrm{Prop})$
+is a \texttt{class} (\texttt{Prop}-valued, no fields) marking that $T$
+with predicate $P$ is used in the predicate-wrapping apparatus.
+$\texttt{identityNature} := \texttt{AsPoint}$.
+Instances: \texttt{ℝ} with \texttt{IsComputableReal};
+\texttt{FormalTerm} with \texttt{isRealisable};
+\texttt{FormalTerm} with \texttt{translate\_pi}.
+All marker instances at \axiomprofile{[]}.
+\end{definition}
+
+\begin{definition}[Reference-semantics apparatus]
+\label{def:ReferenceOperationality}
+\lean{VR.Apparatus.ReferenceOperationality,
+      VR.Apparatus.ReferenceOperationality.identityNature,
+      VR.Apparatus.instRefOpCoPSet, VR.Apparatus.instRefOpPSet}
+\leanok
+\uses{def:IdentityNature, def:OSetZFA, def:OSet}
+$\texttt{ReferenceOperationality}\,(Q : \mathrm{Type}^*)\,[\texttt{Setoid}\,Q]$
+is a \texttt{class} with two fields: \texttt{membership} and \texttt{ext}
+(extensionality at the quotient level).
+$\texttt{identityNature} := \texttt{AsReference}$.
+Instances: \texttt{CoPSet} with \texttt{CoPSet.instSetoid}
+(\axiomprofile{[propext, Classical.choice, Quot.sound]}, M-type);
+\texttt{PSet} with \texttt{PSet.setoid}
+(\axiomprofile{[propext, Quot.sound]}, inductive --- lighter).
+\end{definition}
+
+\begin{definition}[Five-tier architecture]
+\label{def:five_tier}
+\leanok
+The apparatus is organised in five tiers:
+
+\textbf{Tier 1 (Apparatus instances)}: \texttt{PredicateOperationality}
+and \texttt{ReferenceOperationality} markers.
+
+\textbf{Tier 2 (Domain structures)}: \texttt{HasSeparabilityStructure}
+(formal domain hypothesis; see \S\,\ref{sec:apparatus_modeb}).
+
+\textbf{Tier 3 (Morphism levels)}: Mode~A (endomorphisms at quotient
+level, intra-apparatus) and \texttt{InterApparatusMorphism} (congruence
+at representative level, inter-apparatus).
+
+\textbf{Tier 4 (Conditional extraction)}: Mode~B with \texttt{IsModeBOp}
+and \texttt{Factorisable} as canonical witness.
+
+\textbf{Tier 5 (Cross-cycle recognition)}: VR-Forms transit as Mode~B;
+\texttt{Numbers} as hybrid apparatus subjects.
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Mode~A (Part III)}
+\label{sec:apparatus_modeA}
+
+\begin{definition}[Mode~A operations --- predicate track]
+\label{def:IsModeAOp_pred}
+\lean{VR.Apparatus.PredicateOperationality.IsModeAOp,
+      VR.Apparatus.PredicateOperationality.IsModeAOp₂,
+      VR.Apparatus.PredicateOperationality.modeA_liftFn,
+      VR.Apparatus.PredicateOperationality.modeA_lift,
+      VR.Apparatus.PredicateOperationality.modeA_liftFn₂,
+      VR.Apparatus.PredicateOperationality.modeA_lift₂,
+      VR.Apparatus.PredicateOperationality.IsModeAOp.compose}
+\leanok
+\uses{def:PredicateOperationality}
+$\texttt{IsModeAOp}\,f := \forall x,\; P\,x \Rightarrow P\,(f\,x)$.
+$\texttt{IsModeAOp₂}\,f := \forall x\,y,\; P\,x \to P\,y \to P\,(f\,x\,y)$.
+$\texttt{modeA\_liftFn}$: lifts $f$ to $\{x \mid P\,x\} \to \{x \mid P\,x\}$.
+$\texttt{modeA\_lift}$ (\texttt{@[simp]}): $\texttt{modeA\_liftFn}\,f\,\langle x, h\rangle =
+\langle f\,x, \ldots\rangle$.
+Composition: $\texttt{IsModeAOp.compose}$ --- Mode~A is closed under composition.
+All seven objects at \axiomprofile{[]}.
+\end{definition}
+
+\begin{definition}[Mode~A operations --- reference track]
+\label{def:IsModeAOp_ref}
+\lean{VR.Apparatus.ReferenceOperationality.IsModeAOp,
+      VR.Apparatus.ReferenceOperationality.modeA_liftFn,
+      VR.Apparatus.ReferenceOperationality.modeA_lift,
+      VR.Apparatus.ReferenceOperationality.IsModeAOp.compose}
+\leanok
+\uses{def:ReferenceOperationality}
+$\texttt{IsModeAOp}\,f := \forall a\,b,\; a \approx b \Rightarrow
+f\,a = f\,b$ (where $f : Q \to \texttt{Quotient}\,s$).
+$\texttt{modeA\_liftFn}$: \texttt{Quotient.lift~f~hf}: lifts to
+$\texttt{Quotient}\,s \to \texttt{Quotient}\,s$.
+Composition: Mode~A is closed under composition.
+\axiomprofile{[]} for all four.
+\end{definition}
+
+\begin{theorem}[Concrete Mode~A instances]
+\label{thm:modeA_instances}
+\lean{VR.Apparatus.isComputableReal_add_isModeA,
+      VR.Apparatus.osetZFA_singleton_isModeA,
+      VR.Apparatus.isComputableReal_neg_isModeA,
+      VR.Apparatus.isComputableReal_sub_isModeA,
+      VR.Apparatus.osetZFA_empty_isModeA}
+\leanok
+\uses{def:IsModeAOp_pred, def:IsModeAOp_ref, def:IsComputableReal,
+      def:OSetZFA}
+Addition of computable reals is Mode~A (\texttt{isComputableReal\_add\_isModeA}).
+OSetZFA singleton is Mode~A (\texttt{osetZFA\_singleton\_isModeA}).
+Negation, subtraction of computable reals; empty set in OSetZFA.
+All concrete instances at \axiomprofile{[propext, Classical.choice, Quot.sound]}.
+\end{theorem}
+
+\begin{remark}[Apparatus-structure-independence of Mode~A]
+\label{rem:modeA_independence}
+\lean{VR.Apparatus.PredicateOperationality.IsModeAOp,
+      VR.Apparatus.ReferenceOperationality.IsModeAOp}
+\leanok
+\uses{def:IsModeAOp_pred, def:IsModeAOp_ref}
+Neither \texttt{IsModeAOp} definition requires the other apparatus
+class in its signature.  Mode~A is apparatus-structure-independent:
+the same predicate-level definition applies uniformly to predicate and
+reference apparatus, with parallel structures and parallel proofs.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Mode~B and Factorisable (Part IV)}
+\label{sec:apparatus_modeb}
+
+\begin{definition}[Mode~B operation schema]
+\label{def:IsModeBOp}
+\lean{VR.Apparatus.IsModeBOp, VR.Apparatus.IsModeBOp.lift,
+      VR.Apparatus.IsModeBOp.lift_val,
+      VR.Apparatus.PredicateOperationality.IsModeAOp_iff_IsModeBOp,
+      VR.Apparatus.PredicateOperationality.IsModeAOp.toModeBOp,
+      VR.Apparatus.IsModeBOp.compose}
+\leanok
+\uses{def:PredicateOperationality}
+$\texttt{IsModeBOp}\,PA\,PB\,W\,f := \forall a,\; PA\,a \to W\,a \to PB\,(f\,a)$.
+Parameters: $PA : A \to \mathrm{Prop}$ (operand predicate),
+$PB : B \to \mathrm{Prop}$ (result predicate),
+$W : A \to \mathrm{Prop}$ (witness: why extraction works for this operand),
+$f : A \to B$ (possibly classical operation).
+
+Mode~A is Mode~B with $W = \texttt{fun}\,\_ \Rightarrow \texttt{True}$:
+$\texttt{IsModeAOp\_iff\_IsModeBOp}$.
+\texttt{IsModeBOp.compose}: Mode~B is closed under composition.
+$\texttt{lift}$, $\texttt{lift\_val}$: lifts $f$ to subtypes.
+All six core objects at \axiomprofile{[]}.
+\end{definition}
+
+\begin{definition}[Factorisable --- canonical Mode~B witness]
+\label{def:Factorisable}
+\lean{VR.Apparatus.Factorisable,
+      VR.Apparatus.operand_determines_operational,
+      VR.Apparatus.factorisable_implies_isModeBOp,
+      VR.Apparatus.IsModeBOp_of_factorisable,
+      VR.Apparatus.Factorisable.lift, VR.Apparatus.Factorisable.lift_val}
+\leanok
+\uses{def:IsModeBOp}
+$\texttt{Factorisable}\,PA\,PB\,f\,a :=
+\exists g : \{x \mid PA\,x\} \to \{x \mid PB\,x\},\;
+g\,\langle a, h \rangle = \langle f\,a, \ldots \rangle$.
+
+$\texttt{operand\_determines\_operational}$: operationality of $f\,a$ is
+determined by the operand $a$, not by the operation $f$.
+
+$\texttt{factorisable\_implies\_isModeBOp}$: every Factorisable witness
+gives a Mode~B operation.
+
+$\texttt{IsModeBOp\_of\_factorisable}$: converse (requires choice in general).
+
+All six core objects at \axiomprofile{[]}.
+\end{definition}
+
+\begin{definition}[Separability as formal hypothesis]
+\label{def:HasSeparabilityStructure}
+\lean{VR.Apparatus.HasSeparabilityStructure,
+      VR.Apparatus.instHasSepStructOfOpHilbert,
+      VR.Apparatus.separability_provides_factorisable}
+\leanok
+\uses{def:Factorisable, def:OperationalHilbertSpace}
+$\texttt{HasSeparabilityStructure}\,(T : \mathrm{Type}^*)\,
+[\texttt{TopologicalSpace}\,T]$ is a typeclass with a single field:
+a dense sequence \texttt{denseSeq : ℕ → T} with dense range.
+
+$\texttt{instHasSepStructOfOpHilbert}$: any \texttt{OperationalHilbertSpace}
+is a \texttt{HasSeparabilityStructure} (the \texttt{denseSeq} field provides
+the separability witness).
+
+$\texttt{separability\_provides\_factorisable}$: from separability structure,
+a Factorisable witness can be extracted for the Riesz extension.
+\axiomprofile{[]} for the class and the factorisable lemma;
+\axiomprofile{[propext, Classical.choice, Quot.sound]} for the instance.
+\end{definition}
+
+\begin{theorem}[Riesz instance as canonical Mode~B]
+\label{thm:riesz_mode_b}
+\lean{VR.Apparatus.riesz_extension_map, VR.Apparatus.riesz_extension_isModeBOp,
+      VR.Apparatus.riesz_extension_factorisable,
+      VR.Apparatus.riesz_extension_isModeBOp', VR.Apparatus.riesz_mode_b_lift}
+\leanok
+\uses{def:IsModeBOp, def:Factorisable, def:HasSeparabilityStructure,
+      thm:HahnBanachOperational_Hilbert}
+$\texttt{riesz\_extension\_map}$: the Riesz extension map
+$f \mapsto g = \texttt{innerSL}\,\mathbb{R}\,(\xi : E)$.
+$\texttt{riesz\_extension\_isModeBOp}$: the Riesz extension is a Mode~B
+operation with $W = \texttt{fun}\,\_ \Rightarrow \texttt{True}$.
+$\texttt{riesz\_extension\_factorisable}$: with $W = \texttt{Factorisable}$
+(stronger, explicit structural reason).
+$\texttt{riesz\_mode\_b\_lift}$: the lifted subtype map.
+All five at \axiomprofile{[propext, Classical.choice, Quot.sound]}.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Apparatus instances and morphisms (Part V)}
+\label{sec:apparatus_instances}
+
+\begin{definition}[InterApparatusMorphism]
+\label{def:IAM}
+\lean{VR.Apparatus.InterApparatusMorphism,
+      VR.Apparatus.InterApparatusMorphism.lift,
+      VR.Apparatus.InterApparatusMorphism.lift_mk,
+      VR.Apparatus.IsModeAOp_of_interApparatus,
+      VR.Apparatus.InterApparatusMorphism.compose,
+      VR.Apparatus.InterApparatusMorphism.lift_compose,
+      VR.Apparatus.embedPSet_isInterApparatus,
+      VR.Apparatus.embedOSet_eq_interApparatus_lift}
+\leanok
+\uses{def:ReferenceOperationality, def:OSet, def:OSetZFA}
+$\texttt{InterApparatusMorphism}\,f$ (where $f : Q_1 \to Q_2$):
+$\forall a\,b,\; a \approx_1 b \Rightarrow f\,a \approx_2 f\,b$.
+
+Operates at the \emph{representative} level (not quotient level); lifts
+to $\texttt{Quotient}\,s_1 \to \texttt{Quotient}\,s_2$ via
+$\texttt{lift}$ (\axiomprofile{[Quot.sound]}).
+
+Canonical instance: $\texttt{embedPSet\_isInterApparatus}$
+($\texttt{embedPSet} : \texttt{PSet} \to \texttt{CoPSet}$, crossing
+from ZFC apparatus to ZFA apparatus).
+$\texttt{embedOSet\_eq\_interApparatus\_lift}$: $\texttt{embedOSet}$
+equals the IAM lift.
+
+One-way bridge: same-setoid IAM $\Rightarrow$ Mode~A
+(\texttt{IsModeAOp\_of\_interApparatus}); the converse does not hold
+(type mismatch: Mode~A targets quotients, IAM targets representatives).
+\end{definition}
+
+\begin{definition}[VR-Forms as apparatus instances]
+\label{def:forms_instances}
+\lean{VR.Apparatus.instPredicateOpFormalTerm,
+      VR.Apparatus.instPredicateOpTranslatePi,
+      VR.Apparatus.vr_forms_transit_isModeBOp}
+\leanok
+\uses{def:PredicateOperationality, def:IsModeBOp,
+      def:isRealisable, def:translate_pi}
+$\texttt{instPredicateOpFormalTerm}$:
+\texttt{FormalTerm} with \texttt{isRealisable} is a predicate-wrapping
+apparatus instance (\texttt{AsPoint}).
+$\texttt{instPredicateOpTranslatePi}$:
+\texttt{FormalTerm} with \texttt{translate\_pi} is a predicate-wrapping
+apparatus instance (\texttt{AsPoint}).
+$\texttt{vr\_forms\_transit\_isModeBOp}$: the VR-Forms transit
+(\texttt{translate\_implies\_realisable}) is a Mode~B operation with
+$PA = \texttt{translate\_pi}$, $PB = \texttt{isRealisable}$,
+$W = \texttt{True}$, $f = \texttt{id}$.
+This is the recognition finding of VR-Apparatus Stage~1: the Mode~B
+schema from v0.1.0 already captured VR-Forms transit without extension.
+\end{definition}
+
+\begin{definition}[Numbers as hybrid apparatus subjects]
+\label{def:numbers_hybrid}
+\lean{VR.Apparatus.cauchy_abs_isQuotient,
+      VR.Apparatus.real_cauchy_bridge,
+      VR.Apparatus.natEqSetoid,
+      VR.Apparatus.nat_vonNeumann_isInterApparatus}
+\leanok
+\uses{def:ReferenceOperationality, def:IsComputableReal}
+$\texttt{cauchy\_abs\_isQuotient}$: $\mathbb{R} \simeq \texttt{Quotient
+CauSeq.equiv}$ (Cauchy completion as quotient).
+$\texttt{real\_cauchy\_bridge}$: bridge $\mathbb{R} \simeq \texttt{Cauchy abs}$.
+$\texttt{natEqSetoid}$: discrete setoid on $\mathbb{N}$ (equality).
+$\texttt{nat\_vonNeumann\_isInterApparatus}$:
+\texttt{PSet.ofNat : ℕ → PSet} is an IAM from $(\mathbb{N}, =)$ to
+$(\texttt{PSet}, \texttt{PSet.Equiv})$.
+
+$\mathbb{R}$ with predicate lens (\texttt{IsComputableReal}) is natural.
+$\mathbb{R}$ with reference lens (Cauchy) is artificial: Cauchy sequences
+carry no natural membership relation; \texttt{ReferenceOperationality}
+instance is NOT constructed (methodological honesty).
+$\mathbb{N}$ with reference lens (von Neumann ordinals) is natural:
+ordinals ARE sets with membership.
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Compositional algebra and twelve findings}
+\label{sec:apparatus_findings}
+
+\begin{definition}[Identity elements and composition]
+\label{def:composition}
+\lean{VR.Apparatus.PredicateOperationality.IsModeAOp_id,
+      VR.Apparatus.ReferenceOperationality.IsModeAOp_quotientMk,
+      VR.Apparatus.ReferenceOperationality.modeA_liftFn_quotientMk_eq_id,
+      VR.Apparatus.InterApparatusMorphism.id_isInterApparatus,
+      VR.Apparatus.IsModeBOp_id,
+      VR.Apparatus.interApparatus_comp_modeA_wd,
+      VR.Apparatus.modeA_liftFn_comp_interApparatus}
+\leanok
+\uses{def:IsModeAOp_pred, def:IsModeAOp_ref, def:IAM, def:IsModeBOp}
+The four morphism levels are closed under identity:
+predicate Mode~A identity (\axiomprofile{[]}),
+reference Mode~A identity via \texttt{Quotient.mk}
+(\axiomprofile{[Quot.sound]}),
+IAM identity (\axiomprofile{[]}),
+Mode~B identity (\axiomprofile{[]}).
+Cross-level: IAM composed with Mode~A lifts correctly
+(\axiomprofile{[Quot.sound]}).
+\end{definition}
+
+The twelve findings that emerged during implementation are catalogued below.
+They are labeled by the stage in which they were discovered (S = Stage of
+the v1.0.0 implementation).
+
+\begin{finding}[S4-A --- Operand-not-operation theorem]
+\label{finding:S4A}
+\lean{VR.Apparatus.Factorisable, VR.Apparatus.operand_determines_operational}
+\leanok
+\uses{def:Factorisable}
+The witness $W$ in $\texttt{IsModeBOp}$ is $\texttt{Factorisable}\,PA\,PB\,f\,a$:
+existence of an operational function $g$ matching $f$ on the specific
+operand $a$.  Operationality of the result $f\,a$ is determined by the
+operand $a$, not by the classical operation $f$.  This localises the
+Mode~B witness to the operand, not the operation.
+\end{finding}
+
+\begin{finding}[S4-B --- Factorisable as computability condition]
+\label{finding:S4B}
+\lean{VR.Apparatus.factorisable_implies_isModeBOp}
+\leanok
+\uses{def:Factorisable, def:IsModeBOp}
+Factorisable witnesses are computability-like conditions: existence of a
+computable $g$ matching $f$ on the operand.  Mode~B with Factorisable is
+strictly stronger than plain $\texttt{IsModeBOp}$: every Factorisable
+gives Mode~B; the converse requires Choice in general.  The spectrum of
+witnesses (minimal $W = \texttt{True}$; canonical $W = \texttt{Factorisable}$)
+is a feature, not a gap.
+\end{finding}
+
+\begin{finding}[S6-A --- Separability as apparatus hypothesis]
+\label{finding:S6A}
+\lean{VR.Apparatus.HasSeparabilityStructure,
+      VR.Apparatus.separability_provides_factorisable}
+\leanok
+\uses{def:HasSeparabilityStructure}
+\texttt{HasSeparabilityStructure} provides, via
+\texttt{separability\_provides\_factorisable}, a Factorisable witness for
+the Riesz extension.  Domain-specific structure (separability) flows into
+the apparatus as a formal hypothesis, not as a classical axiom.  This is
+the Tier~2~$\to$~Tier~3 connection in the five-tier architecture.
+\end{finding}
+
+\begin{finding}[S2-A --- Layered structure, type-system enforced]
+\label{finding:S2A}
+\lean{VR.Apparatus.IsModeAOp_of_interApparatus}
+\leanok
+\uses{def:IAM, def:IsModeAOp_ref}
+Mode~A (quotient level, intra-apparatus endomorphisms) and
+\texttt{InterApparatusMorphism} (representative level, inter-apparatus)
+are \emph{distinct levels}, not a subset hierarchy.  \texttt{IsModeAOp\_of\_interApparatus}
+is a one-way bridge (same-setoid IAM $\Rightarrow$ Mode~A after post-composition
+with \texttt{Quotient.mk}); Mode~A operations cannot be directly read as IAMs
+(type mismatch).  The type system enforces the layering.
+\end{finding}
+
+\begin{finding}[S2-B --- New axiom sub-ceiling \texttt{[Quot.sound]}]
+\label{finding:S2B}
+\lean{VR.Apparatus.InterApparatusMorphism.lift_mk}
+\leanok
+\uses{def:IAM}
+IAM lift infrastructure uses only \texttt{Quot.sound}:
+$\texttt{lift\_mk}$ and its consequences sit at
+\axiomprofile{[Quot.sound]}, strictly between axiom-free and
+\texttt{[propext, Quot.sound]}.  IAM lift needs \texttt{Quotient.sound}
+to identify quotient representatives but neither \texttt{propext}
+(no iff-to-eq reasoning) nor \texttt{Classical.choice}.
+This sub-ceiling tier is absent from v0.1.0 and is a new discovery of v1.0.0.
+\end{finding}
+
+\begin{finding}[S3-A --- Two parallel tracks, no natural bridge]
+\label{finding:S3A}
+\lean{VR.Apparatus.PredicateOperationality.IsModeAOp,
+      VR.Apparatus.ReferenceOperationality.IsModeAOp}
+\leanok
+\uses{def:IsModeAOp_pred, def:IsModeAOp_ref}
+The apparatus framework has two structurally distinct tracks
+(predicate track: Type with predicate; reference track: quotient of pre-sets)
+that do not naturally compose cross-track.  This is not an oversight: it
+reflects the genuine structural asymmetry between predicate-selecting and
+setoid-quotienting.  Cross-track composition requires additional structure
+(a predicate tracking setoid equivalence classes).
+\end{finding}
+
+\begin{finding}[S3-B --- Endomorphism constraint, type-enforced]
+\label{finding:S3B}
+\lean{VR.Apparatus.ReferenceOperationality.IsModeAOp}
+\leanok
+\uses{def:IsModeAOp_ref}
+\texttt{ReferenceOperationality.IsModeAOp} requires $f : Q \to
+\texttt{Quotient}\,s$ where the target quotient uses the \emph{same setoid}
+$s$ as the source.  Cross-apparatus endomorphisms ($s_1 \ne s_2$) cannot
+use \texttt{IsModeAOp}; they are handled as raw propositions in composition
+theorems.  The type system makes this constraint explicit.
+\end{finding}
+
+\begin{finding}[S3-C --- Productive triviality]
+\label{finding:S3C}
+\lean{VR.Apparatus.PredicateOperationality.IsModeAOp_id,
+      VR.Apparatus.IsModeBOp_id}
+\leanok
+\uses{def:composition}
+Identity elements for all four morphism levels are proved by
+trivially-simple proofs (\texttt{fun \_ hx => hx}, etc.).  The accumulation
+of identity and composition instances IS the mathematical content: it
+demonstrates the apparatus framework is closed under identity and
+composition.  Simplicity of proof is not weakness but witness to the
+framework's coherence.
+\end{finding}
+
+\begin{finding}[S5-A --- Lens applicability depends on natural structure]
+\label{finding:S5A}
+\lean{VR.Apparatus.nat_vonNeumann_isInterApparatus}
+\leanok
+\uses{def:numbers_hybrid}
+The two apparatus lenses are not uniformly applicable.  $\mathbb{R}$ with
+\texttt{IsComputableReal} (predicate lens): natural.  $\mathbb{R}$ with
+Cauchy reference lens: artificial (Cauchy sequences carry no natural
+membership relation; instance not constructed).  $\mathbb{N}$ with
+von Neumann ordinals (reference lens): natural (ordinals ARE sets with
+membership).  Apparatus framework does not force uniform applicability;
+methodological honesty wins.
+\end{finding}
+
+\begin{finding}[S5-B --- Axiom asymmetry between apparatus tracks]
+\label{finding:S5B}
+\lean{VR.Apparatus.cauchy_abs_isQuotient, VR.Apparatus.natEqSetoid}
+\leanok
+\uses{def:numbers_hybrid}
+Analysis track ($\mathbb{R}$, Cauchy): even trivially-proved objects inherit
+standard ceiling \texttt{[propext, Classical.choice, Quot.sound]} through
+type elaboration of $\texttt{Field}\,\mathbb{Q}$ / $\texttt{IsAbsoluteValue}$.
+Set-theory track ($\mathbb{N}$, $\texttt{PSet}$): axiom-free throughout.
+The asymmetry mirrors the general pattern: analysis-based apparatus (ceiling);
+set-theoretic apparatus (constructive).
+\end{finding}
+
+\begin{finding}[S1-A --- Generic Register abstraction unnecessary]
+\label{finding:S1A}
+\lean{VR.Apparatus.vr_forms_transit_isModeBOp}
+\leanok
+\uses{def:forms_instances}
+The planned generic Register structure and DirectionalMorphism typeclass
+were dropped after reconnaissance: (a) VR-Forms already has \texttt{Register}
+as a two-constructor mode-of-consideration marker; (b) DirectionalMorphism
+type-mismatches VR-Forms transit (predicate implication $\ne$ morphism between
+setoid types); (c) \texttt{translate\_implies\_realisable} IS Mode~B with
+$W = \texttt{True}$.  Stage~1 of v1.0.0 = recognition that the v0.1.0
+apparatus already captures VR-Forms transit without extension.
+\end{finding}
+
+\begin{finding}[S1-B --- Three-way identity nature contrast]
+\label{finding:S1B}
+\lean{VR.Apparatus.instPredicateOpTranslatePi,
+      VR.Apparatus.instPredicateOpFormalTerm,
+      VR.Apparatus.instRefOpPSet}
+\leanok
+\uses{def:forms_instances}
+VR-Forms apparatus anatomy:
+(a)~\texttt{instPredicateOpTranslatePi} (\texttt{AsPoint}, specific predicate);
+(b)~\texttt{instPredicateOpFormalTerm} (\texttt{AsPoint}, existential predicate);
+(c)~\texttt{instRefOpPSet} (\texttt{AsReference}, ontological register).
+Two predicate-wrapping instances for the formal register; one reference-
+semantics instance for the operational register.  The Mode~B transit
+(\texttt{vr\_forms\_transit\_isModeBOp}) connects (a)~$\to$~(b).
+Realisability says (b) has an operational correlate in (c).
+\end{finding}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Position relative to existing frameworks (Part VII)}
+\label{sec:apparatus_comparison}
+
+\begin{remark}[Proof mining (Kohlenbach)]
+\label{rem:compare_kohlenbach}
+Mode~B is conceptually adjacent to proof mining (Kohlenbach 2008): both
+extract operational/computable content from classical proofs.  Proof
+mining uses the Dialectica interpretation and explicit bounds; Mode~B
+uses the witness $W$ and Factorisable.  The Riesz extension is an example
+where both approaches reach the same conclusion.  VR-Apparatus does not
+claim to subsume proof mining: the logical machinery differs.
+\end{remark}
+
+\begin{remark}[Constructive analysis (Bishop)]
+\label{rem:compare_bishop_apparatus}
+Bishop rejects classical mathematics; VR-Forms places it in the formal
+register as a conservative extension.  These are different strategies.
+Mode~B is not Bishop's approach: it does not reconstruct classical proofs
+constructively; it extracts operational content from classical objects by
+working with the operand's structure.
+\end{remark}
+
+\begin{remark}[Computable analysis (Pour-El \& Richards, Weihrauch)]
+\label{rem:compare_computable_analysis}
+\texttt{IsComputableReal} follows the Pour-El \& Richards~1989 formulation.
+The Weihrauch framework classifies classical theorems by degree; VR-Apparatus
+classifies the operational extractability of their instances.  Both
+approaches overlap on computability of analysis results; they differ in
+logical framework (oracle Turing machines vs.\ Lean type-theoretic predicates).
+\end{remark}
+
+\begin{remark}[Reverse mathematics]
+\label{rem:compare_reverse_math_apparatus}
+Reverse mathematics locates theorems in subsystem hierarchies
+(WKL$_0$, ACA$_0$, \ldots).  VR-Apparatus performs an axiom profile audit
+that is structurally related: it locates each object in a four-tier axiom
+hierarchy.  The goals differ: reverse mathematics asks what is needed to
+prove a theorem; VR-Apparatus asks what axioms a proof term inherits from
+its environment.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Honest scope limitations}
+\label{sec:apparatus_limitations}
+
+\begin{remark}[Endomorphism constraint in reference Mode~A]
+\label{rem:limitation1}
+\lean{VR.Apparatus.ReferenceOperationality.IsModeAOp}
+\leanok
+\texttt{ReferenceOperationality.IsModeAOp} handles endomorphisms only
+($f : Q \to \texttt{Quotient}\,s$, same setoid).  Cross-apparatus maps
+($\texttt{PSet} \to \texttt{CoPSet}$, inducing $\texttt{ZFSet} \to
+\texttt{OSetZFA}$) are handled via IAM, which operates at the representative
+level, not the quotient level.  A cross-apparatus quotient morphism concept
+remains future work.
+\end{remark}
+
+\begin{remark}[Cross-track non-composability]
+\label{rem:limitation2}
+\lean{VR.Apparatus.interApparatus_comp_modeA_wd}
+\leanok
+Mode~B (predicate track, Tier~4) and IAM (reference track, Tier~3) cannot
+be composed without additional structure.  This is a genuine architectural
+boundary, not an implementation gap.  Three structural non-composabilities
+are documented in \texttt{Composition.lean}.
+\end{remark}
+
+\begin{remark}[No reference apparatus for Cauchy sequences]
+\label{rem:limitation3}
+\lean{VR.Apparatus.cauchy_abs_isQuotient}
+\leanok
+Cauchy sequences carry no natural membership relation.  The reference lens
+for $\mathbb{R}$ is not constructed; the bridge $\mathbb{R} \simeq
+\texttt{Cauchy abs}$ is documented as a carrier without a
+\texttt{ReferenceOperationality} instance.  Forcing synthetic membership
+would violate methodological honesty.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Axiom profile}
+\label{sec:apparatus_axiom_profile}
+
+68 public objects (35 from v0.1.0, 33 new in v1.0.0).
+
+\axiomprofile{[]}: 40 objects (59\%).
+Core abstract structure (IdentityNature, apparatus marker classes,
+all Mode~A and Mode~B definitions, Factorisable core, IAM definition and composition).
+
+\axiomprofile{[Quot.sound]}: 7 objects (10\%, \textbf{new tier in v1.0.0}).
+IAM lift infrastructure: \texttt{InterApparatusMorphism.lift},
+\texttt{lift\_mk}, \texttt{IsModeAOp\_of\_interApparatus},
+\texttt{lift\_compose}, and three composition identity lemmas.
+IAM lift needs \texttt{Quot.sound} (to identify representatives) but not
+\texttt{propext} or \texttt{Classical.choice}.
+This tier is Finding~S2-B.
+
+\axiomprofile{[propext, Quot.sound]}: 4 objects.
+VR-Forms integration instances (\texttt{instPredicateOpFormalTerm},
+\texttt{instPredicateOpTranslatePi}) and ZFC reference apparatus
+(\texttt{instRefOpPSet}).
+
+\axiomprofile{[propext, Classical.choice, Quot.sound]}: 17 objects.
+Concrete Riesz instances, analysis-based Mode~A instances, CoPSet instance.
+
+Axiom asymmetry (Finding~S5-B): set-theory track is constructive;
+analysis track inherits classical ceiling through type elaboration.
+
+%──────────────────────────────────────────────────────────────────────
+\section{References}
+\label{sec:apparatus_refs}
+
+The preprint for this chapter is
+\zenodo{10.5281/zenodo.20381417}{VR-Apparatus, v1.0.0} (25 May 2026).
+
+The Lean~4 formalisation is archived at
+\zenodo{10.5281/zenodo.20380344}{VR-Apparatus Lean, v1.0.0} (25 May 2026),
+git tag \texttt{v1.7-vr-apparatus-1.0.0}.
