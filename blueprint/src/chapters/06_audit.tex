@@ -1,9 +1,538 @@
 \chapter{VR-Audit}
 \label{chap:audit}
+\uses{chap:apparatus, chap:sets}
 
-% Stage 6 — IsComputableReal, OperationalHilbertSpace, OperationalLocatedSubspace,
-% OperationalNormableFunctional. HahnBanachOperational_Hilbert via Riesz (Path B).
-% Specker obstruction justifying Path B over Path A.
-% EuclideanSpace ℝ (Fin n) instance. Mode B canonical application.
-% Axiom profile: [propext, Classical.choice, Quot.sound].
-% \uses{chap:apparatus}
+\section{Position}
+\label{sec:audit_position}
+
+VR-Audit is the first Application in the VR Cycle (Layer~III).  It applies
+the two-register apparatus from Chapter~\ref{chap:forms} and the Mode~B
+schema from Chapter~\ref{chap:apparatus} to classical mathematics.  Audit One
+establishes an operational Hahn-Banach theorem for Hilbert spaces via the
+Riesz representation route (Path~B).
+
+\textbf{Wrapping principle.} No new type of ``computable Hilbert space'' is
+introduced parallel to mathlib's \texttt{Real} or \texttt{InnerProductSpace}.
+Instead, a predicate \texttt{IsComputableReal : ℝ → Prop} selects the
+computable reals as a sub-collection of mathlib's classical~$\mathbb{R}$.
+Similarly, \texttt{OperationalHilbertSpace E} layers three computability
+fields on top of mathlib's \texttt{InnerProductSpace ℝ E}.  This is the
+direct embodiment of the VR-Forms two-register apparatus in analysis:
+formal register $=$ mathlib's classical structures; operational register $=$
+the sub-collection satisfying computability predicates with witnesses.
+
+\textbf{Non-chronological dependency.} The Apparatus preprint
+(Chapter~\ref{chap:apparatus}) was published after VR-Audit, but
+methodologically, VR-Audit is an instance of the Mode~B schema defined
+there.  The blueprint shows this dependency explicitly; publication order
+is not the ordering principle here.
+
+\noindent\axiomprofile{[propext, Classical.choice, Quot.sound]} for all
+17 public objects.  \texttt{Classical.choice} enters through mathlib's
+$\mathbb{R}$ (Cauchy completeness) and Riesz representation.  This is
+the expected and acceptable ceiling: operational content lives within
+the classical structure, not outside it.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Operational structures (Stages 1--4)}
+\label{sec:audit_structures}
+
+\begin{definition}[Computability predicate for real numbers]
+\label{def:IsComputableReal}
+\lean{VR.Audit.IsComputableReal}
+\leanok
+$\texttt{IsComputableReal}(x) := \exists\, (\texttt{alg} : \mathbb{N}
+\to \mathbb{Q})\, (\texttt{mod} : \mathbb{N} \to \mathbb{N}),\;
+\forall n\, k,\; \texttt{mod}(n) \le k \Rightarrow
+|(\texttt{alg}(k) : \mathbb{R}) - x| \le 1/2^n$.
+Following Pour-El \& Richards~1989~§\,1.1 and Bishop-Bridges~1985~§\,2.2:
+$x$ is computable if there exists a rational approximation sequence with
+an explicit modulus of convergence.  Implemented as a \texttt{Prop}
+(not a \texttt{Structure}): witnesses are accessible via \texttt{obtain}
+when needed.
+\end{definition}
+
+\begin{definition}[Computability predicate for sequences]
+\label{def:IsComputableSequence}
+\lean{VR.Audit.IsComputableSequence}
+\leanok
+\uses{def:IsComputableReal}
+$\texttt{IsComputableSequence}(s : \mathbb{N} \to \mathbb{R}) :=
+\forall n,\; \texttt{IsComputableReal}(s(n))$: every term of the
+sequence is a computable real.
+\end{definition}
+
+\begin{theorem}[Computability closure lemmas]
+\label{thm:IsComputableReal_lemmas}
+\lean{VR.Audit.IsComputableReal_rat, VR.Audit.IsComputableReal_zero,
+      VR.Audit.IsComputableReal_one, VR.Audit.IsComputableReal_neg,
+      VR.Audit.IsComputableReal_add, VR.Audit.IsComputableReal_sub}
+\leanok
+\uses{def:IsComputableReal}
+Rational numbers are computable (\texttt{IsComputableReal\_rat});
+$0$, $1$ are computable; the predicate is closed under negation,
+addition, and subtraction.  These six lemmas at
+\axiomprofile{[propext, Classical.choice, Quot.sound]}.
+Note: \texttt{IsComputableReal\_mul} is absent from Stage~1 (requires
+bounded-sequence argument handled at the Hilbert-space level); it is
+not needed for the main theorem.
+\end{theorem}
+
+\begin{definition}[Operational Hilbert space]
+\label{def:OperationalHilbertSpace}
+\lean{VR.Audit.OperationalHilbertSpace}
+\leanok
+\uses{def:IsComputableReal}
+\texttt{OperationalHilbertSpace~E} is a typeclass (not a structure)
+requiring \texttt{[InnerProductSpace ℝ E]} and \texttt{[CompleteSpace E]}
+as implicit prerequisites, with three additional fields:
+\begin{enumerate}
+\item \texttt{denseSeq : ℕ → E} --- an explicit dense sequence
+  (separability witness);
+\item \texttt{denseSeq\_dense : DenseRange denseSeq} --- its range is
+  classically dense in $E$;
+\item \texttt{inner\_computable : ∀ m n, IsComputableReal (@inner ℝ E \_
+  (denseSeq m) (denseSeq n))} --- pairwise inner products of the dense
+  sequence are computable reals.
+\end{enumerate}
+Three fields are the minimum sufficient for the main theorem
+(Stage~5 via Riesz).  No completeness modulus is required: classical
+\texttt{CompleteSpace E} from mathlib suffices.  Pointwise computability
+of individual \texttt{denseSeq k} is not required.
+\end{definition}
+
+\begin{definition}[Operational located subspace]
+\label{def:OperationalLocatedSubspace}
+\lean{VR.Audit.OperationalLocatedSubspace}
+\leanok
+\uses{def:OperationalHilbertSpace}
+$\texttt{OperationalLocatedSubspace E}$ is a structure extending
+\texttt{ClosedSubmodule ℝ E} (mathlib) with three fields:
+\begin{enumerate}
+\item \texttt{denseSubSeq : ℕ → E} --- explicit dense sequence within~$M$;
+\item \texttt{denseSubSeq\_dense\_in} --- density within $M$;
+\item \texttt{dist\_computable : ∀ n, IsComputableReal (infDist
+  (denseSeq n) M)} --- computable distance from ambient dense sequence
+  points to~$M$ (locatedness in Bishop's sense).
+\end{enumerate}
+\texttt{HasOrthogonalProjection} is inherited from
+\texttt{ClosedSubmodule} via a global mathlib instance; no extra field
+is needed.  Locatedness is formulated only over \texttt{denseSeq}
+points, not arbitrary \texttt{x : E}: see Observation~3.
+\end{definition}
+
+\begin{definition}[Operational normable functional]
+\label{def:OperationalNormableFunctional}
+\lean{VR.Audit.OperationalNormableFunctional}
+\leanok
+\uses{def:OperationalLocatedSubspace, def:IsComputableReal}
+$\texttt{OperationalNormableFunctional~E~M}$ is a structure wrapping
+a classical \texttt{M.toSubmodule →L[ℝ] ℝ} (continuous linear map)
+with two operational fields:
+\begin{enumerate}
+\item \texttt{fn\_computable\_on\_dense : ∀ n, IsComputableReal
+  (toFun (denseSubSeq n, \_))} --- values on $M$'s dense sequence
+  are computable;
+\item \texttt{norm\_computable : IsComputableReal toFun.opNorm} ---
+  the operator norm is a computable real (\emph{normability}).
+\end{enumerate}
+Distinction \emph{bounded} vs \emph{normable} (Ishihara~1989): in
+computable analysis, a functional can be bounded without its norm being
+computable.  \texttt{norm\_computable} captures exactly normability,
+which is required for the norm-preservation clause of the main theorem.
+See Observation~5.
+\end{definition}
+
+\begin{theorem}[Computability extends to all of $M$]
+\label{thm:fn_computable_everywhere}
+\lean{VR.Audit.fn_computable_everywhere}
+\leanok
+\uses{def:OperationalNormableFunctional, def:OperationalLocatedSubspace}
+For any $\texttt{f : OperationalNormableFunctional~E~M}$ and
+$x \in M.\texttt{toSubmodule}$, \texttt{IsComputableReal}$(f(x))$.
+Proof: density gives a sequence $y_k \to x$; continuity
+(\texttt{f.le\_opNorm}) bounds $|f(x) - f(y_k)|$;
+\texttt{fn\_computable\_on\_dense} provides rational approximations
+for $f(y_k)$; triangle inequality combines them.  Witnesses via
+\texttt{Classical.choose}.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Main theorem}
+\label{sec:audit_main}
+
+\begin{theorem}[Operational Hahn-Banach for Hilbert spaces]
+\label{thm:HahnBanachOperational_Hilbert}
+\lean{VR.Audit.HahnBanachOperational_Hilbert}
+\leanok
+\uses{def:OperationalNormableFunctional, def:OperationalLocatedSubspace,
+      def:OperationalHilbertSpace, thm:fn_computable_everywhere}
+Given: $E$ with \texttt{OperationalHilbertSpace E};
+$M : \texttt{OperationalLocatedSubspace E}$;
+$f : \texttt{OperationalNormableFunctional E M}$.
+
+Produces: $g : E \to_L[\mathbb{R}] \mathbb{R}$ (classical CLM) such that:
+(1)~$\forall n,\; \texttt{IsComputableReal}(g(\texttt{denseSeq n}))$
+--- $g$ is computable on ambient dense sequence;
+(2)~$\texttt{IsComputableReal}(g.\texttt{opNorm})$ --- $g$ is normable;
+(3)~$\forall x \in M,\; g(x) = f(x)$ --- $g$ extends $f$;
+(4)~$g.\texttt{opNorm} = f.\texttt{opNorm}$ --- norms agree.
+
+Proof via Riesz representation (Path~B).  Six steps: (i)~Riesz vector
+$\xi \in M$ via \texttt{InnerProductSpace.toDual}; (ii)~extension
+$g := \texttt{innerSL}\,\mathbb{R}\,(\xi : E)$; (iii)~extension property;
+(iv)~operationality of $g$ via factorisation $g(x) = f(P_M(x))$;
+(v)~norm equality by Cauchy-Schwarz and inner product evaluation;
+(vi)~computability of $g.\texttt{opNorm}$ from $f.\texttt{norm\_computable}$.
+\noindent\axiomprofile{[propext, Classical.choice, Quot.sound]}.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{The transit pattern in action}
+\label{sec:audit_transit}
+
+\subsection*{Step~1: Riesz invoked as black box}
+
+\begin{remark}[Riesz as formal-register tool]
+\label{rem:riesz_black_box}
+\lean{VR.Audit.HahnBanachOperational_Hilbert}
+\leanok
+\uses{thm:HahnBanachOperational_Hilbert}
+\texttt{InnerProductSpace.toDual} (Riesz representation, mathlib) is
+invoked to produce a vector $\xi \in M$ satisfying $f(v) = \langle\xi,
+v\rangle_M$ for all $v \in M$.  $\xi$ has classical ontological status:
+it exists by Riesz but its value is not explicitly computed.  This is the
+formal-register step of the transit: a classical existence result is invoked
+as a black box.  It uses \texttt{Classical.choice} through
+\texttt{CompleteSpace} and \texttt{toDual}.
+\end{remark}
+
+\subsection*{Step~2: Explicit extension}
+
+\begin{remark}[Concrete extension]
+\label{rem:explicit_extension}
+\lean{VR.Audit.HahnBanachOperational_Hilbert}
+\leanok
+$g := \texttt{innerSL}\,\mathbb{R}\,(\xi : E) : E \to_L[\mathbb{R}]
+\mathbb{R}$ is defined concretely from $\xi$ without additional classical
+machinery.  $g(w) = \langle\xi, w\rangle_E$ for all $w : E$.  Linearity
+and continuity are automatic from \texttt{innerSL}.
+\end{remark}
+
+\subsection*{Step~3: Operationality via orthogonal projection}
+
+\begin{remark}[Factorisation as operational heart]
+\label{rem:orth_proj_transit}
+\lean{VR.Audit.HahnBanachOperational_Hilbert}
+\leanok
+\uses{thm:fn_computable_everywhere, def:OperationalLocatedSubspace}
+Key factorisation: $g(\texttt{denseSeq n}) = \langle\xi, \texttt{denseSeq
+n}\rangle_E = \langle\xi, P_M(\texttt{denseSeq n})\rangle_M
+= f(P_M(\texttt{denseSeq n}))$, where $P_M$ is orthogonal projection
+(available from \texttt{HasOrthogonalProjection} inherited via
+\texttt{ClosedSubmodule}).  Locatedness of $M$ (\texttt{dist\_computable})
+makes the projection operationally accessible.  \texttt{fn\_computable\_everywhere}
+gives computability of $f$ on all of $M$, including $P_M(\texttt{denseSeq n})$.
+The transit closes: the formal object $\xi$ is used as an instrument to
+express the operational result $g(\texttt{denseSeq n})$ as $f$ applied
+to a computable input.
+\end{remark}
+
+\subsection*{Step~4: Norm equality}
+
+\begin{remark}[Norm preservation]
+\label{rem:norm_equality}
+\lean{VR.Audit.HahnBanachOperational_Hilbert}
+\leanok
+$g.\texttt{opNorm} = \|\xi\|_E$ via \texttt{innerSL\_apply\_norm}.
+$f.\texttt{opNorm} = \|\xi\|_E$ by \texttt{le\_antisymm}: upper bound
+via Cauchy-Schwarz; lower bound by evaluating $f.\texttt{le\_opNorm}$
+at $\xi$.  Transitively: $g.\texttt{opNorm} = f.\texttt{opNorm}$.
+Computability of $g.\texttt{opNorm}$ follows from
+$f.\texttt{norm\_computable}$ and the equality.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Why Path~B, not Path~A}
+\label{sec:audit_path_b}
+
+\begin{remark}[Specker obstruction and structural avoidance]
+\label{rem:path_b}
+The Specker obstruction (1949) applies to suprema of bounded monotone
+computable sequences: such suprema can be non-computable.  Path~A ---
+invoking classical Hahn-Banach directly --- produces an extension
+\emph{abstractly}: only an existence result, with no computable witness
+for $g(\texttt{denseSeq n})$.  This satisfies the formal register but
+leaves the operational register empty.
+
+Path~B (via Riesz) avoids the obstruction structurally:
+(i)~$\xi$ is a \emph{single vector} produced by Riesz, not a limit of a
+  monotone sequence;
+(ii)~$g(\texttt{denseSeq n}) = f(P_M(\texttt{denseSeq n}))$ is a
+  finite-step computation, not a sequence supremum;
+(iii)~$g.\texttt{opNorm} = \|\xi\|_E$, a single real, not a supremum.
+
+Locatedness (\texttt{dist\_computable}) is the key structural ingredient:
+it makes orthogonal projection applicable at the operational level and
+enables the factorisation of Step~3.  Without locatedness, the projection
+$P_M(\texttt{denseSeq n})$ would remain in the formal register.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Non-vacuity instance}
+\label{sec:audit_euclidean}
+
+\begin{theorem}[$\mathrm{EuclideanSpace}\,\mathbb{R}\,(\mathrm{Fin}\,n)$ is an operational Hilbert space]
+\label{thm:instEuclidean}
+\lean{VR.Audit.instOperationalHilbertSpaceEuclidean}
+\leanok
+\uses{def:OperationalHilbertSpace, def:IsComputableReal}
+For every $n : \mathbb{N}$, \texttt{instOperationalHilbertSpaceEuclidean}
+provides \texttt{OperationalHilbertSpace (EuclideanSpace ℝ (Fin n))}.
+Dense sequence: rational vectors $(\mathrm{Fin}\,n \to \mathbb{Q})$
+enumerated via \texttt{Encodable.decode}, embedded via \texttt{WithLp.toLp 2}.
+Density: three-step \texttt{DenseRange.comp} chain via
+\texttt{Encodable.surjective\_decode\_getD},
+\texttt{DenseRange.piMap}, and \texttt{PiLp.homeomorph}.
+Inner product computability: \texttt{PiLp.inner\_apply} reduces $\langle\cdot,
+\cdot\rangle$ to a finite sum of rational products; \texttt{IsComputableReal\_rat}
+closes.
+
+This is the canonical non-vacuity witness: for every $n$,
+\texttt{HahnBanachOperational\_Hilbert} applies to
+$\mathrm{EuclideanSpace}\,\mathbb{R}\,(\mathrm{Fin}\,n)$.
+The infinite-dimensional case $\ell^2$ is deferred (requires
+\texttt{Finsupp}-based enumeration and \texttt{tsum} convergence).
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Open programme}
+\label{sec:audit_open}
+
+\begin{remark}[Future audit candidates]
+\label{rem:open_programme}
+VR-Audit is an open programme.  Audit One (Hahn-Banach for Hilbert spaces
+via Riesz) establishes the pattern.  Future candidates listed in the
+preprint: Banach-Steinhaus (uniform boundedness), open mapping theorem,
+closed graph theorem, spectral theorem for self-adjoint compact operators,
+and Stone-Weierstrass.  Each would follow the Mode~B schema: classical
+theorem invoked as formal-register black box; operational output extracted
+via explicit witnesses and locatedness/computability predicates.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Position relative to neighbouring frameworks}
+\label{sec:audit_comparison}
+
+\begin{remark}[Comparison with Bishop-style constructive analysis]
+\label{rem:compare_bishop}
+Bishop-Bridges~1985 rebuilds analysis from scratch with constructive proofs.
+VR-Audit wraps over mathlib's classical analysis rather than rebuilding it.
+The operational layer is thinner (predicate restrictions, not new types)
+and requires fewer proof lines, at the cost of accepting
+\texttt{Classical.choice} in the formal register.
+\end{remark}
+
+\begin{remark}[Comparison with reverse mathematics]
+\label{rem:compare_reverse_math}
+Reverse mathematics locates each theorem in the subsystem hierarchy
+(WKL$_0$, ACA$_0$, \ldots).  VR-Audit does not attempt this classification;
+it identifies the \emph{operational content} that can be extracted from a
+classical theorem at the \texttt{Classical.choice} ceiling, not the minimal
+axioms needed to prove it.
+\end{remark}
+
+\begin{remark}[Comparison with computable analysis and Weihrauch reducibility]
+\label{rem:compare_weihrauch}
+Pour-El \& Richards~1989 and the Weihrauch framework study computability of
+classical analysis results over abstract computation models.  VR-Audit works
+within Lean~4's type-theoretic framework: computability is expressed as
+\texttt{IsComputableReal} predicates rather than oracle Turing machines.
+The metatheoretic equivalence of these notions is not formalised here.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Methodological observations}
+\label{sec:audit_method}
+
+\begin{remark}[Obs~1 --- No \texttt{Computable} annotation on approximation functions]
+\label{rem:audit_obs1}
+\lean{VR.Audit.IsComputableReal}
+\leanok
+\uses{def:IsComputableReal}
+\texttt{Computable₂} for $\mathbb{Q}$ arithmetic operations is absent from
+mathlib4 (verified by exhaustive search).  Lean's intrinsic totality of
+\texttt{alg : ℕ → ℚ} and \texttt{mod : ℕ → ℕ} provides algorithmicity at
+the type level; Turing-machine codings remain metatheoretic.  This is the
+first concrete confirmation in VR-Audit of the architectural principle:
+operational ontology is expressed through predicate restrictions, not
+Lean's computational machinery.  (Parallel to VR-Numbers~§\,IV.1 boundary.)
+\end{remark}
+
+\begin{remark}[Obs~2 --- \texttt{inner\_computable} as wrapping principle in Hilbert setting]
+\label{rem:audit_obs2}
+\lean{VR.Audit.OperationalHilbertSpace}
+\leanok
+\uses{def:OperationalHilbertSpace}
+The field \texttt{inner\_computable : ∀ m n, IsComputableReal
+(@inner ℝ E \_ (denseSeq m) (denseSeq n))} selects, from the
+classical values provided by \texttt{InnerProductSpace ℝ E}, precisely
+those pairs for which the inner product is computable.  The operational
+register (computable pairs) lives \emph{inside} the formal register
+(full classical \texttt{InnerProductSpace}).  This generalises: any
+classical structure with values in $\mathbb{R}$ can be wrapped operationally
+by adding \texttt{IsComputableReal} predicates on selected outputs.
+\end{remark}
+
+\begin{remark}[Obs~3 --- Locatedness over dense sequence points only]
+\label{rem:audit_obs3}
+\lean{VR.Audit.OperationalLocatedSubspace}
+\leanok
+\uses{def:OperationalLocatedSubspace}
+\texttt{dist\_computable} is formulated only over \texttt{denseSeq n}
+(operational witnesses), not arbitrary $x : E$.  This is principled:
+operational predicates apply to operational objects.  Arbitrary $x : E$
+lives in the formal register.  Demanding computability on arbitrary
+points would conflate the registers.  The formulation is sufficient
+for Stage~5 because orthogonal projection is applied precisely to
+\texttt{denseSeq} points.  This pattern --- operational predicates only
+over operational witnesses --- generalises to all future VR-Audit work.
+\end{remark}
+
+\begin{remark}[Obs~4 --- Specker boundary structurally avoided]
+\label{rem:audit_obs4}
+\lean{VR.Audit.HahnBanachOperational_Hilbert}
+\leanok
+\uses{thm:HahnBanachOperational_Hilbert}
+The Riesz vector $\xi$ is a single element, not a limit of a bounded
+monotone computable sequence.  The Specker obstruction (1949) applies to
+the latter; our construction explicitly avoids it.  Locatedness enables
+orthogonal projection without a Specker-vulnerable supremum.  This is the
+structural reason why Path~B (Riesz) is clean where a general Banach
+Hahn-Banach extension would not be.
+\end{remark}
+
+\begin{remark}[Obs~5 --- Bounded $\ne$ normable]
+\label{rem:audit_obs5}
+\lean{VR.Audit.OperationalNormableFunctional}
+\leanok
+\uses{def:OperationalNormableFunctional}
+In computable analysis (Ishihara~1989), ``bounded'' ($\exists C,\; |f(x)|
+\le C\|x\|$) and ``normable'' (exact $\sup |f(x)|/\|x\|$ computable) are
+distinct: a functional can be bounded without its norm being computable.
+\texttt{norm\_computable} captures normability; this is required for the
+norm-preservation clause $g.\texttt{opNorm} = f.\texttt{opNorm}$ in the
+main theorem.  The distinction collapses classically; it is critical
+constructively.
+\end{remark}
+
+\begin{remark}[Obs~6 --- Transit pattern has richer structure]
+\label{rem:audit_obs6}
+\lean{VR.Audit.HahnBanachOperational_Hilbert}
+\leanok
+\uses{thm:HahnBanachOperational_Hilbert}
+The classical extended functional $g$ is built entirely from operational
+data: $\xi$ is the Riesz vector of $f$; $g := \texttt{innerSL}\,
+\mathbb{R}\,(\xi : E)$ is defined concretely.  The operational content
+of $g$ at \texttt{denseSeq n} comes not from $g$'s definition directly
+but from the factorisation $g(x) = f(P_M(x))$.  This is richer than
+the standard Mode~B schema (``apply classical lemma, prove output
+operational''): here the classical construction and the operational
+extraction are interleaved through the projection factorisation.
+\end{remark}
+
+\begin{remark}[Obs~7 --- Norm instance synthesis gap]
+\label{rem:audit_obs7}
+\lean{VR.Audit.OperationalNormableFunctional, VR.Audit.HahnBanachOperational_Hilbert}
+\leanok
+The \texttt{Norm (M.toSubmodule →L[ℝ] ℝ)} instance does not synthesize
+at declaration/goal time in this context (mathlib infrastructure gap).
+Workaround: use \texttt{f.opNorm} (direct field access on
+\texttt{ContinuousLinearMap}) throughout, and \texttt{change}/\texttt{show}
+to pass to $\|\cdot\|$-based mathlib lemmas inside tactic proofs.  This
+gap is structural (universe/instance unification) and expected in
+wrapping-style formalisations with multiple unification paths.
+\end{remark}
+
+\begin{remark}[Obs~8 --- \texttt{⟪·,·⟫\_ℝ} notation fails in class and binder scopes]
+\label{rem:audit_obs8}
+\lean{VR.Audit.OperationalHilbertSpace}
+\leanok
+\uses{def:OperationalHilbertSpace}
+The notation \texttt{⟪·, ·⟫\_ℝ} (from \texttt{open scoped
+RealInnerProductSpace}) does not parse inside \texttt{class where} field
+type declarations (subscript \texttt{\_ℝ} misinterpreted by the parser)
+nor in $\exists$-binder scopes within tactic proofs.  Workaround in
+class fields: use \texttt{@inner ℝ E \_} (explicit arguments).
+Workaround in binder scopes: use \texttt{inner ℝ} (function form).
+The notation works normally outside class blocks and binder scopes.
+This is the second cross-namespace universe issue in VR-Audit (after
+the \texttt{OSet.\{0\}} annotation in VR-Forms).
+\end{remark}
+
+\begin{remark}[Obs~9 --- \texttt{letI} vs \texttt{haveI} opacity in Riesz invocation]
+\label{rem:audit_obs9}
+\lean{VR.Audit.HahnBanachOperational_Hilbert}
+\leanok
+\uses{thm:HahnBanachOperational_Hilbert}
+In the main theorem proof, \texttt{hK\_complete} (\texttt{CompleteSpace
+K}) must be introduced via \texttt{letI} (transparent) rather than
+\texttt{haveI} (opaque) so that tactic-level instance synthesis finds it.
+Furthermore, \texttt{@InnerProductSpace.toDual} must be called with
+explicit \texttt{hK\_complete} argument because instance synthesis fails
+to match the unreduced form \texttt{↥M.toSubmodule} against
+\texttt{↥↑M.toClosedSubmodule}.  These two obstacles are overcome without
+new axioms; they reflect the instance-resolution sensitivity of
+wrapping-style formalisations.
+\end{remark}
+
+\begin{remark}[Obs~10 --- Non-vacuity of operational ontology]
+\label{rem:audit_obs10}
+\lean{VR.Audit.instOperationalHilbertSpaceEuclidean}
+\leanok
+\uses{thm:instEuclidean}
+Stage~6 confirms that the operational requirements of
+\texttt{OperationalHilbertSpace} are achievable on a natural infinite
+family: $\mathrm{EuclideanSpace}\,\mathbb{R}\,(\mathrm{Fin}\,n)$ for all
+$n : \mathbb{N}$.  This is the standard VR-Audit pattern: main theorem
+in full generality, then at least one explicit instance to show the
+operational ontology is inhabited without exotic mathematics.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Axiom profile}
+\label{sec:audit_axiom_profile}
+
+\axiomprofile{[propext, Classical.choice, Quot.sound]} for all 17 public
+objects.
+
+\texttt{Classical.choice} enters through:
+mathlib's $\mathbb{R}$ (Cauchy completeness, inherited by every object);
+\texttt{InnerProductSpace.toDual} (Riesz, used in the main theorem);
+\texttt{Classical.choose} in \texttt{fn\_computable\_everywhere}
+(density approximation).
+
+\begin{remark}[AC as formal-register tool]
+\label{rem:AC_methodological}
+\leanok
+The use of \texttt{Classical.choice} in VR-Audit is methodologically
+correct.  \texttt{Classical.choice} (AC) lives in the formal register:
+it produces a classical existence result without a computable witness.
+The operational register is then extracted via structural arguments
+(projection factorisation, locatedness, normability) that do not
+themselves require AC.  This is exactly the Mode~B pattern of
+Chapter~\ref{chap:apparatus}: classical operations with operational
+witnesses.  AC is a formal-register black box; the operational content
+is the computable output extracted from it.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{References}
+\label{sec:audit_refs}
+
+The preprint for this chapter is
+\zenodo{10.5281/zenodo.20364111}{VR-Audit, v1.0.0} (24 May 2026).
+
+The Lean~4 formalisation is archived at
+\zenodo{10.5281/zenodo.20363739}{VR-Audit Lean, v1.0.0} (24 May 2026),
+git tag \texttt{v1.4-vr-audit-hb-hilbert}.
