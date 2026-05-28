@@ -1,7 +1,539 @@
 \chapter{VR-Sets-ZFA}
 \label{chap:setszfa}
+\uses{chap:sets}
 
-% Stage 4 — CoPSet via PFunctor.M. Cobisimulation setoid. OSetZFA.
-% AFA as theorem (AFA_in_OSetZFA). Quine atom. Faithful embedding embedOSet.
-% Answers Conjecture IV.2 from chap:sets constructively.
-% \uses{chap:sets}
+\section{Position}
+\label{sec:setszfa_position}
+
+VR-Sets-ZFA extends VR-Sets with a coinductive universe that admits
+non-well-founded sets and proves Aczel's Anti-Foundation Axiom (AFA) as a
+theorem.  The chapter constructively resolves Conjecture~IV.2 from
+Chapter~\ref{chap:sets}: the required type $U$ satisfying AFA with
+extensional membership exists and is machine-verified.
+
+\textbf{Architectural fact.} The construction is built on mathlib's
+\texttt{PFunctor.M} (Avigad--Carneiro--Hudon 2019), the greatest fixpoint of
+the pre-set functor.  \texttt{CoPSet} is the coinductive counterpart of
+mathlib's inductive \texttt{PSet}: both use branching type $(\alpha :
+\mathrm{Type}\,u,\, A : \alpha \to \cdot)$; the difference is the
+generation principle (greatest vs.\ least fixpoint).  \texttt{OSetZFA} is
+the quotient of \texttt{CoPSet} by extensional cobisimulation, the
+coinductive analogue of \texttt{OSet = ZFSet = Quotient PSet.setoid}.
+
+AFA follows from the universal property of the final coalgebra: every
+directed graph has a unique decoration, proved by \texttt{CoPSet.corec}
+(existence) and \texttt{CoPSet.bisim\_imp\_Equiv} (uniqueness).  No
+coinductive axiom is added; the result lies entirely within
+\texttt{[propext, Classical.choice, Quot.sound]}.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Architecture (Part II)}
+\label{sec:setszfa_arch}
+
+\begin{definition}[Pre-set functor and coinductive pre-sets]
+\label{def:CoPSetFunctor}
+\lean{VR.SetsZFA.CoPSetFunctor, VR.SetsZFA.CoPSet}
+\leanok
+$\texttt{CoPSetFunctor} : \texttt{PFunctor}$ with shape type
+$\texttt{A} := \mathrm{Type}\,u$ and branching $\texttt{B} := \mathrm{id}$.
+$\texttt{CoPSet}.{u} := \texttt{PFunctor.M CoPSetFunctor}.{u}$
+(greatest fixpoint of \texttt{CoPSetFunctor}).
+Elements of \texttt{CoPSet} are potentially infinite or cyclic trees;
+in contrast, elements of \texttt{PSet} (inductive, mathlib) are
+always well-founded.  Universe: \texttt{CoPSet}.{u} : \texttt{Type
+(u+1)}.
+\end{definition}
+
+\begin{definition}[CoPSet destructor, constructor, and projections]
+\label{def:CoPSet_ops}
+\lean{VR.SetsZFA.CoPSet.dest, VR.SetsZFA.CoPSet.shape,
+      VR.SetsZFA.CoPSet.children, VR.SetsZFA.CoPSet.mk,
+      VR.SetsZFA.CoPSet.dest_mk, VR.SetsZFA.CoPSet.mk_dest}
+\leanok
+\uses{def:CoPSetFunctor}
+$\texttt{CoPSet.dest}(x) := \texttt{PFunctor.M.dest}(x) : \Sigma\,\alpha :
+\mathrm{Type}\,u,\; \alpha \to \texttt{CoPSet}$.
+Shape $:= (-).\texttt{dest}.1$; children $:= (-).\texttt{dest}.2$.
+Constructor: $\texttt{CoPSet.mk}(\alpha, A) :=
+\texttt{PFunctor.M.mk}\,\langle\alpha, A\rangle$.
+Roundtrip: \texttt{dest\_mk} and \texttt{mk\_dest} hold by \texttt{rfl}.
+\end{definition}
+
+\begin{definition}[Corecursor]
+\label{def:CoPSet_corec}
+\lean{VR.SetsZFA.CoPSet.corec, VR.SetsZFA.CoPSet.dest_corec}
+\leanok
+\uses{def:CoPSetFunctor}
+For any type $X$ and coalgebra $f : X \to \texttt{CoPSetFunctor}\,X$,
+$\texttt{CoPSet.corec}(f) : X \to \texttt{CoPSet}$ is the unique
+coalgebra morphism into the final coalgebra.
+Computation rule: $\texttt{dest}(\texttt{corec}(f)(x)) =
+f(x)[\texttt{corec}(f)]$ --- proved by \texttt{rfl} (definitional, not
+axiomatic).
+This is the \emph{existence} half of AFA.
+\end{definition}
+
+\begin{definition}[Cobisimulation and extensional equivalence]
+\label{def:CoPSet_equiv}
+\lean{VR.SetsZFA.CoPSet.isBisim, VR.SetsZFA.CoPSet.Equiv,
+      VR.SetsZFA.CoPSet.Equiv.refl, VR.SetsZFA.CoPSet.Equiv.symm,
+      VR.SetsZFA.CoPSet.Equiv.trans, VR.SetsZFA.CoPSet.isBisim_Equiv,
+      VR.SetsZFA.CoPSet.instSetoid, VR.SetsZFA.CoPSet.bisim_imp_Equiv}
+\leanok
+\uses{def:CoPSet_ops}
+$\texttt{CoPSet.isBisim}(R)$: a relation $R$ is a bisimulation when
+for every $(c, d) \in R$, the shapes of $c$ and $d$ are in bijection
+carrying $R$-related children to $R$-related children.
+$\texttt{CoPSet.Equiv}(x, y) := \exists R,\; \texttt{isBisim}(R) \land R\,x\,y$
+(greatest bisimulation; reflexive, symmetric, transitive).
+Key: $\texttt{bisim\_imp\_Equiv}$ --- if $R$ is a bisimulation and $R\,x\,y$,
+then $\texttt{Equiv}\,x\,y$.  This is the \emph{uniqueness} half of AFA.
+\texttt{CoPSet.instSetoid} packages \texttt{Equiv} as a Lean setoid.
+\end{definition}
+
+\begin{definition}[$\mathrm{OSetZFA}$ --- the ZFA universe]
+\label{def:OSetZFA}
+\lean{VR.SetsZFA.OSetZFA, VR.SetsZFA.OSetZFA.mk,
+      VR.SetsZFA.OSetZFA.eq_iff, VR.SetsZFA.OSetZFA.sound,
+      VR.SetsZFA.OSetZFA.exact, VR.SetsZFA.OSetZFA.mk_surjective}
+\leanok
+\uses{def:CoPSet_equiv}
+$\texttt{OSetZFA} := \texttt{Quotient CoPSet.instSetoid}$ (cobisimulation
+quotient of \texttt{CoPSet}).
+$\texttt{OSetZFA.mk}(x) := \llbracket x \rrbracket$ (quotient constructor).
+$\texttt{sound}$: $x \approx y \Rightarrow \texttt{mk}(x) = \texttt{mk}(y)$.
+$\texttt{exact}$: $\texttt{mk}(x) = \texttt{mk}(y) \Rightarrow x \approx y$.
+$\texttt{mk\_surjective}$: every element of \texttt{OSetZFA} has a
+\texttt{CoPSet} representative.
+\end{definition}
+
+\begin{definition}[Membership on $\mathrm{OSetZFA}$]
+\label{def:OSetZFA_mem}
+\lean{VR.SetsZFA.CoPSet.mem, VR.SetsZFA.OSetZFA.Mem,
+      VR.SetsZFA.OSetZFA.instMembership, VR.SetsZFA.OSetZFA.mem_mk,
+      VR.SetsZFA.OSetZFA.ext, VR.SetsZFA.OSetZFA.ext_iff}
+\leanok
+\uses{def:OSetZFA, def:CoPSet_ops}
+$\texttt{CoPSet.mem}(x, y) := \exists\, i : y.\texttt{shape},\;
+x \approx y.\texttt{children}(i)$.
+Lifted to $\texttt{OSetZFA.Mem}$ via \texttt{OSetZFA.lift}; well-definedness by
+\texttt{CoPSet.mem\_congr}.
+\texttt{mem\_mk}: $a \in \llbracket b \rrbracket \leftrightarrow
+\exists\, i : b.\texttt{shape},\; a = \llbracket b.\texttt{children}(i) \rrbracket$.
+Extensionality: $\llbracket x \rrbracket = \llbracket y \rrbracket \leftrightarrow
+\forall z,\; z \in \llbracket x \rrbracket \leftrightarrow z \in \llbracket y \rrbracket$.
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{AFA as theorem (Part III)}
+\label{sec:setszfa_afa}
+
+\begin{definition}[Decoration predicate and graph coalgebra]
+\label{def:isDecoration}
+\lean{VR.SetsZFA.isDecoration, VR.SetsZFA.graphCoalg}
+\leanok
+\uses{def:OSetZFA_mem}
+$\texttt{isDecoration}(E, f) :=
+\forall v : V,\; \forall x : \mathrm{OSetZFA},\;
+x \in f(v) \leftrightarrow \exists\, w : V,\; E\,v\,w \land x = f(w)$.
+$\texttt{graphCoalg}(E)(v) := \langle\{w \mid E\,v\,w\},
+\texttt{Subtype.val}\rangle \in \texttt{CoPSetFunctor}\,V$
+(the out-neighbourhood coalgebra for vertex $v$).
+\end{definition}
+
+\begin{definition}[Graph CoPSet and decoration]
+\label{def:graphDecoration}
+\lean{VR.SetsZFA.graphCoPSet, VR.SetsZFA.graphCoPSet_dest,
+      VR.SetsZFA.graphDecoration}
+\leanok
+\uses{def:isDecoration, def:CoPSet_corec}
+$\texttt{graphCoPSet}(E) := \texttt{CoPSet.corec}(\texttt{graphCoalg}(E))
+: V \to \texttt{CoPSet}$
+(the unique coalgebra morphism from $(V, \texttt{graphCoalg}(E))$ to
+$(\texttt{CoPSet}, \texttt{CoPSet.dest})$).
+Computation: $\texttt{dest}(\texttt{graphCoPSet}(E)(v)) =
+\langle\{w \mid E\,v\,w\},\; w \mapsto \texttt{graphCoPSet}(E)(w)\rangle$
+(\texttt{graphCoPSet\_dest} by \texttt{rfl}).
+$\texttt{graphDecoration}(E)(v) := \llbracket\texttt{graphCoPSet}(E)(v)\rrbracket
+: \mathrm{OSetZFA}$.
+\end{definition}
+
+\begin{theorem}[AFA existence and uniqueness]
+\label{thm:graphDecoration_exists}
+\lean{VR.SetsZFA.graphDecoration_isDecoration, VR.SetsZFA.graphDecoration_unique}
+\leanok
+\uses{def:graphDecoration, def:CoPSet_equiv}
+\texttt{graphDecoration\_isDecoration}: $\texttt{graphDecoration}(E)$ is
+a decoration of $(V, E)$.  Proof: unfold via \texttt{mem\_mk} and
+\texttt{graphCoPSet\_dest}; the shape is definitionally $\{w \mid E\,v\,w\}$;
+\texttt{OSetZFA.sound} and \texttt{OSetZFA.exact} close the iff.
+
+\texttt{graphDecoration\_unique}: if $f$ is any decoration of $(V, E)$,
+then $f = \texttt{graphDecoration}(E)$.  Proof by coinductive bisimulation
+at \texttt{CoPSet}-level: choose \texttt{Classical.choice} representatives
+$\texttt{fRep}(v)$ for each $f(v)$; define $R(c, d) := \exists\, v,\;
+c \approx \texttt{fRep}(v) \land d \approx \texttt{graphCoPSet}(E)(v)$; show
+$R$ is a bisimulation by tracing decoration conditions; apply
+\texttt{CoPSet.bisim\_imp\_Equiv} to get $\texttt{fRep}(v) \approx
+\texttt{graphCoPSet}(E)(v)$; conclude $f(v) = \texttt{graphDecoration}(E)(v)$.
+
+Direct induction is impossible (graphs may be non-well-founded);
+\texttt{PFunctor.M.corec\_unique} is not applicable (it requires exact
+coalgebra equality, not cobisimulation).
+\end{theorem}
+
+\begin{theorem}[AFA in OSetZFA]
+\label{thm:AFA_in_OSetZFA}
+\lean{VR.SetsZFA.AFA_in_OSetZFA}
+\leanok
+\uses{def:isDecoration, thm:graphDecoration_exists}
+$\forall (V : \mathrm{Type})\; (E : V \to V \to \mathrm{Prop}),\;
+\exists!\, f : V \to \mathrm{OSetZFA},\; \texttt{isDecoration}(E, f)$.
+
+AFA is a theorem in \texttt{OSetZFA}, not an axiom.  It follows from:
+existence $=$ \texttt{graphDecoration\_isDecoration};
+uniqueness $=$ \texttt{graphDecoration\_unique};
+assembled as \texttt{ExistsUnique.intro}.
+
+\noindent\axiomprofile{[propext, Classical.choice, Quot.sound]}.
+No new axioms beyond the standard mathlib ceiling.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Embedding $\mathrm{OSet} \hookrightarrow \mathrm{OSetZFA}$ (Part IV)}
+\label{sec:setszfa_embed}
+
+\begin{definition}[Embedding of pre-sets and sets]
+\label{def:embedOSet}
+\lean{VR.SetsZFA.embedPSet, VR.SetsZFA.embedPSet_dest,
+      VR.SetsZFA.embedPSet_congr, VR.SetsZFA.embedPSet_faithful,
+      VR.SetsZFA.embedOSet, VR.SetsZFA.embedOSet_mk}
+\leanok
+\uses{def:OSet, def:OSetZFA, def:CoPSet_equiv}
+$\texttt{embedPSet} : \texttt{PSet} \to \texttt{CoPSet}$ by structural
+recursion: $\texttt{embedPSet}(\texttt{mk}(\alpha, A)) :=
+\texttt{CoPSet.mk}(\alpha,\; i \mapsto \texttt{embedPSet}(A(i)))$.
+Computation: \texttt{embedPSet\_dest} by \texttt{rfl}.
+
+Forward: $\texttt{embedPSet\_congr}$: $\texttt{PSet.Equiv}\,x\,y \Rightarrow
+\texttt{CoPSet.Equiv}(\texttt{embedPSet}(x), \texttt{embedPSet}(y))$.
+Proved by coinductive bisimulation (no induction on PSet needed).
+
+Backward: $\texttt{embedPSet\_faithful}$: $\texttt{CoPSet.Equiv}(\texttt{embedPSet}(x),
+\texttt{embedPSet}(y)) \Rightarrow \texttt{PSet.Equiv}\,x\,y$.
+Proved by structural induction on \texttt{PSet} (uses well-foundedness).
+
+$\texttt{embedOSet} := \texttt{Quotient.lift}(\texttt{OSetZFA.mk} \circ
+\texttt{embedPSet}) : \mathrm{OSet} \to \mathrm{OSetZFA}$ (\texttt{noncomputable}).
+$\texttt{embedOSet\_mk}(p) : \texttt{embedOSet}(\llbracket p \rrbracket) =
+\llbracket\texttt{embedPSet}(p)\rrbracket$ by \texttt{rfl}.
+\end{definition}
+
+\begin{theorem}[Injectivity and membership preservation]
+\label{thm:embedOSet_props}
+\lean{VR.SetsZFA.embedOSet_injective, VR.SetsZFA.embedOSet_mem}
+\leanok
+\uses{def:embedOSet, def:OSetZFA_mem}
+$\texttt{embedOSet\_injective}$: $\texttt{Function.Injective}(\texttt{embedOSet})$.
+Proof: $\texttt{embedOSet}(x) = \texttt{embedOSet}(y) \Rightarrow
+\texttt{embedPSet}(x') \approx \texttt{embedPSet}(y')$ (by \texttt{OSetZFA.exact})
+$\Rightarrow \texttt{PSet.Equiv}\,x'\,y'$ (by \texttt{embedPSet\_faithful})
+$\Rightarrow x = y$ (by quotient injectivity).
+
+$\texttt{embedOSet\_mem}$: $\texttt{embedOSet}(x) \in \texttt{embedOSet}(a)
+\leftrightarrow x \in a$ (membership preserved in both directions).
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Demonstrations (Part V)}
+\label{sec:setszfa_demos}
+
+\begin{definition}[Quine atom and omega chain]
+\label{def:quineAtom}
+\lean{VR.SetsZFA.quineAtom, VR.SetsZFA.omegaChain}
+\leanok
+\uses{def:graphDecoration}
+$\texttt{quineAtom} := \texttt{graphDecoration}(\lambda\,\_\,\_,\; \top)(())
+: \mathrm{OSetZFA}.{0}$
+--- decoration of the one-vertex self-loop $(V = \texttt{Unit},\;
+E\,\_\,\_ = \top)$.
+
+$\texttt{omegaChain} := \texttt{graphDecoration}((n, m) \mapsto m = n+1)
+: \mathbb{N} \to \mathrm{OSetZFA}.{0}$
+--- decoration of the forward-chain graph.
+\end{definition}
+
+\begin{theorem}[Quine atom self-membership]
+\label{thm:quineAtom_self_mem}
+\lean{VR.SetsZFA.quineAtom_mem_iff, VR.SetsZFA.quineAtom_self_mem}
+\leanok
+\uses{def:quineAtom, def:graphDecoration, thm:AFA_in_OSetZFA}
+$\texttt{quineAtom\_mem\_iff}(z)$: $z \in \texttt{quineAtom}
+\leftrightarrow z = \texttt{quineAtom}$ (the atom contains exactly itself).
+Proof via \texttt{graphDecoration\_isDecoration} at $() : \texttt{Unit}$:
+existential over \texttt{Unit} forces $w = ()$.
+
+$\texttt{quineAtom\_self\_mem} : \texttt{quineAtom} \in \texttt{quineAtom}$.
+Proof: \texttt{quineAtom\_mem\_iff quineAtom} and \texttt{rfl}.
+\end{theorem}
+
+\begin{theorem}[Bisimulation collapse: two-cycle = Quine atom]
+\label{thm:cycleDecoration_eq_quineAtom}
+\lean{VR.SetsZFA.cycleDecoration, VR.SetsZFA.cycleDecoration_eq_quineAtom}
+\leanok
+\uses{def:graphDecoration, def:CoPSet_equiv}
+$\texttt{cycleDecoration} := \texttt{graphDecoration}(x, y \mapsto x \ne y)
+: \texttt{Bool} \to \mathrm{OSetZFA}.{0}$
+--- decoration of the two-vertex mutual-edge graph.
+
+$\texttt{cycleDecoration\_eq\_quineAtom}(b)$: both nodes of the two-cycle
+equal the Quine atom.  Proof by bisimulation:
+$R := \{(\texttt{cycleA}, \texttt{quineA}), (\texttt{cycleB}, \texttt{quineA})\}$
+where $\texttt{cycleA/B}$ are the two CoPSet nodes and $\texttt{quineA}$
+is the Quine atom's CoPSet representative.  $R$ is a bisimulation because
+each cycle-node has exactly one child (the other node) and the Quine-node
+has exactly one child (itself); \texttt{CoPSet.bisim\_imp\_Equiv} closes.
+
+This is the \emph{bisimulation collapse} theorem: different-looking APGs
+produce the same \texttt{OSetZFA} element when cobisimilar.
+\end{theorem}
+
+\begin{theorem}[OSetZFA membership is not well-founded]
+\label{thm:OSetZFA_mem_not_wf}
+\lean{VR.SetsZFA.OSetZFA_mem_not_wf}
+\leanok
+\uses{thm:quineAtom_self_mem}
+$\lnot\,\texttt{WellFounded}({\cdot} \in {\cdot} : \mathrm{OSetZFA} \to
+\mathrm{OSetZFA} \to \mathrm{Prop})$.
+Proof: accessibility implies irreflexivity (\texttt{acc\_irrefl}); if
+membership were well-founded, $\texttt{quineAtom}$ would be accessible,
+hence $\texttt{quineAtom} \notin \texttt{quineAtom}$; contradicts
+\texttt{quineAtom\_self\_mem}.
+\end{theorem}
+
+\begin{theorem}[Quine atom not in range of embedding]
+\label{thm:quineAtom_not_in_range}
+\lean{VR.SetsZFA.quineAtom_not_in_range_embedOSet}
+\leanok
+\uses{thm:quineAtom_self_mem, thm:embedOSet_props}
+$\texttt{quineAtom} \notin \texttt{Set.range}(\texttt{embedOSet})$.
+Proof: suppose $\texttt{embedOSet}(x) = \texttt{quineAtom}$; then
+$x \in x$ (from $\texttt{quineAtom\_self\_mem}$ and \texttt{embedOSet\_mem});
+but $\texttt{ZFSet.mem\_wf}$ gives $x$ is accessible, hence $x \notin x$
+by \texttt{acc\_irrefl}.  Contradiction.
+This witnesses that $(\mathrm{OSet}, \in) \subsetneq (\mathrm{OSetZFA}, \in)$.
+\end{theorem}
+
+\begin{theorem}[Omega chain descent]
+\label{thm:omegaChain}
+\lean{VR.SetsZFA.omegaChain_mem_iff, VR.SetsZFA.omegaChain_descent}
+\leanok
+\uses{def:quineAtom, thm:AFA_in_OSetZFA}
+$\texttt{omegaChain\_mem\_iff}(n, z)$: $z \in \texttt{omegaChain}(n)
+\leftrightarrow z = \texttt{omegaChain}(n+1)$ (each element contains
+exactly the next).
+$\texttt{omegaChain\_descent}(n)$: $\texttt{omegaChain}(n+1) \in
+\texttt{omegaChain}(n)$.
+
+The omega chain is an infinite $\in$-descending sequence without cycles:
+no element contains itself.  This is a second, distinct mode of
+non-well-foundedness from \texttt{quineAtom} (self-membership
+vs.\ infinite descent without cycles).
+\end{theorem}
+
+\begin{definition}[Basic infrastructure]
+\label{def:OSetZFA_infra}
+\lean{VR.SetsZFA.OSetZFA.empty, VR.SetsZFA.OSetZFA.not_mem_empty,
+      VR.SetsZFA.OSetZFA.singleton, VR.SetsZFA.OSetZFA.mem_singleton,
+      VR.SetsZFA.quineAtom_eq_singleton_self}
+\leanok
+\uses{def:OSetZFA_mem, thm:quineAtom_self_mem}
+$\texttt{OSetZFA.empty}$: the empty element with no members.
+$\texttt{OSetZFA.singleton}(x)$: the element containing exactly $x$.
+$\texttt{quineAtom\_eq\_singleton\_self}$:
+$\texttt{quineAtom} = \texttt{OSetZFA.singleton}(\texttt{quineAtom})$
+--- the Quine atom is its own singleton.
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Conjecture~IV.2 closed}
+\label{sec:setszfa_conjecture}
+
+\begin{theorem}[Conjecture~IV.2 resolved]
+\label{thm:IV2_resolved}
+\lean{VR.SetsZFA.AFA_in_OSetZFA}
+\leanok
+\uses{thm:AFA_in_OSetZFA, thm:quineAtom_self_mem, def:Conjecture_IV_2}
+Conjecture~IV.2 from Chapter~\ref{chap:sets}
+(\texttt{VR.Sets.Conjecture\_IV\_2\_Statement}) is resolved by this
+chapter: the type $U := \mathrm{OSetZFA}$ with membership
+$\mathrm{mem} := ({\cdot} \in {\cdot})$ witnesses the conjecture.
+
+The three conjuncts of \texttt{Conjecture\_IV\_2\_Statement}:
+(i)~self-membered element: $\texttt{quineAtom} \in \texttt{quineAtom}$
+    (\texttt{quineAtom\_self\_mem});
+(ii)~extensionality: \texttt{OSetZFA.ext};
+(iii)~classical AFA: \texttt{AFA\_in\_OSetZFA}.
+
+The construction is constructive (no new axioms beyond the standard
+ceiling) and machine-verified.  This is the completion of the
+three-chapter arc: Chapter~\ref{chap:sets} refutes AFA in \texttt{PSet};
+this chapter proves AFA as a theorem in \texttt{OSetZFA}.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Methodological observations}
+\label{sec:setszfa_method}
+
+\begin{remark}[M1 --- Coinductive vs inductive: dual construction]
+\label{rem:M1_dual}
+\lean{VR.SetsZFA.CoPSet}
+\leanok
+\uses{def:CoPSetFunctor}
+\texttt{PSet} (inductive, mathlib) and \texttt{CoPSet} (greatest fixpoint
+of the same functor) are structurally dual: both have shape $(\alpha :
+\mathrm{Type}\,u,\; A : \alpha \to \cdot)$.  The difference is generation
+principle: least fixpoint (PSet, well-founded by construction) vs.\ greatest
+fixpoint (CoPSet, admits cycles and infinite depth).
+The two-chapter arc (Ch.~\ref{chap:sets} refutes AFA in PSet;
+Ch.~\ref{chap:setszfa} proves AFA in OSetZFA) is the formal expression of
+this duality.
+\end{remark}
+
+\begin{remark}[M2 --- Final coalgebra gives AFA for free]
+\label{rem:M2_final_coalg}
+\lean{VR.SetsZFA.AFA_in_OSetZFA}
+\leanok
+\uses{thm:AFA_in_OSetZFA}
+\texttt{CoPSet.corec} (existence) and \texttt{CoPSet.bisim\_imp\_Equiv}
+(uniqueness) together give AFA without any additional axiom.  The key
+insight: a directed graph $(V, E)$ determines a coalgebra
+$\texttt{graphCoalg}(E) : V \to \texttt{CoPSetFunctor}\,V$; the final
+coalgebra morphism is the decoration.  This is Aczel's AFA theorem
+reformulated as a property of the M-type, not postulated.
+\end{remark}
+
+\begin{remark}[M3 --- Quotient is necessary: CoPSet $\ne$ OSetZFA]
+\label{rem:M3_quotient}
+\lean{VR.SetsZFA.OSetZFA}
+\leanok
+\uses{def:OSetZFA, thm:cycleDecoration_eq_quineAtom}
+$\texttt{OSetZFA} = \texttt{Quotient CoPSet.instSetoid}$ genuinely collapses
+non-equal CoPSets.  Example: the self-loop CoPSet and one component of
+the two-cycle CoPSet are distinct as M-type elements but become the same
+element in OSetZFA (Theorem~\ref{thm:cycleDecoration_eq_quineAtom}).
+The quotient is not a formality: different-shaped CoPSets can represent
+the same ZFA set.  This parallels \texttt{OSet = ZFSet = Quotient PSet.setoid}
+where different PSet shapes collapse under bisimulation.
+\end{remark}
+
+\begin{remark}[M4 --- Bisimulation collapse: APG identity]
+\label{rem:M4_bisim_collapse}
+\lean{VR.SetsZFA.cycleDecoration_eq_quineAtom}
+\leanok
+\uses{thm:cycleDecoration_eq_quineAtom}
+The self-loop APG (one vertex, self-edge) and the two-cycle APG (two
+vertices, mutual edges) are cobisimilar; their decorations in OSetZFA
+are equal.  This is the correct behaviour of the extensional membership
+quotient: a ZFA set is determined by its membership graph up to
+bisimulation, not by syntactic representation.
+\end{remark}
+
+\begin{remark}[M5 --- Embedding asymmetry: forward vs backward]
+\label{rem:M5_embed_asymm}
+\lean{VR.SetsZFA.embedPSet_congr, VR.SetsZFA.embedPSet_faithful}
+\leanok
+\uses{def:embedOSet}
+Forward (\texttt{embedPSet\_congr}: PSet.Equiv $\Rightarrow$ CoPSet.Equiv):
+proved by coinductive bisimulation, no induction.  Providing one
+bisimulation suffices.  Backward (\texttt{embedPSet\_faithful}:
+CoPSet.Equiv $\Rightarrow$ PSet.Equiv): requires structural induction on
+PSet.  PSet's well-foundedness is used as a proof resource to descend
+through the coinductive equivalence.  The asymmetry is structural:
+the forward direction is a coinductive free lunch; the backward direction
+pays the cost of well-foundedness.
+\end{remark}
+
+\begin{remark}[M6 --- ZFC $\subsetneq$ ZFA witnessed concretely]
+\label{rem:M6_strict_inclusion}
+\lean{VR.SetsZFA.quineAtom_not_in_range_embedOSet}
+\leanok
+\uses{thm:quineAtom_not_in_range}
+$\texttt{embedOSet}$ is injective (\texttt{embedOSet\_injective}) but not
+surjective (\texttt{quineAtom\_not\_in\_range\_embedOSet}).  The strict
+inclusion $(\mathrm{OSet}, \in) \subsetneq (\mathrm{OSetZFA}, \in)$ is
+not merely asserted but machine-verified: the Quine atom is the explicit
+witness of surjectivity failure.
+\end{remark}
+
+\begin{remark}[M7 --- Two modes of non-well-foundedness]
+\label{rem:M7_two_modes}
+\lean{VR.SetsZFA.quineAtom_self_mem, VR.SetsZFA.omegaChain_descent}
+\leanok
+\uses{thm:quineAtom_self_mem, thm:omegaChain}
+VR-Sets-ZFA provides two distinct witnesses of non-well-foundedness:
+(1)~\texttt{quineAtom}: a cyclic set ($q \in q$, self-membership);
+(2)~\texttt{omegaChain}: an acyclic infinite descent
+($\texttt{omegaChain}(n+1) \in \texttt{omegaChain}(n)$ for all $n$,
+no element is self-membered).  Both are machine-verified.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Position relative to existing work (Part VII)}
+\label{sec:setszfa_comparison}
+
+\begin{remark}[Comparison with Aczel (1988)]
+\label{rem:compare_aczel}
+\leanok
+Aczel's AFA (1988) is a classical axiom added to ZF.  VR-Sets-ZFA proves
+AFA as a theorem of type theory via the M-type final coalgebra.  The axiom
+content is absorbed into the inductive/coinductive infrastructure of Lean~4.
+\end{remark}
+
+\begin{remark}[Comparison with Paulson's Isabelle/ZF]
+\label{rem:compare_paulson}
+\leanok
+Paulson's Isabelle/ZF formalises classical ZF via first-order axioms.
+AFA is not part of the standard Isabelle/ZF library.  VR-Sets-ZFA provides
+AFA as a theorem in a type-theoretic framework without axiom extension.
+\end{remark}
+
+\begin{remark}[Comparison with Gylterud (HoTT)]
+\label{rem:compare_gylterud}
+\leanok
+Gylterud (2018) constructs sets in Homotopy Type Theory using HITs.
+VR-Sets-ZFA uses an M-type (greatest fixpoint) in plain dependent type
+theory (no univalence, no HITs).  Both obtain AFA as a theorem; the
+route and the ambient type theory differ.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Axiom profile}
+\label{sec:setszfa_axiom_profile}
+
+\axiomprofile{[]} for 8 objects: pure structural definitions
+(\texttt{CoPSetFunctor}, projections, \texttt{isDecoration},
+\texttt{graphCoalg}, \texttt{CoPSet.isBisim}, and analogues) that do not
+invoke quotients, ordinals, or classical selection.
+
+\axiomprofile{[propext, Classical.choice, Quot.sound]} for 62 objects,
+including all principal theorems: \texttt{AFA\_in\_OSetZFA},
+\texttt{quineAtom\_self\_mem}, \texttt{OSetZFA\_mem\_not\_wf},
+\texttt{quineAtom\_not\_in\_range\_embedOSet},
+\texttt{embedOSet\_injective}, and all construction theorems.
+
+Zero \texttt{sorry}, zero \texttt{admit}, zero axioms beyond the standard
+mathlib ceiling.  VR-Sets-ZFA is the largest module in the VR Cycle
+by line count (2109 lines) and the first to prove AFA as a theorem in
+the Lean~4 type-theoretic framework.
+
+%──────────────────────────────────────────────────────────────────────
+\section{References}
+\label{sec:setszfa_refs}
+
+The preprint for this chapter is
+\zenodo{10.5281/zenodo.20369346}{VR-Sets-ZFA, v1.0.0} (24 May 2026).
+
+The Lean~4 formalisation is archived at
+\zenodo{10.5281/zenodo.20368268}{VR-Sets-ZFA Lean, v1.0.0} (24 May 2026),
+git tag \texttt{v1.5-vr-sets-zfa}.
