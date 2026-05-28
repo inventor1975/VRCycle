@@ -1,8 +1,789 @@
 \chapter{VR-Sets}
 \label{chap:sets}
+\uses{chap:vr}
 
-% Stage 3 — OSet := ZFSet (mathlib ZFC). Lemmas II.1-II.3.
-% Nine ZFC axioms as theorems (Pairing through Choice). ZFC-mode.
-% ZFA boundary theorems. Conjectures IV.1, IV.2.
-% VR numbers bridge (embedVR, VR_OSet_iso).
-% \uses{chap:vr}
+\section{Position}
+\label{sec:sets_position}
+
+VR-Sets is the operational theory of sets built from the single primitive
+$\emptyset$.  A set is not a container but an operational functionality:
+upon a query, it either reveals an element (which is itself a set) or
+reveals nothing.  The relation $x \in y$ is read as a reference---the
+functionality of $y$ uses $x$ in its description---not as physical
+containment.  The closure principle (§\,II.3 of the preprint) replaces
+the ZF axioms of existence: every operationally describable functionality
+is a set.  Individual closure theorems (Pairing, Union, Power, Infinity,
+Replacement, Choice) are proved, not postulated.
+
+\textbf{Architectural load-bearing fact.} The implementation is
+$\texttt{OSet} := \texttt{ZFSet}$ --- an \texttt{abbrev} (reducible
+definition) over mathlib's quotient $\texttt{ZFSet} := \texttt{Quotient
+PSet.setoid}$.  VR-Sets is built \emph{on} mathlib's ZFSet, not in a
+parallel universe.  All nine ZFC axioms are theorems on this type; no
+extra axioms are introduced.  The ZFA-mode cannot be modelled in
+\texttt{ZFSet} (cyclic sets are provably absent); this structural
+boundary is formalized as \texttt{AFA\_Refuted} and
+\texttt{quineAtom\_impossible}, both axiom-free.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Foundation (Part II)}
+\label{sec:sets_foundation}
+
+\begin{definition}[$\mathrm{OSet}$ --- the type of operational sets]
+\label{def:OSet}
+\lean{VR.Sets.OSet}
+\leanok
+$\texttt{OSet} := \texttt{ZFSet}$ (declared as \texttt{abbrev}, hence
+reducible).
+\texttt{ZFSet} is \texttt{Quotient PSet.setoid} where $\texttt{PSet}
+:= \texttt{inductive mk}(\alpha : \texttt{Type}, A : \alpha \to
+\texttt{PSet})$.  The pre-set constructor $\texttt{mk}(\alpha, A)$
+encodes Definition~1 directly: $\alpha$ is the index of queries that
+produce an element, $A$ is the response function.  The quotient by
+$\texttt{PSet.Equiv}$ (bisimulation) is the operational identity
+$\equiv$ of Definition~4, collapsed to Lean's $=$.
+Because \texttt{OSet} is an \texttt{abbrev}, all mathlib operations on
+\texttt{ZFSet} (\texttt{sUnion}, \texttt{powerset}, \texttt{image},
+\ldots) apply to \texttt{OSet} without wrappers.
+\end{definition}
+
+\begin{definition}[Empty set and operational identity]
+\label{def:osetEmpty}
+\lean{VR.Sets.osetEmpty}
+\leanok
+\uses{def:OSet}
+$\texttt{osetEmpty} := \emptyset : \texttt{OSet}$ via the
+\texttt{EmptyCollection ZFSet} instance.  Operational identity
+$a \equiv b$ is notation for $a = b : \texttt{OSet}$, so
+$\texttt{PSet.Equiv}$ is definitionally absorbed into Lean's $=$.
+\end{definition}
+
+\begin{theorem}[Lemma~II.1 --- Extensionality]
+\label{thm:Lemma_II_1}
+\lean{VR.Sets.Lemma_II_1_Extensionality}
+\leanok
+\uses{def:OSet}
+If $\forall x : \mathrm{OSet},\; x \in a \leftrightarrow x \in b$,
+then $a \equiv b$.
+Proved by \texttt{ZFSet.ext}: the membership condition is exactly
+Definition~4's coincidence of functionalities.  The preprint's remark
+that «extensionality is built into the definition» is confirmed.
+\end{theorem}
+
+\begin{theorem}[Lemma~II.2 --- Uniqueness of $\emptyset$]
+\label{thm:Lemma_II_2}
+\lean{VR.Sets.Lemma_II_2_UniquenessEmpty}
+\leanok
+\uses{def:osetEmpty, thm:Lemma_II_1}
+$\exists!\, a : \mathrm{OSet},\; \forall x,\; x \notin a$.
+Existence: \texttt{osetEmpty}.  Uniqueness: two sets with no members
+have the same membership, hence are equal by Lemma~II.1.
+\end{theorem}
+
+\begin{definition}[Operational depth]
+\label{def:operationalDepth}
+\lean{VR.Sets.operationalDepth}
+\leanok
+\uses{def:OSet}
+$\texttt{operationalDepth}(a) := \texttt{ZFSet.rank}(a) : \mathrm{Ordinal}$
+--- the Von Neumann rank of the membership tree.
+\end{definition}
+
+\begin{theorem}[Lemma~II.3 --- Operational depth]
+\label{thm:Lemma_II_3}
+\lean{VR.Sets.Lemma_II_3_DepthEmpty, VR.Sets.Lemma_II_3_DepthMono}
+\leanok
+\uses{def:operationalDepth, def:osetEmpty}
+$\texttt{operationalDepth}(\emptyset) = 0$ (\texttt{rank\_empty}).
+If $b \in a$ then $\texttt{operationalDepth}(b) <
+\texttt{operationalDepth}(a)$ (\texttt{rank\_lt\_of\_mem}).  Depth is
+strictly monotone on membership, providing the induction instrument
+for VR-Sets (the analogue of A4 lifted to sets).
+
+The cyclic case (Quine atom) is absent from \texttt{OSet} by
+construction: \texttt{PSet} is inductive, so all elements are accessible.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{ZFC axioms as closure theorems (Part III)}
+\label{sec:sets_zfc}
+
+\begin{definition}[Set-theoretic operations]
+\label{def:set_ops}
+\lean{VR.Sets.osetPair, VR.Sets.osetUnion, VR.Sets.osetPower,
+      VR.Sets.omega_OSet, VR.Sets.osetReplacement}
+\leanok
+\uses{def:OSet}
+$\texttt{osetPair}(a,b) := \{a,b\}$ (unordered pair via \texttt{Insert
+ZFSet ZFSet}).
+$\texttt{osetUnion}(a) := \texttt{ZFSet.sUnion}(a)$ ($\bigcup a$).
+$\texttt{osetPower}(a) := \texttt{ZFSet.powerset}(a)$ ($\mathcal{P}(a)$).
+$\omega_{\texttt{OSet}} := \texttt{ZFSet.omega}$ (first infinite Von
+Neumann ordinal).
+$\texttt{osetReplacement}(F, a) := @\texttt{ZFSet.image}\,F\,
+(\texttt{Classical.allZFSetDefinable}\,\_)\,a$ (image of $a$ under $F$;
+\texttt{noncomputable}).
+\end{definition}
+
+\begin{theorem}[Theorem~III.3 --- Pairing]
+\label{thm:T_III_3}
+\lean{VR.Sets.Theorem_III_3_Pairing}
+\leanok
+\uses{def:set_ops}
+$\forall x,\; x \in \{a,b\} \leftrightarrow x = a \lor x = b$.
+Proved by \texttt{ZFSet.mem\_pair}.
+\end{theorem}
+
+\begin{theorem}[Theorem~III.4 --- Union]
+\label{thm:T_III_4}
+\lean{VR.Sets.Theorem_III_4_Union}
+\leanok
+\uses{def:set_ops}
+$\forall x,\; x \in \bigcup a \leftrightarrow \exists\, c \in a,\; x \in c$.
+Proved by \texttt{ZFSet.mem\_sUnion}.
+\end{theorem}
+
+\begin{theorem}[Theorem~III.5 --- Power set]
+\label{thm:T_III_5}
+\lean{VR.Sets.Theorem_III_5_Power}
+\leanok
+\uses{def:set_ops}
+$\forall x,\; x \in \mathcal{P}(a) \leftrightarrow x \subseteq a$.
+Proved by \texttt{ZFSet.mem\_powerset}.
+
+\emph{First structural boundary}: Lean's $\mathcal{P}(a)$ admits all
+subsets (classical); the preprint's $\mathcal{P}(a)$ contains only
+operationally describable subsets (countably many for $a = \omega$).
+The countability of the operational $\mathcal{P}(\omega)$ is
+metatheoretic.  See Observation~B.1.
+\end{theorem}
+
+\begin{theorem}[Theorem~III.6 --- Infinity]
+\label{thm:T_III_6_inf}
+\lean{VR.Sets.Theorem_III_6_Infinity_Zero, VR.Sets.Theorem_III_6_Infinity_Succ,
+      VR.Sets.Theorem_III_6_Infinity}
+\leanok
+\uses{def:set_ops}
+$\emptyset \in \omega_{\texttt{OSet}}$ (\texttt{omega\_zero}) and
+$n \in \omega_{\texttt{OSet}} \Rightarrow \texttt{insert}\,n\,n \in
+\omega_{\texttt{OSet}}$ (\texttt{omega\_succ}).  The conjunction is
+\texttt{Theorem\_III\_6\_Infinity}.
+\end{theorem}
+
+\begin{theorem}[Theorem~III.7 --- Replacement]
+\label{thm:T_III_7}
+\lean{VR.Sets.Theorem_III_7_Replacement}
+\leanok
+\uses{def:set_ops}
+$\forall x,\; x \in \texttt{osetReplacement}(F, a) \leftrightarrow \exists\,
+y \in a,\; F(y) = x$.
+Proved via \texttt{Classical.allZFSetDefinable}: all Lean functions $F$
+are treated as definable.  This introduces \texttt{Classical.choice}
+(\emph{second source}; see Observation~C.1).
+\end{theorem}
+
+\begin{theorem}[Theorem~III.8 --- Foundation]
+\label{thm:T_III_8}
+\lean{VR.Sets.Theorem_III_8_Foundation}
+\leanok
+\uses{def:OSet}
+$\forall a \ne \emptyset,\; \exists\, x \in a,\; \forall y \in x,\; y \notin a$.
+Proved via \texttt{WellFounded.has\_min} on \texttt{IsWellFounded.wf}
+(\texttt{Classical.choice} is the \emph{third source}).
+\emph{Fourth structural boundary}: Foundation holds unconditionally on
+\texttt{OSet} because \texttt{ZFSet} is well-founded by construction.
+In ZFA-mode it would fail; but ZFA-mode is absent (Observation~B.5).
+\end{theorem}
+
+\begin{theorem}[Theorem~III.9 --- Choice]
+\label{thm:T_III_9}
+\lean{VR.Sets.Theorem_III_9_Choice}
+\leanok
+\uses{def:OSet}
+If every member of $a$ is nonempty, then $\exists\, f : \mathrm{OSet}
+\to \mathrm{OSet},\; \forall x \in a,\; f(x) \in x$.
+Proved via \texttt{Classical.epsilon} (\texttt{Classical.choice}
+directly, the \emph{fourth source}).  The preprint argues AC is a
+theorem of the countable operational universe (via DC); this argument
+is metatheoretic.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Modes (Part IV)}
+\label{sec:sets_modes}
+
+\begin{definition}[ZFC-mode predicate]
+\label{def:isZFCmode}
+\lean{VR.Sets.isZFCmode}
+\leanok
+\uses{def:OSet}
+$\texttt{isZFCmode}(s) := \texttt{Acc}\,({\cdot} \in {\cdot})\,s$
+--- accessibility of $s$ in the membership relation.  A set is in
+ZFC-mode when every descending membership chain into it terminates.
+\end{definition}
+
+\begin{theorem}[Every OSet is in ZFC-mode]
+\label{thm:isZFCmode_all}
+\lean{VR.Sets.isZFCmode_all}
+\leanok
+\uses{def:isZFCmode}
+$\forall s : \mathrm{OSet},\; \texttt{isZFCmode}(s)$.
+Proved by \texttt{IsWellFounded.wf.apply}: \texttt{ZFSet} is globally
+well-founded because \texttt{PSet} is an inductive type.  The theorem
+records that $\texttt{OSet} := \texttt{ZFSet}$ lies entirely within
+ZFC-mode.
+\end{theorem}
+
+\begin{theorem}[Theorem~IV.1 --- All nine ZFC axioms in ZFC-mode]
+\label{thm:Theorem_IV_1}
+\lean{VR.Sets.Theorem_IV_1_ZFCAxioms}
+\leanok
+\uses{thm:Lemma_II_1, thm:Lemma_II_2, thm:T_III_3, thm:T_III_4,
+      thm:T_III_5, thm:T_III_6_inf, thm:T_III_7, thm:T_III_8,
+      thm:T_III_9, thm:isZFCmode_all}
+The conjunction of all nine ZFC axioms (Extensionality, Empty, Foundation,
+Pairing, Union, Power, Infinity, Replacement, Choice) holds on
+$\mathrm{OSet}$.  A structural collector: no new content, new knowledge
+is their joint assembly.  Stated unconditionally (without mode guard)
+because $\texttt{isZFCmode\_all}$ makes the guard vacuous.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\subsection{ZFA boundary: Quine atom and AFA refuted in PSet}
+\label{subsec:zfa_refuted}
+
+\begin{definition}[ZFA-mode predicate and PSet]
+\label{def:isZFAmode}
+\lean{VR.Sets.isZFAmode, VR.Sets.isZFAmode_all}
+\leanok
+\uses{def:OSet}
+$\texttt{isZFAmode}(\ldots) := \texttt{True}$ on $\texttt{PSet}$: every
+PSet element is declared to be in ZFA-mode (maximal universe).
+$\texttt{isZFAmode\_all}$ follows by \texttt{trivial}.
+\axiomprofile{[]} for both.
+\end{definition}
+
+\begin{definition}[Quine atom specification]
+\label{def:quineAtomSpec}
+\lean{VR.Sets.quineAtomSpec}
+\leanok
+$\texttt{quineAtomSpec} := \exists\, p : \texttt{PSet}.{0},\; p \in p$.
+The existence of a self-membered PSet element (Quine atom $A = \{A\}$).
+\end{definition}
+
+\begin{theorem}[Quine atom is impossible in PSet]
+\label{thm:quineAtom_impossible}
+\lean{VR.Sets.quineAtom_impossible}
+\leanok
+\uses{def:quineAtomSpec}
+$\lnot\texttt{quineAtomSpec}$.
+Proved by \texttt{PSet.mem\_irrefl}: \texttt{PSet} is an inductive type,
+so membership is irreflexive.  The Quine atom would require $p \in p$,
+which contradicts \texttt{PSet.mem\_irrefl}.
+
+\noindent\axiomprofile{[]} --- axiom-free proof.  PSet's well-founded
+recursion principle is structural, not axiomatic.
+\end{theorem}
+
+\begin{definition}[Anti-Foundation Axiom (classical)]
+\label{def:AFA_Statement}
+\lean{VR.Sets.AFA_Statement}
+\leanok
+$\texttt{AFA\_Statement}$: for every graph $(V, E)$ (any Lean type $V$,
+any relation $E$) there exists a unique decoration $f : V \to
+\texttt{PSet}$ such that for every vertex $v$,
+$f(v) \equiv \{f(w) \mid (v,w) \in E\}$ (in the sense of
+\texttt{PSet.Equiv}).
+This is Aczel's (1988) graph-decoration AFA in full classical generality.
+\end{definition}
+
+\begin{theorem}[AFA is refuted in PSet]
+\label{thm:AFA_Refuted}
+\lean{VR.Sets.AFA_Refuted}
+\leanok
+\uses{def:AFA_Statement, thm:quineAtom_impossible}
+$\lnot\texttt{AFA\_Statement}$.
+Proof: apply \texttt{AFA\_Statement} to the universal self-loop graph
+($V = \texttt{Unit}$, $E\,\_\,\_ = \texttt{True}$); the decoration $f$
+must satisfy $f() \equiv \{f()\}$, giving $f() \in f()$; this
+contradicts \texttt{PSet.mem\_irrefl}.
+
+\noindent\axiomprofile{[]} --- axiom-free proof.
+
+\begin{remark}
+\label{rem:AFA_strongest_boundary}
+\leanok
+This is the strongest boundary result in VR-Sets.  At the earlier
+structural boundaries (Theorems~III.5, III.7, III.9), Lean's object
+\emph{existed} as a classical entity wider than the operational version.
+Here, the ZFA-mode universe \emph{provably does not exist} in mathlib's
+type hierarchy.  Adding AFA as an axiom would be inconsistent with
+\texttt{PSet.mem\_irrefl}.  The impossibility is constructively proved,
+not merely metatheoretic.  See Observation~B.5.
+\end{remark}
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Conjectures (Part IV)}
+\label{sec:sets_conjectures}
+
+\begin{definition}[Conjecture~IV.1 --- ZFC mutual interpretability]
+\label{def:Conjecture_IV_1}
+\lean{VR.Sets.Conjecture_IV_1_Statement}
+\leanok
+\uses{def:OSet}
+$\texttt{Conjecture\_IV\_1\_Statement}$: there exists a countable type
+$M$ with an injection $M \hookrightarrow \mathrm{OSet}$ such that all
+nine ZFC axioms hold relative to $(M, \texttt{embed})$.
+Formalises the open question of §\,IX.1: is the ZFC-mode of VR-Sets
+mutually interpretable with a countable model of classical ZFC?
+Status: \notready (open question, no proof attempted).
+\axiomprofile{[propext, Quot.sound]} (references \texttt{OSet} = \texttt{ZFSet}).
+\end{definition}
+
+\begin{definition}[Conjecture~IV.2 --- ZFA mutual interpretability]
+\label{def:Conjecture_IV_2}
+\lean{VR.Sets.Conjecture_IV_2_Statement}
+\leanok
+\uses{def:AFA_Statement}
+$\texttt{Conjecture\_IV\_2\_Statement}$: there exists a type $U$ with a
+membership relation $\mathrm{mem}$ admitting a self-membered element,
+satisfying extensionality, and satisfying classical AFA.
+Status: \notready (open question, no proof attempted).
+
+\begin{remark}[Forward reference to Chapter~\ref{chap:setszfa}]
+\label{rem:Conjecture_IV_2_closed}
+\leanok
+Conjecture~IV.2 will be answered constructively in
+Chapter~\ref{chap:setszfa} (VR-Sets-ZFA): the type \texttt{OSetZFA}
+(coinductive \texttt{CoPSet} quotiented by cobisimulation) satisfies
+AFA as a theorem, providing the required type $U$.
+\end{remark}
+
+\noindent\axiomprofile{[]} --- stated over abstract $(U, \mathrm{mem})$,
+no reference to specific mathlib quotient types.
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{VR numbers bridge (Part V)}
+\label{sec:sets_vr_bridge}
+
+\begin{definition}[Von Neumann successor and embedding]
+\label{def:embedVR}
+\lean{VR.Sets.osetSuccOp, VR.Sets.embedVR,
+      VR.Sets.embedVR_zero, VR.Sets.embedVR_succ}
+\leanok
+\uses{def:OSet, def:VRObj}
+$\texttt{osetSuccOp}(s) := \texttt{insert}\,s\,s = s \cup \{s\}$.
+$\texttt{embedVR} : \mathrm{VRObj} \to \mathrm{OSet}$ by
+$\texttt{embedVR}(\texttt{void}) := \emptyset$,
+$\texttt{embedVR}(\texttt{succ}\,x) := \texttt{osetSuccOp}(\texttt{embedVR}(x))$.
+\texttt{noncomputable} (ZFSet is a quotient type).
+Proved: $\texttt{embedVR\_zero} : \texttt{embedVR}(\texttt{void}) = \emptyset$
+and $\texttt{embedVR\_succ}$ by \texttt{rfl}.
+\end{definition}
+
+\begin{theorem}[Theorem~V.1 --- Embedded VR objects are in ZFC-mode]
+\label{thm:Theorem_V_1}
+\lean{VR.Sets.Theorem_V_1_WellFounded}
+\leanok
+\uses{def:embedVR, thm:isZFCmode_all}
+$\forall x : \mathrm{VRObj},\; \texttt{isZFCmode}(\texttt{embedVR}(x))$.
+Immediate from \texttt{isZFCmode\_all}.
+\end{theorem}
+
+\begin{theorem}[Membership preservation and injectivity]
+\label{thm:embedVR_props}
+\lean{VR.Sets.embedVR_mem_iff, VR.Sets.embedVR_injective}
+\leanok
+\uses{def:embedVR, def:mem}
+$\texttt{VR.mem}\,x\,y \leftrightarrow \texttt{embedVR}(x) \in
+\texttt{embedVR}(y)$ (\texttt{embedVR\_mem\_iff}).
+$\texttt{embedVR}$ is injective (\texttt{embedVR\_injective}).
+Both proved by joint structural induction on the second \texttt{VRObj}
+argument via the private \texttt{embedVR\_mem\_iff\_and\_inj}.
+\end{theorem}
+
+\begin{definition}[Isomorphism type $\mathrm{VRObj} \hookrightarrow \mathrm{OSet}$]
+\label{def:VR_OSet_iso}
+\lean{VR.Sets.VR_OSet_iso}
+\leanok
+\uses{def:OSet, def:VRObj}
+The structure \texttt{VR\_OSet\_iso} has five fields:
+\texttt{embed} ($\mathrm{VRObj} \to \mathrm{OSet}$),
+\texttt{preserve\_zero} ($\texttt{embed}(\texttt{void}) = \emptyset$),
+\texttt{preserve\_succ} ($\texttt{embed}(\texttt{succ}\,x) = \texttt{insert}(\texttt{embed}(x), \texttt{embed}(x))$),
+\texttt{preserve\_mem} ($\mathrm{VR.mem}\,x\,y \leftrightarrow \texttt{embed}(x) \in \texttt{embed}(y)$),
+\texttt{injective} (Function.Injective embed).
+Covers ordinal structure only; arithmetic preservation (vadd, vmul, vpow)
+follows by composition through \texttt{Theorem\_11\_VR\_PA}.
+\end{definition}
+
+\begin{theorem}[Theorem~V.2 --- VR--OSet structural isomorphism]
+\label{thm:Theorem_V_2}
+\lean{VR.Sets.Theorem_V_2}
+\leanok
+\uses{def:VR_OSet_iso, def:embedVR, thm:embedVR_props}
+The term \texttt{Theorem\_V\_2 : VR\_OSet\_iso} with
+\texttt{embed := embedVR}.  The five fields are filled by
+\texttt{embedVR\_zero}, \texttt{embedVR\_succ} (\texttt{rfl}),
+\texttt{embedVR\_mem\_iff}, and \texttt{embedVR\_injective}.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Operational consequences}
+\label{sec:sets_consequences}
+
+\begin{remark}[$\mathcal{P}(\omega)$ is countable in the operational reading]
+\label{rem:powerset_countable}
+\lean{VR.Sets.Theorem_III_5_Power}
+\leanok
+\uses{thm:T_III_5}
+The preprint (§\,III.5) asserts that $\mathcal{P}(\omega)$ in VR-Sets is
+countable: each element is a describable functionality (a finite
+algorithm over a finite alphabet), and the set of such algorithms is
+countable.  Cantor's diagonal $D = \{n : n \notin S_n\}$ requires a
+complete enumeration of describable subsets --- operationally
+unattainable (equivalent to solving the Halting Problem).  $D$ does
+not specify a describable functionality, hence $D$ is not a set in the
+operational universe.  The diagonal is absent from the operational
+$\mathcal{P}(\omega)$ not by prohibition but because its premise is
+unrealisable.  Lean's \texttt{osetPower} contains all classical subsets;
+the countability claim is metatheoretic.
+\end{remark}
+
+\begin{remark}[Axiom of Choice as theorem]
+\label{rem:AC_theorem}
+\lean{VR.Sets.Theorem_III_9_Choice}
+\leanok
+\uses{thm:T_III_9}
+The preprint (§\,III.9) derives AC from Dependent Choice plus countability
+of the operational universe.  AC is thus a theorem, not an axiom; the
+Banach--Tarski paradox is excluded not by weakening AC but because the
+uncountable subsets of $\mathbb{R}$ on which it relies do not exist in
+the operational ontology.  Lean records AC via \texttt{Classical.choice}
+for all families; the countability argument is metatheoretic.
+\end{remark}
+
+\begin{remark}[Replacement schema collapses to one theorem]
+\label{rem:replacement_schema}
+\lean{VR.Sets.Theorem_III_7_Replacement}
+\leanok
+\uses{thm:T_III_7}
+In classical ZF, Replacement is an axiom schema (one axiom per formula).
+In VR-Sets and in Lean/mathlib, a single theorem quantifies over all
+functions $F$.  The schema collapses because Lean functions are
+first-class objects: the meta-level quantification over formulas
+disappears.  See Observation~D.1.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Axiom profile analysis}
+\label{sec:sets_axiom_profile_analysis}
+
+\begin{remark}[Four faces of \texttt{Classical.choice} in VR-Sets]
+\label{rem:classical_four_sources}
+\lean{VR.Sets.Lemma_II_3_DepthMono, VR.Sets.Theorem_III_7_Replacement,
+      VR.Sets.Theorem_III_8_Foundation, VR.Sets.Theorem_III_9_Choice}
+\leanok
+\texttt{Classical.choice} enters through four distinct mechanisms:
+(1)~\texttt{Lemma\_II\_3\_DepthMono} via \texttt{Ordinal.iSup}
+(ordinal supremum);
+(2)~\texttt{Theorem\_III\_7\_Replacement} via
+\texttt{Classical.allZFSetDefinable} (all Lean functions declared
+definable);
+(3)~\texttt{Theorem\_III\_8\_Foundation} via
+\texttt{WellFounded.has\_min} (minimal element);
+(4)~\texttt{Theorem\_III\_9\_Choice} via \texttt{Classical.choice}
+directly.  None is a direct application of AC to a set-theoretic
+family.  Contrast with VR-Numbers where \texttt{Classical.choice}
+entered through a single source (\texttt{Rat.add} via \texttt{Nat.gcd}).
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Methodological observations (Part X)}
+\label{sec:sets_method}
+
+Seventeen observations from the formalisation, grouped thematically.
+Observations A.1--D.2 are from the Part~X preprint draft; observations
+E.1--E.6 are from source-file comments.
+
+\subsection*{Group A: Quotient-base structure}
+
+\begin{remark}[A.1 --- Bisimulation as definitional equality]
+\label{rem:A1_bisim}
+\lean{VR.Sets.OSet}
+\leanok
+\uses{def:OSet}
+The preprint's operational identity $\equiv$ (Definition~4, bisimulation)
+is not a separate proof step but is definitionally absorbed into the
+quotient construction: $a \equiv b$ is exactly $a = b : \texttt{OSet}
+= \texttt{ZFSet} = \texttt{Quotient PSet.setoid}$.  This is more
+economical than VR-Numbers, where each isomorphism required explicit
+\texttt{forward}/\texttt{backward} round-trip proofs.  Here, the
+bisimulation \emph{is} the quotient.
+\end{remark}
+
+\begin{remark}[A.2 --- Duplicate suppression via quotient]
+\label{rem:A2_dedup}
+\lean{VR.Sets.Theorem_III_4_Union}
+\leanok
+\uses{thm:T_III_4}
+The preprint (§\,II.2) says union reveals elements «without repetitions
+up to $\equiv$».  In \texttt{ZFSet}, duplicate suppression requires no
+separate predicate or decidability instance: the quotient automatically
+identifies extensionally equivalent elements.  \texttt{ZFSet.sUnion}
+and \texttt{ZFSet.powerset} return \texttt{ZFSet} values, so membership
+is already modulo \texttt{PSet.Equiv}.
+\end{remark}
+
+\subsection*{Group B: Five structural boundaries}
+
+\begin{remark}[B.1 --- First boundary: power set wider than operational]
+\label{rem:B1_power}
+\lean{VR.Sets.Theorem_III_5_Power}
+\leanok
+\uses{thm:T_III_5}
+Lean's \texttt{osetPower} contains all classical subsets.  The
+preprint's $\mathcal{P}(A)$ contains only operationally describable
+subsets.  For $A = \omega$, Lean gives an uncountable set; the
+preprint gives a countable set.  The operational restriction is
+metatheoretic.
+\end{remark}
+
+\begin{remark}[B.2 --- Second boundary: replacement wider than operational]
+\label{rem:B2_repl}
+\lean{VR.Sets.Theorem_III_7_Replacement}
+\leanok
+\uses{thm:T_III_7}
+\texttt{osetReplacement} admits all Lean functions $F$.  The preprint
+restricts to operationally definable functions.  \texttt{Classical.allZFSetDefinable}
+records the gap: «all Lean functions are definable» is the non-operational
+assumption.
+\end{remark}
+
+\begin{remark}[B.3 --- Third boundary: choice wider than countable]
+\label{rem:B3_choice}
+\lean{VR.Sets.Theorem_III_9_Choice}
+\leanok
+\uses{thm:T_III_9}
+Lean proves AC for all families via \texttt{Classical.choice}.  The
+preprint argues AC from countability: in a countable universe, a choice
+function can be constructed algorithmically (DC suffices).  Lean cannot
+express the countability restriction; the argument is metatheoretic.
+\end{remark}
+
+\begin{remark}[B.4 --- Fourth boundary: Foundation unconditional, opposite direction]
+\label{rem:B4_found}
+\lean{VR.Sets.Theorem_III_8_Foundation}
+\leanok
+\uses{thm:T_III_8}
+On \texttt{OSet = ZFSet}, Foundation holds unconditionally (Lean is
+\emph{narrower} than the preprint).  The preprint treats Foundation as
+mode-dependent (fails in ZFA-mode).  In Lean, there is no ZFA-mode to
+speak of; the type pre-commits to well-foundedness.  This is the
+opposite direction from boundaries B.1--B.3.
+\end{remark}
+
+\begin{remark}[B.5 --- Fifth boundary: ZFA mode totally absent from mathlib]
+\label{rem:B5_zfa}
+\lean{VR.Sets.quineAtom_impossible, VR.Sets.AFA_Refuted}
+\leanok
+\uses{thm:quineAtom_impossible, thm:AFA_Refuted}
+A systematic search of all of mathlib4 for \texttt{AFA},
+\texttt{AntiFoundation}, \texttt{non-well-founded}, coinductive sets,
+\texttt{NonWellFounded}, and \texttt{Quine} returned zero results.
+\texttt{PSet} is an inductive (not coinductive) Lean type; membership
+is well-founded by its elimination rule.  The Quine atom and AFA are
+not merely hard to construct --- they are \emph{provably impossible}
+in \texttt{PSet} with empty axiom profiles.  This boundary is
+categorically stronger than B.1--B.4 and stronger than the
+VR-Numbers §\,VIII.6 boundary: the ZFA-mode universe has no
+representation at all in the mathlib type hierarchy.
+\end{remark}
+
+\subsection*{Group C: Axiom-minimal patterns}
+
+\begin{remark}[C.1 --- Four faces of \texttt{Classical.choice}]
+\label{rem:C1_classical}
+\lean{VR.Sets.Lemma_II_3_DepthMono, VR.Sets.Theorem_III_7_Replacement,
+      VR.Sets.Theorem_III_8_Foundation, VR.Sets.Theorem_III_9_Choice}
+\leanok
+See Remark~\ref{rem:classical_four_sources} for details.
+\end{remark}
+
+\begin{remark}[C.2 --- Axiom profiles of conjectures reflect structural nature]
+\label{rem:C2_profiles}
+\lean{VR.Sets.Conjecture_IV_1_Statement, VR.Sets.Conjecture_IV_2_Statement}
+\leanok
+\uses{def:Conjecture_IV_1, def:Conjecture_IV_2}
+\texttt{Conjecture\_IV\_1\_Statement}: \axiomprofile{[propext, Quot.sound]}
+(references \texttt{OSet = ZFSet}, a specific quotient type).
+\texttt{Conjecture\_IV\_2\_Statement}: \axiomprofile{[]} (stated over
+abstract $(U, \mathrm{mem})$, no reference to any specific mathlib type).
+The difference is not incidental: Conjecture~IV.1 asks about a countable
+submodel of an existing type; Conjecture~IV.2 asks about the existence of
+a type \emph{outside} the current mathlib hierarchy.  The axiom profiles
+witness this structural distinction at the level of dependency closures.
+\end{remark}
+
+\begin{remark}[C.3 --- \texttt{isZFCmode} has discriminating power only at PSet level]
+\label{rem:C3_isZFCmode}
+\lean{VR.Sets.isZFCmode, VR.Sets.isZFCmode_all}
+\leanok
+\uses{def:isZFCmode, thm:isZFCmode_all}
+On \texttt{OSet = ZFSet}, \texttt{isZFCmode} is universally true;
+the predicate is trivial here.  Its conceptual content becomes operative
+only at the \texttt{PSet} level (Stage~10), where elements representing
+the Quine atom would fail \texttt{Acc PSet.Mem} (the membership chain
+$A \ni A \ni A \ni \ldots$ does not terminate).  The predicate is
+defined at \texttt{OSet}-level as a syntactic template for that future
+analysis.
+\end{remark}
+
+\begin{remark}[C.4 --- Operational depth is absent for cyclic sets in OSet]
+\label{rem:C4_depth_cyclic}
+\lean{VR.Sets.operationalDepth}
+\leanok
+\uses{def:operationalDepth}
+Lemma~II.3 in the preprint has three cases: finite depth, infinite
+non-cyclic depth (e.g.\ $\omega$), and cyclic/undefined depth (e.g.\
+Quine atom).  In \texttt{OSet = ZFSet}, the third case is
+\emph{structurally absent}: \texttt{PSet} is inductive, so cyclic
+objects do not exist.  \texttt{operationalDepth} is well-defined
+(total) on all \texttt{OSet} elements; the preprint's undefined case
+simply does not arise in the type.
+\end{remark}
+
+\subsection*{Group D: Methodological convergences}
+
+\begin{remark}[D.1 --- Replacement: schema $\to$ single theorem]
+\label{rem:D1_schema}
+\lean{VR.Sets.Theorem_III_7_Replacement}
+\leanok
+\uses{thm:T_III_7}
+Classical ZF has Replacement as a schema (one axiom per formula).
+VR-Sets has a single closure theorem over describable functions.
+Lean/mathlib has a single theorem parametric in $F : \texttt{ZFSet}
+\to \texttt{ZFSet}$.  Three systems, three different motivations
+(classical meta-level quantification / operational describability /
+type-theoretic first-class functions), same formal result: one theorem.
+\end{remark}
+
+\begin{remark}[D.2 --- Three-tier formalisation result]
+\label{rem:D2_three_tier}
+\lean{VR.Sets.Theorem_IV_1_ZFCAxioms, VR.Sets.AFA_Refuted,
+      VR.Sets.Conjecture_IV_2_Statement}
+\leanok
+VR-Numbers produced only positive results (theorems proved).  VR-Sets
+produces a structurally richer three-tier outcome: (1)~16 proved
+theorems (including \texttt{Theorem\_IV\_1\_ZFCAxioms},
+\texttt{Theorem\_V\_2}); (2)~2 refuted claims
+(\texttt{AFA\_Refuted}, \texttt{quineAtom\_impossible}), both axiom-free;
+(3)~2 open formulations
+(\texttt{Conjecture\_IV\_1\_Statement},
+\texttt{Conjecture\_IV\_2\_Statement}).  The refuted claims are
+\emph{structural boundary theorems}, not logical inconsistencies.
+The open formulations are the first instances in the VR Lean cycle
+where the system records a claim it cannot resolve.
+\end{remark}
+
+\begin{remark}[D.3 --- abbrev vs def for OSet: reducibility design]
+\label{rem:D3_abbrev}
+\lean{VR.Sets.OSet}
+\leanok
+\uses{def:OSet}
+\texttt{OSet} is declared as \texttt{abbrev} (\texttt{@[reducible]}),
+not \texttt{def}.  This means all mathlib operations on \texttt{ZFSet}
+apply directly to \texttt{OSet} without wrappers.  VR-Numbers used
+\texttt{def} with explicit wrappers (\texttt{IntVRIntIso},
+\texttt{iaddQ}, etc.) because VR-Numbers built its own arithmetic
+independently.  VR-Sets relies on mathlib's \texttt{ZFSet}
+infrastructure completely; \texttt{abbrev} reflects this dependency.
+\end{remark}
+
+\begin{remark}[D.4 --- Classical AFA vs operational AFA in Conjecture~IV.2]
+\label{rem:D4_classical_afa}
+\lean{VR.Sets.Conjecture_IV_2_Statement}
+\leanok
+\uses{def:Conjecture_IV_2}
+\texttt{Conjecture\_IV\_2\_Statement} is stated with classical AFA
+(all Lean types $V$, all relations $E$) --- strictly stronger than the
+preprint's operational AFA (only describable graphs).  If the conjecture
+is false, it does not refute the preprint's weaker form.  If true, it
+implies the preprint's form.  Classical AFA is used because operational
+AFA (like computability of Cauchy sequences in VR-Numbers) is not
+Lean-expressible: the condition «describable graph» is metatheoretic.
+\end{remark}
+
+\begin{remark}[D.5 --- VR\_OSet\_iso covers ordinal structure only; arithmetic by composition]
+\label{rem:D5_vr_oset_scope}
+\lean{VR.Sets.VR_OSet_iso}
+\leanok
+\uses{def:VR_OSet_iso}
+\texttt{VR\_OSet\_iso} has five fields: embed, preserve\_zero,
+preserve\_succ, preserve\_mem, injective.  Arithmetic preservation
+(\texttt{vadd}, \texttt{vmul}, \texttt{vpow} at OSet level) is
+deliberately excluded.  It follows by composition:
+$\mathrm{VRObj} \xrightarrow{\texttt{Theorem\_11\_VR\_PA}} \mathbb{N}
+\xrightarrow{\texttt{embedVR} \circ O} \mathrm{OSet}$.
+Re-proving at the OSet level would duplicate VR.lean without adding
+mathematical content.  Contrast with \texttt{VR\_PA\_iso} (Chapter~\ref{chap:vr}):
+that is a bijection; \texttt{VR\_OSet\_iso} is an embedding (OSet
+contains vastly more than the image of VRObj).
+\end{remark}
+
+\begin{remark}[D.6 --- Closure principle is metatheoretic]
+\label{rem:D6_closure}
+\lean{VR.Sets.OSet}
+\leanok
+\uses{def:OSet}
+The preprint's closure principle (§\,II.3): «if a functionality is
+operationally describable, then there exists a set $A$ such that $A$
+is that functionality» is \emph{not} expressible as a Lean predicate.
+Individual closure theorems (Pairing, Union, \ldots) are proved
+separately, each as a wrapper over a mathlib \texttt{ZFSet} lemma.
+The general principle --- «every describable functionality is a set»
+--- lies in the metatheory.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Axiom profile}
+\label{sec:sets_axiom_profile}
+
+\axiomprofile{[]} for 4 objects:
+\texttt{isZFAmode\_all}, \texttt{quineAtom\_impossible},
+\texttt{AFA\_Refuted}, \texttt{Conjecture\_IV\_2\_Statement}.
+The first three use only inductive structural properties of \texttt{PSet};
+the fourth is stated over abstract types.
+
+\axiomprofile{[propext, Quot.sound]} for 12 objects including:
+\texttt{Lemma\_II\_1\_Extensionality}, \texttt{Lemma\_II\_2\_UniquenessEmpty},
+\texttt{Theorem\_III\_3\_Pairing}, \texttt{Theorem\_III\_4\_Union},
+\texttt{isZFCmode\_all}, \texttt{isZFCmode}, \texttt{Theorem\_V\_2},
+\texttt{embedVR\_mem\_iff}, \texttt{embedVR\_injective},
+\texttt{Conjecture\_IV\_1\_Statement}, and others.
+
+\axiomprofile{[propext, Classical.choice, Quot.sound]} for 6 objects:
+\texttt{operationalDepth} (via \texttt{Ordinal.iSup}),
+\texttt{Lemma\_II\_3\_DepthMono},
+\texttt{Theorem\_III\_7\_Replacement},
+\texttt{Theorem\_III\_8\_Foundation},
+\texttt{Theorem\_III\_9\_Choice},
+\texttt{Theorem\_IV\_1\_ZFCAxioms}.
+
+VR-Sets is the first module in the VR Cycle where axiom-free objects
+appear.  Both refutations (\texttt{AFA\_Refuted},
+\texttt{quineAtom\_impossible}) are axiom-free, unlike any result in
+VR-Numbers.
+
+%──────────────────────────────────────────────────────────────────────
+\section{References}
+\label{sec:sets_refs}
+
+The preprint for this chapter is
+\zenodo{10.5281/zenodo.20354628}{VR-Sets, v1.0.1} (23 May 2026).
+
+The Lean~4 formalisation is archived at
+\zenodo{10.5281/zenodo.20354340}{VR-Sets Lean, v1.0.0} (23 May 2026),
+git tag \texttt{v1.2-vr-sets}.
