@@ -1,9 +1,691 @@
 \chapter{VR-Algebra}
 \label{chap:algebra}
+\uses{chap:apparatus, chap:audit}
 
-% Stage 8 — OperationalAddGroup, OperationalRing. ℤ and ZMod n instances.
-% Mode A theorems for add/mul/sub/neg/pow. Mode B image subgroup audit.
-% Findings A0, A3, A6, A9, A10, A11.
-% Note: preprint DOI 10.5281/zenodo.20398300; no separate Lean Software record
-% (code cited by GitHub tag v1.12-vr-operational-algebra-v1.0.0).
-% \uses{chap:apparatus}
+\section{Position}
+\label{sec:algebra_position}
+
+VR-Algebra is the eighth work of the cycle.  It applies the VR-Apparatus
+framework (Chapter~\ref{chap:apparatus}) to the standard algebraic
+hierarchy: additive groups, rings, multiplicative groups, fields, and
+modules.  Five operational typeclasses are constructed as layers over
+the corresponding mathlib structures.
+
+\textbf{Load-bearing finding.} Finding~A3 (apparatus reuse confirmed):
+the \texttt{PredicateOperationality} apparatus extends to all five
+algebraic structures \emph{without modification}.  For modules
+(\texttt{OperationalModule}), the predicate on the carrier type~$M$
+is exactly the one registered in v0.1.0 for additive groups;
+no new \texttt{PredicateOperationality} instance is needed.
+This is not ``extends naturally'' in a loose sense but literally
+``uses the v0.1.0 instance unchanged''.
+Finding~A3 is the empirical confirmation that VR-Apparatus is a
+genuine methodological framework, not a single-use solution for
+Hahn-Banach.
+
+\textbf{Publication note.} VR-Algebra is the only chapter of the cycle
+without a companion Lean Software record on Zenodo.  The Lean code is
+cited by GitHub tag \texttt{v1.12-vr-operational-algebra-v1.0.0},
+commit \texttt{5e8f8e0}.  This is a deliberate workflow simplification
+without compromising reproducibility.
+
+64 public objects, 3\,977 lines.
+\noindent\axiomprofile{[]}: most typeclass definitions, Mode~A theorems,
+subgroup theorems, Mode~B main theorem.
+\noindent\axiomprofile{[propext]}: $\mathbb{Z}$ instances and demonstrations.
+\noindent\axiomprofile{[propext, Quot.sound]}: $\mathbb{Z}/n\mathbb{Z}$
+instances and \texttt{OperationalField} typeclass.
+\noindent\axiomprofile{[propext, Classical.choice, Quot.sound]}: $\mathbb{Q}$
+instances, \texttt{inv\_isModeAOp\_field}, \texttt{toOperationalGroupUnits}.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Operational typeclasses (Parts II--IV)}
+\label{sec:algebra_typeclasses}
+
+\begin{definition}[\texttt{OperationalAddGroup}]
+\label{def:OperationalAddGroup}
+\lean{VR.Algebra.OperationalAddGroup}
+\leanok
+\uses{def:PredicateOperationality}
+$\texttt{OperationalAddGroup}\,(G : \mathrm{Type}^*)$ \texttt{extends AddGroup G}
+with a single predicate field \texttt{IsOperational : G → Prop} and closure
+axioms: \texttt{zero\_isOperational}, \texttt{add\_isOperational},
+\texttt{neg\_isOperational}.
+\axiomprofile{[]}.
+\end{definition}
+
+\begin{definition}[\texttt{OperationalRing}]
+\label{def:OperationalRing}
+\lean{VR.Algebra.OperationalRing, VR.Algebra.OperationalRing.toOperationalAddGroup}
+\leanok
+\uses{def:OperationalAddGroup}
+$\texttt{OperationalRing}\,(R : \mathrm{Type}^*)$ \texttt{extends Ring R}
+with \texttt{IsOperational : R → Prop} and closure axioms for zero, add,
+neg, one, and mul.  Bridge instance:
+$\texttt{OperationalRing.toOperationalAddGroup}$ -- any \texttt{OperationalRing R}
+is an \texttt{OperationalAddGroup R} (Lean synthesises \texttt{AddGroup R}
+from \texttt{Ring R} via the ring chain).
+Both bridge and class at \axiomprofile{[]}.
+\end{definition}
+
+\begin{definition}[\texttt{OperationalGroup} (multiplicative)]
+\label{def:OperationalGroup}
+\lean{VR.Algebra.OperationalGroup}
+\leanok
+$\texttt{OperationalGroup}\,(G : \mathrm{Type}^*)$ \texttt{extends Group G}
+with \texttt{IsOperational : G → Prop} and closure axioms: one, mul, inv.
+\axiomprofile{[]}.
+Introduced in v0.3.0 when the first instance appeared (\texttt{OperationalField
+→ OperationalGroup}~$K^\times$).
+See Finding~A0 (omitted preemptively in v0.1.0) and Finding~A12 (introduced
+when justified).
+\end{definition}
+
+\begin{definition}[\texttt{OperationalField}]
+\label{def:OperationalField}
+\lean{VR.Algebra.OperationalField,
+      VR.Algebra.OperationalField.toOperationalRing,
+      VR.Algebra.OperationalField.toOperationalGroupUnits}
+\leanok
+\uses{def:OperationalRing, def:OperationalGroup}
+$\texttt{OperationalField}\,(K : \mathrm{Type}^*)$ \texttt{extends Field K}
+with \texttt{IsOperational : K → Prop} and closure axioms including inv.
+Two bridge instances:
+$\texttt{toOperationalRing}$ (\axiomprofile{[propext, Quot.sound]})
+and $\texttt{toOperationalGroupUnits}$ (bridges to \texttt{OperationalGroup}~$K^\times$,
+\axiomprofile{[propext, Classical.choice, Quot.sound]} --- see Finding~A15/A16).
+The class itself: \axiomprofile{[propext, Quot.sound]} (inherited from
+\texttt{Field}'s \texttt{RatCast}).
+\end{definition}
+
+\begin{definition}[\texttt{OperationalModule}]
+\label{def:OperationalModule}
+\lean{VR.Algebra.OperationalModule}
+\leanok
+\uses{def:OperationalRing, def:OperationalAddGroup}
+$\texttt{OperationalModule}\,(R\;M : \mathrm{Type}^*)$ \texttt{[Ring R]
+[AddCommGroup M] [Module R M]} requires
+\texttt{[OperationalRing R]} and \texttt{[OperationalAddGroup M]} as
+implicit prerequisites (bridge-based design: no new predicate on~$M$;
+$M$'s predicate is \texttt{OperationalAddGroup.IsOperational}).
+Single new closure axiom: \texttt{smul\_isOperational}.
+\axiomprofile{[]}.
+
+\begin{remark}[Module apparatus instance inherited without modification]
+\label{rem:module_no_new_instance}
+\leanok
+\uses{def:OperationalModule}
+No new \texttt{PredicateOperationality} instance is registered for
+\texttt{OperationalModule}: \texttt{instPredOpAddGroup} from v0.1.0 is
+reused unchanged.  The bridge-based design (no new predicate on~$M$)
+means the apparatus sees the same type and predicate as for additive
+groups.  This is the fourth and strongest confirmation of Finding~A3.
+\end{remark}
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Mode~A closure theorems}
+\label{sec:algebra_modeA}
+
+\begin{theorem}[Apparatus registration and closure for additive groups]
+\label{thm:addgroup_modeA}
+\lean{VR.Algebra.instPredOpAddGroup, VR.Algebra.add_isModeAOp,
+      VR.Algebra.neg_isModeAOp, VR.Algebra.sub_isModeAOp,
+      VR.Algebra.nsmul_isOperational, VR.Algebra.zsmul_isOperational}
+\leanok
+\uses{def:OperationalAddGroup, def:IsModeAOp_pred}
+\texttt{instPredOpAddGroup}: \texttt{PredicateOperationality G IsOperational}
+marker registered (\axiomprofile{[]}).
+$\texttt{add\_isModeAOp}$: $\texttt{IsModeAOp₂}\,(+)$ (\axiomprofile{[]}).
+$\texttt{neg\_isModeAOp}$: $\texttt{IsModeAOp}\,(-)$
+(\axiomprofile{[propext]} --- see Finding~A4).
+$\texttt{sub\_isModeAOp}$: $\texttt{IsModeAOp₂}\,(-)$ (\axiomprofile{[]}).
+$\texttt{nsmul\_isOperational}$: $\forall n : \mathbb{N},\;
+\texttt{IsOperational}(n \bullet a)$ (\axiomprofile{[]}).
+$\texttt{zsmul\_isOperational}$: $\forall n : \mathbb{Z},\;
+\texttt{IsOperational}(n \bullet a)$ (\axiomprofile{[]}).
+\end{theorem}
+
+\begin{theorem}[Closure for rings]
+\label{thm:ring_modeA}
+\lean{VR.Algebra.instPredOpRing, VR.Algebra.mul_isModeAOp,
+      VR.Algebra.npow_isOperational}
+\leanok
+\uses{def:OperationalRing, def:IsModeAOp_pred}
+$\texttt{instPredOpRing}$: \texttt{PredicateOperationality R IsOperational}
+(\axiomprofile{[]}).
+$\texttt{mul\_isModeAOp}$: $\texttt{IsModeAOp₂}\,(\cdot)$ (\axiomprofile{[]}).
+$\texttt{npow\_isOperational}$: $\forall n : \mathbb{N},\;
+\texttt{IsOperational}(a^n)$ (\axiomprofile{[]}).
+\end{theorem}
+
+\begin{theorem}[Closure for multiplicative groups]
+\label{thm:mulgroup_modeA}
+\lean{VR.Algebra.VR.Algebra.MulGroup.instPredOpMulGroup, VR.Algebra.VR.Algebra.MulGroup.mul_isModeAOp,
+      VR.Algebra.VR.Algebra.MulGroup.inv_isModeAOp, VR.Algebra.VR.Algebra.MulGroup.div_isModeAOp,
+      VR.Algebra.VR.Algebra.MulGroup.npow_isOperational, VR.Algebra.VR.Algebra.MulGroup.zpow_isOperational}
+\leanok
+\uses{def:OperationalGroup, def:IsModeAOp_pred}
+\texttt{instPredOpMulGroup} (\axiomprofile{[]}).
+$\texttt{mul\_isModeAOp}$, $\texttt{inv\_isModeAOp}$, $\texttt{div\_isModeAOp}$:
+all \axiomprofile{[propext]} (inv elaboration, Finding~A4).
+$\texttt{npow\_isOperational}$, $\texttt{zpow\_isOperational}$: \axiomprofile{[]}.
+\end{theorem}
+
+\begin{theorem}[Closure for fields]
+\label{thm:field_modeA}
+\lean{VR.Algebra.instPredOpField, VR.Algebra.inv_isModeAOp_field}
+\leanok
+\uses{def:OperationalField, def:IsModeAOp_pred}
+$\texttt{instPredOpField}$: \texttt{PredicateOperationality K IsOperational}
+(\axiomprofile{[propext, Quot.sound]}).
+$\texttt{inv\_isModeAOp\_field}$: $\texttt{IsModeAOp}\,({\cdot}^{-1})$ for
+\texttt{OperationalField K}
+(\axiomprofile{[propext, Classical.choice, Quot.sound]}
+--- see Finding~A15/A16).
+\end{theorem}
+
+\begin{theorem}[Closure under scalar multiplication]
+\label{thm:module_modeA}
+\lean{VR.Algebra.smul_isModeAOp}
+\leanok
+\uses{def:OperationalModule, def:IsModeAOp_pred}
+$\texttt{smul\_isModeAOp}$: for fixed operational $r : R$,
+$\texttt{IsModeAOp}\,(r \bullet \cdot : M \to M)$ (\axiomprofile{[]}).
+This is the unary form: the operationality of $r$ is a hypothesis, not a
+conclusion of IsModeAOp (Finding~A19: heterogeneous binary operations
+require the unary Mode~A form).  Uses \texttt{instPredOpAddGroup} from
+v0.1.0 without modification --- fourth Finding~A3 confirmation.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Concrete instances}
+\label{sec:algebra_instances}
+
+\begin{definition}[$\mathbb{Z}$ and $\mathbb{Z}/n\mathbb{Z}$ instances]
+\label{def:int_zmod_instances}
+\lean{VR.Algebra.instOperationalAddGroupInt,
+      VR.Algebra.instOperationalAddGroupZMod,
+      VR.Algebra.instOperationalRingInt,
+      VR.Algebra.instOperationalRingZMod}
+\leanok
+\uses{def:OperationalAddGroup, def:OperationalRing}
+$\texttt{instOperationalAddGroupInt}$ (\axiomprofile{[propext]}):
+$\mathbb{Z}$ as \texttt{OperationalAddGroup}; \texttt{IsOperational := fun \_ => True}.
+$\texttt{instOperationalAddGroupZMod}$ [\texttt{NeZero n}]
+(\axiomprofile{[propext, Quot.sound]}):
+$\mathbb{Z}/n\mathbb{Z}$ as \texttt{OperationalAddGroup}.
+$\texttt{instOperationalRingInt}$, $\texttt{instOperationalRingZMod}$:
+corresponding ring instances (same profiles; Finding~A10: ring extension
+does not escalate the ceiling).
+\end{definition}
+
+\begin{definition}[$\mathbb{Q}$ as \texttt{OperationalField}]
+\label{def:rat_instance}
+\lean{VR.Algebra.instOperationalFieldRat}
+\leanok
+\uses{def:OperationalField}
+$\texttt{instOperationalFieldRat}$
+(\axiomprofile{[propext, Classical.choice, Quot.sound]}):
+$\mathbb{Q}$ as \texttt{OperationalField}.
+\texttt{Classical.choice} enters through \texttt{Rat.instField} via
+\texttt{commGroupWithZero} inverse infrastructure (Finding~A14:
+first appearance of Classical.choice in concrete algebraic instances).
+\end{definition}
+
+\begin{definition}[$\mathbb{Z}$ and $\mathbb{Q}$ modules]
+\label{def:module_instances}
+\lean{VR.Algebra.instOperationalModuleIntInt,
+      VR.Algebra.instOperationalModuleRatRat}
+\leanok
+\uses{def:OperationalModule}
+$\texttt{instOperationalModuleIntInt}$ (\axiomprofile{[propext]}):
+$\mathbb{Z}$ as $\mathbb{Z}$-module.
+$\texttt{instOperationalModuleRatRat}$
+(\axiomprofile{[propext, Classical.choice, Quot.sound]}):
+$\mathbb{Q}$ as $\mathbb{Q}$-module (ceiling inherited from $\mathbb{Q}$'s field structure).
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Mode~B audit: image of operational subgroup}
+\label{sec:algebra_modeB}
+
+\begin{definition}[Operational subgroup predicate]
+\label{def:IsOperationalAddSubgroup}
+\lean{VR.Algebra.IsOperationalAddSubgroup,
+      VR.Algebra.bot_isOperationalAddSubgroup,
+      VR.Algebra.top_isOperationalAddSubgroup,
+      VR.Algebra.inf_isOperationalAddSubgroup}
+\leanok
+\uses{def:OperationalAddGroup}
+$\texttt{IsOperationalAddSubgroup}\,H := \forall x \in H,\;
+\texttt{IsOperational}\,x$.  A subgroup is operational when all its
+elements are operational.
+Closure: $\bot$ is always operational; $\top$ is operational when
+all elements are; $H \sqcap K$ inherits from $H$.
+All at \axiomprofile{[]}.
+\end{definition}
+
+\begin{theorem}[Substantive Mode~B audit: image is operational]
+\label{thm:image_modeB}
+\lean{VR.Algebra.image_isOperationalAddSubgroup_isModeBOp}
+\leanok
+\uses{def:IsOperationalAddSubgroup, def:IsModeBOp}
+The image of an operational subgroup under an operational group homomorphism
+is an operational subgroup.  Formally:
+$\texttt{image\_isOperationalAddSubgroup\_isModeBOp}$:
+\texttt{IsModeBOp} with $PA = \texttt{IsOperationalAddSubgroup}$,
+$PB = \texttt{IsOperationalAddSubgroup}$, $W = \text{morphism-operational}$,
+$f = \phi(\text{image})$.
+
+Proof: \texttt{obtain} $\langle x, hxS, \texttt{rfl}\rangle$ from
+$\texttt{AddSubgroup.mem\_map}$; \texttt{exact hW x (hS x hxS)}.
+This is one tactic step after the constructive existential is extracted.
+\axiomprofile{[]}.  \texttt{Classical.choice} absent: \texttt{AddSubgroup.mem\_map}
+is constructive (no classical reasoning in the membership proof).
+\end{theorem}
+
+\subsection*{Structural contrast with VR-Audit Mode~B}
+
+\begin{remark}[Algebraic vs analytic Mode~B]
+\label{rem:modeB_contrast}
+\leanok
+\uses{thm:image_modeB, thm:HahnBanachOperational_Hilbert}
+VR-Audit (Chapter~\ref{chap:audit}) Mode~B audit (Hahn-Banach): six
+proof steps, Riesz representation, orthogonal projection, locatedness
+condition, classical choice via \texttt{toDual}.
+
+VR-Algebra Mode~B audit: one tactic step after destructuring.
+\texttt{AddSubgroup.mem\_map} delivers a constructive existential;
+no choice, no limits, no classical machinery.
+
+Both are legitimate Mode~B instances.  The contrast demonstrates the
+\emph{spectrum} of Mode~B: the algebraic case is mechanically extractable
+from constructive witnesses built into mathlib's algebraic API (Finding~A11);
+the analytic case requires substantial infrastructure because the witness
+involves a classical object (Riesz vector) connected to the result via
+a non-trivial factorisation.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Structural exceptions in field-inverse reasoning}
+\label{sec:algebra_exceptions}
+
+\begin{remark}[Finding~A15 --- Import-context ceiling escalation]
+\label{rem:A15}
+\lean{VR.Algebra.inv_isModeAOp_field}
+\leanok
+\uses{thm:field_modeA}
+$\texttt{inv\_isModeAOp\_field}$ for generic \texttt{[OperationalField K]}:
+\axiomprofile{[propext, Classical.choice, Quot.sound]}.
+But $\texttt{instPredOpField}$ (same \texttt{[OperationalField K]} assumption,
+no $({\cdot}^{-1})$ in the type): \axiomprofile{[propext, Quot.sound]}.
+
+Root cause: the apparatus import chain imports
+\texttt{Mathlib.Data.Real.Basic} (via
+\texttt{VRCycle.Apparatus.ModeA} $\to$ \texttt{VRCycle.Audit.Computable}),
+which introduces $\mathbb{R}$ instances that affect how Lean resolves
+\texttt{Inv K} for generic \texttt{[Field K]} when $({\cdot}^{-1})$
+appears in the \texttt{IsModeAOp} type.
+This is an import-context effect, not a logical property of
+\texttt{inv\_isOperational}.  The logical ceiling remains
+\texttt{[propext, Quot.sound]}.
+\end{remark}
+
+\begin{remark}[Finding~A16 --- Structural confirmation]
+\label{rem:A16}
+\lean{VR.Algebra.OperationalField.toOperationalGroupUnits}
+\leanok
+\uses{def:OperationalField}
+$\texttt{OperationalField.toOperationalGroupUnits}$:
+\axiomprofile{[propext, Classical.choice, Quot.sound]}.
+Systematic isolation attempts (v0.4.0 Stage~2) confirm two distinct
+root causes:
+
+(1)~\texttt{inv\_isModeAOp\_field}: apparatus import chain (described
+in A15).  Even a minimal-import file without \texttt{Instances.lean}
+shows \texttt{Classical.choice}.
+
+(2)~\texttt{toOperationalGroupUnits}: proof-structural.  Any valid proof
+must use \texttt{Units.val\_inv\_eq\_inv\_val} to connect
+$(u^{-1} : K^\times).\texttt{val}$ to $(u.\texttt{val})^{-1}$.
+After this rewrite, the goal contains field-level $(u : K)^{-1}$,
+which inherits \texttt{Classical.choice}.  No alternative path exists.
+
+These two objects are the only non-eliminable sources of
+\texttt{Classical.choice} in the algebraic hierarchy.  They are
+structural consequences of field inversion, not violations of
+operational discipline.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Recognition discipline: bidirectional signature}
+\label{sec:algebra_recognition}
+
+\begin{remark}[Removal and introduction as partner operations]
+\label{rem:recognition_bidirectional}
+\lean{VR.Algebra.OperationalGroup}
+\leanok
+\uses{def:OperationalGroup}
+Prior cycle works (Apparatus scope limitations) showed recognition
+discipline predominantly as \emph{removal} (three planned abstractions
+dropped).  VR-Algebra adds the partner operation: \emph{introduction}
+when justified.
+
+\textbf{Removal examples}: \texttt{OperationalCommRing} omitted twice
+(Finding~A0, A9 --- no natural instances or immediate diamond); bundled
+\texttt{OperationalSubgroup} typeclass dropped (Finding~A6 --- predicate
+suffices); \texttt{one\_isOperational\_bridge} omitted (already a field);
+\texttt{mul\_chain\_isOperational} omitted (derivable by compose).
+
+\textbf{Introduction example}: \texttt{OperationalGroup} (Finding~A0
+removed it in v0.1.0; Finding~A12 introduced it in v0.3.0 when the
+first concrete instance arrived --- $\mathbb{Q}^\times$ via
+\texttt{OperationalField.toOperationalGroupUnits}).
+
+The bidirectional pattern --- remove preemptive abstractions AND
+introduce justified abstractions when users arrive --- is the complete
+recognition discipline signature, anticipated in VR-Apparatus and now
+confirmed by VR-Algebra.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Twenty findings catalogued (A0--A19)}
+\label{sec:algebra_findings}
+
+\begin{finding}[A0 --- Multiplicative typeclass omitted preemptively]
+\label{finding:A0}
+\lean{VR.Algebra.OperationalAddGroup}
+\leanok
+\uses{def:OperationalAddGroup}
+\texttt{OperationalGroup} omitted in v0.1.0 (no multiplicative instances
+exist).  Recognition discipline: do not abstract preemptively.
+Reversed in v0.3.0 when the first instance arrived (Finding~A12).
+\end{finding}
+
+\begin{finding}[A1 --- \texttt{extends} works with mathlib Ring hierarchy]
+\label{finding:A1}
+\lean{VR.Algebra.OperationalRing}
+\leanok
+First confirmed with \texttt{AddGroup} in v0.1.0;
+extended to \texttt{Ring} in v0.2.0.
+Lean~4 \texttt{extends} for typeclasses composes correctly with
+mathlib's existing hierarchy.
+\end{finding}
+
+\begin{finding}[A2 --- \texttt{toAddGroup := inferInstance} resolves bridge]
+\label{finding:A2}
+\lean{VR.Algebra.OperationalRing.toOperationalAddGroup}
+\leanok
+Lean synthesises \texttt{AddGroup G} from \texttt{AddCommGroup G} (via the
+ring chain) without explicit delegation.  Bridge instances reduce to
+marker instances.
+\end{finding}
+
+\begin{finding}[A3 --- Apparatus reuses WITHOUT modification]
+\label{finding:A3}
+\lean{VR.Algebra.instPredOpAddGroup, VR.Algebra.smul_isModeAOp}
+\leanok
+\uses{def:OperationalModule, thm:module_modeA}
+\texttt{PredicateOperationality} zero-field marker extends to all five
+algebraic structures.  For \texttt{OperationalModule}: no new instance
+registered; \texttt{instPredOpAddGroup} from v0.1.0 used unchanged.
+This is the central finding of VR-Algebra and the primary empirical
+confirmation that VR-Apparatus is a genuine framework.
+\end{finding}
+
+\begin{finding}[A4 --- neg/inv pull \texttt{[propext]}; mul does not]
+\label{finding:A4}
+\lean{VR.Algebra.neg_isModeAOp}
+\leanok
+\uses{thm:addgroup_modeA}
+\texttt{neg\_isModeAOp} (\axiomprofile{[propext]}): Lean's \texttt{Neg}
+elaboration requires propositional extensionality for lambda reductions.
+\texttt{mul\_isModeAOp} (\axiomprofile{[]}): pure algebraic composition,
+no propext.  Asymmetry is structural: unary operations with non-trivial
+Lean elaboration differ from binary composition.
+\end{finding}
+
+\begin{finding}[A5 --- Axiom ceiling hierarchy for algebraic structures]
+\label{finding:A5}
+\lean{VR.Algebra.instOperationalAddGroupInt,
+      VR.Algebra.instOperationalAddGroupZMod}
+\leanok
+$\mathbb{Z}$ objects: \texttt{[propext]}.  $\mathbb{Z}/n\mathbb{Z}$
+objects: \texttt{[propext, Quot.sound]}.
+\texttt{Classical.choice} absent from all objects until $\mathbb{Q}$
+(Finding~A14).
+\end{finding}
+
+\begin{finding}[A6 --- Predicate (not typeclass) for subgroups]
+\label{finding:A6}
+\lean{VR.Algebra.IsOperationalAddSubgroup}
+\leanok
+\uses{def:IsOperationalAddSubgroup}
+\texttt{IsOperationalAddSubgroup} as a \texttt{def} predicate (not a
+typeclass) avoids inheritance diamonds and elaboration issues.
+$\bot/\top/\sqcap$ proved as simple theorems.  Bundled
+\texttt{OperationalSubgroup} typeclass omitted.
+\end{finding}
+
+\begin{finding}[A7 --- Algebraic Mode~B structurally simpler than analytic]
+\label{finding:A7}
+\lean{VR.Algebra.image_isOperationalAddSubgroup_isModeBOp}
+\leanok
+\uses{thm:image_modeB}
+Algebraic Mode~B witness is immediate (subgroup membership), not a
+choice function or limit argument.  The witness is constructive;
+\texttt{Classical.choice} absent.  Contrast with analytic Mode~B (Riesz,
+orthogonal projection, locatedness).
+\end{finding}
+
+\begin{finding}[A8 --- Trivial vs substantive Mode~B]
+\label{finding:A8}
+\lean{VR.Algebra.neg_isModeBOp,
+      VR.Algebra.image_isOperationalAddSubgroup_isModeBOp}
+\leanok
+\texttt{neg\_isModeBOp} (trivial): $W = \texttt{True}$, proof trivial.
+\texttt{image\_isOperationalAddSubgroup\_isModeBOp} (substantive):
+$W = $ operational-morphism condition; proof extracts constructive witness
+from \texttt{AddSubgroup.mem\_map}.  Both are valid Mode~B; the difference
+lies in the structural informativeness of the witness.
+\end{finding}
+
+\begin{finding}[A9 --- \texttt{OperationalCommRing} omitted]
+\label{finding:A9}
+\lean{VR.Algebra.OperationalRing}
+\leanok
+Form~A (\texttt{extends CommRing R, OperationalRing R}): fails with
+immediate diamond on \texttt{toRing}.
+Form~B (duplicating axioms): compiles but adds no content.
+Decision: \texttt{[OperationalRing R] [CommRing R]} in context suffices.
+Direct analogue of Finding~A0 for the commutative multiplicative case.
+\end{finding}
+
+\begin{finding}[A10 --- Algebraic depth does not escalate axiom ceiling]
+\label{finding:A10}
+\lean{VR.Algebra.instOperationalRingInt, VR.Algebra.instOperationalRingZMod}
+\leanok
+\uses{def:OperationalRing}
+$\mathbb{Z}$: \texttt{OperationalAddGroup} ceiling $=$ \texttt{OperationalRing}
+ceiling $=$ \texttt{[propext]}.
+$\mathbb{Z}/n$: same ceiling \texttt{[propext, Quot.sound]}.
+The ring axioms (mul, one, pow) add no new axiom dependencies.
+Ceiling is determined by the underlying type's infrastructure, not algebraic
+depth.
+\end{finding}
+
+\begin{finding}[A11 --- Algebraic Mode~B = one proof step]
+\label{finding:A11}
+\lean{VR.Algebra.image_isOperationalAddSubgroup_isModeBOp}
+\leanok
+\uses{thm:image_modeB}
+Full proof: \texttt{obtain $\langle x, hxS, \texttt{rfl}\rangle$ := hy;
+exact hW x (hS x hxS)}.  The constructive existential built into
+\texttt{AddSubgroup.mem\_map} makes Mode~B mechanically extractable.
+Contrast with analytic Mode~B: six steps, classical choice, infrastructure.
+\end{finding}
+
+\begin{finding}[A12 --- Recognition discipline reversal]
+\label{finding:A12}
+\lean{VR.Algebra.OperationalGroup,
+      VR.Algebra.OperationalField.toOperationalGroupUnits}
+\leanok
+\uses{def:OperationalGroup, def:OperationalField}
+\texttt{OperationalGroup} omitted in v0.1.0 (Finding~A0); introduced in
+v0.3.0 when the first instance arrived ($\mathbb{Q}^\times$ via
+\texttt{OperationalField.toOperationalGroupUnits}).  Full circle:
+remove preemptive abstractions AND introduce justified abstractions
+when users arrive.  Bidirectional recognition discipline confirmed.
+\end{finding}
+
+\begin{finding}[A13 --- \texttt{OperationalField} adds no axioms beyond \texttt{Field}]
+\label{finding:A13}
+\lean{VR.Algebra.OperationalField}
+\leanok
+\uses{def:OperationalField}
+\texttt{OperationalField} class and bridge to \texttt{OperationalRing}: both
+at \texttt{[propext, Quot.sound]} --- inherited from \texttt{Field}'s
+\texttt{RatCast}.  The VR operational layer adds no new axiom dependencies.
+Ceiling determined by the underlying \texttt{Field K} infrastructure.
+\end{finding}
+
+\begin{finding}[A14 --- $\mathbb{Q}$ reaches full analysis ceiling]
+\label{finding:A14}
+\lean{VR.Algebra.instOperationalFieldRat}
+\leanok
+\uses{def:rat_instance}
+$\texttt{instOperationalFieldRat}$:
+\texttt{[propext, Classical.choice, Quot.sound]}.
+Root: \texttt{Rat.instField} via \texttt{commGroupWithZero} inversion.
+First appearance of \texttt{Classical.choice} in concrete algebraic
+instances in the VR Cycle ($\mathbb{Z}$ and $\mathbb{Z}/n$ were clean).
+\end{finding}
+
+\begin{finding}[A15 --- Import-context ceiling escalation]
+\label{finding:A15}
+\lean{VR.Algebra.inv_isModeAOp_field}
+\leanok
+\uses{rem:A15}
+\texttt{inv\_isModeAOp\_field} inherits \texttt{Classical.choice} through
+the apparatus import chain (\texttt{Apparatus.ModeA} $\to$ \texttt{Audit.Computable}
+$\to$ \texttt{Mathlib.Data.Real.Basic}).  This is an import-context
+effect, not a logical property of field inversion.  The logical ceiling
+remains \texttt{[propext, Quot.sound]}.  Extends Finding~A5.
+\end{finding}
+
+\begin{finding}[A16 --- A15 structurally confirmed]
+\label{finding:A16}
+\lean{VR.Algebra.OperationalField.toOperationalGroupUnits}
+\leanok
+\uses{rem:A16}
+Systematic isolation (v0.4.0 Stage~2) confirms two root causes for the
+two affected objects.  Both sources are non-eliminable: the apparatus
+chain cannot be stripped; the proof structure for \texttt{toOperationalGroupUnits}
+requires field-level inversion.  Two objects only, structurally embedded.
+\end{finding}
+
+\begin{finding}[A17 --- Apparatus reuse for modules: fourth and strongest confirmation]
+\label{finding:A17}
+\lean{VR.Algebra.smul_isModeAOp}
+\leanok
+\uses{thm:module_modeA, rem:module_no_new_instance}
+\texttt{smul\_isModeAOp} uses \texttt{instPredOpAddGroup} from v0.1.0
+unchanged.  Progression: v0.1.0 (AddGroup, new instance); v0.2.0 (Ring,
+new instance for mul); v0.3.0 (Field, new instance for inv); v0.4.0
+(Module, NO new instance).  Apparatus operates on predicates, not algebraic
+structure.
+\end{finding}
+
+\begin{finding}[A18 --- \texttt{zsmul\_isOperational} closes symmetry table]
+\label{finding:A18}
+\lean{VR.Algebra.zsmul_isOperational}
+\leanok
+\uses{thm:addgroup_modeA}
+\texttt{zsmul\_isOperational} (v0.4.0 Stage~1) closes the symmetry:
+$\mathbb{N}$-scalar (v0.1.0) ↔ $\mathbb{N}$-power (v0.3.0);
+$\mathbb{Z}$-scalar (v0.4.0) ↔ $\mathbb{Z}$-power (v0.3.0).
+\axiomprofile{[]}: purely algebraic.
+Proof requires explicit \texttt{rw [natCast\_zsmul] + rw [negSucc\_zsmul]}
+(unlike \texttt{zpow\_isOperational} which admits bare \texttt{exact}).
+\end{finding}
+
+\begin{finding}[A19 --- Heterogeneous binary operations require unary Mode~A]
+\label{finding:A19}
+\lean{VR.Algebra.smul_isModeAOp}
+\leanok
+\uses{thm:module_modeA}
+$\texttt{smul} : R \to M \to M$ is heterogeneous (input types $R$ and $M$
+differ).  $\texttt{IsModeAOp₂}$ requires a homogeneous type $T$.  Correct
+Mode~A form: $\texttt{IsModeAOp}\,(r \bullet \cdot : M \to M)$ (unary,
+with $r$'s operationality as hypothesis, not conclusion).
+PLAN.md initially suggested \texttt{IsModeAOp₂}\,$({\cdot}\bullet{\cdot}
+: R \to M \to M)$, which is incorrect.  The apparatus architecture
+naturally distinguishes internal from external operations.
+\end{finding}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Position relative to the Apparatus framework}
+\label{sec:algebra_vs_apparatus}
+
+\begin{remark}[Algebra confirms Apparatus generality]
+\label{rem:algebra_confirms_apparatus}
+Chapter~\ref{chap:apparatus} (VR-Apparatus) formalised the methodological
+framework; Chapter~\ref{chap:audit} (VR-Audit) applied it to Hahn-Banach
+in functional analysis.  One application could be coincidental.
+
+VR-Algebra provides the second application on entirely different territory
+(algebraic structures rather than functional analysis) and explicitly
+confirms that the apparatus requires no modification.  The key confirmation
+is Finding~A3: four independent apparatus registrations across four versions
+of the algebraic hierarchy, with the fourth (modules) requiring no new
+registration at all.
+
+Without VR-Algebra, VR-Apparatus would be a framework with one well-studied
+application.  With VR-Algebra, it is a framework demonstrated to be
+territory-independent.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Axiom profile}
+\label{sec:algebra_axiom_profile}
+
+\axiomprofile{[]}: Typeclass definitions (\texttt{OperationalAddGroup},
+\texttt{OperationalRing}, \texttt{OperationalGroup}, \texttt{OperationalModule}),
+all bridge instances, \texttt{instOperationalModuleIntInt},
+\texttt{PredicateOperationality} instances (except \texttt{instPredOpField}),
+Mode~A theorems for add/mul/sub/smul, nsmul/zsmul/npow/zpow,
+subgroup predicate and theorems, Mode~B main theorem.
+
+\axiomprofile{[propext]}: $\mathbb{Z}$ instances and demonstrations,
+\texttt{neg\_isModeAOp}, \texttt{MulGroup.inv\_isModeAOp},
+Mode~B lifts and lift\_val, $\mathbb{Z}$ kernel/image subgroup theorems.
+
+\axiomprofile{[propext, Quot.sound]}: $\mathbb{Z}/n\mathbb{Z}$ instances and
+demonstrations, \texttt{OperationalField} class, \texttt{toOperationalRing}
+bridge, \texttt{instPredOpField}.
+
+\axiomprofile{[propext, Classical.choice, Quot.sound]}:
+$\mathbb{Q}$ instances and demonstrations, \texttt{inv\_isModeAOp\_field},
+\texttt{OperationalField.toOperationalGroupUnits},
+$\mathbb{Q}^\times$ demonstrations, $\mathbb{Q}$-module instances.
+
+\textbf{Finding~A10} (axiom ceiling = underlying type ceiling):
+algebraic depth does not escalate axioms.
+Ring axioms (mul, pow, one) over $\mathbb{Z}$ add nothing; over $\mathbb{Z}/n$
+add nothing; \texttt{Classical.choice} enters only through $\mathbb{Q}$'s
+field inversion infrastructure.
+
+Zero sorry.  Zero admit.  All 64 public objects are axiom-clean.
+
+%──────────────────────────────────────────────────────────────────────
+\section{References}
+\label{sec:algebra_refs}
+
+The preprint for this chapter is
+\zenodo{10.5281/zenodo.20398300}{VR-Algebra, v1.0.0} (26 May 2026).
+
+The Lean~4 formalisation is accessible via GitHub tag
+\texttt{v1.12-vr-operational-algebra-v1.0.0} (commit \texttt{5e8f8e0}).
+No companion Lean Software record on Zenodo: code is cited by GitHub tag,
+simplifying the publication workflow without compromising reproducibility.
