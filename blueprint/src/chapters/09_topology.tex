@@ -1,12 +1,548 @@
 \chapter{VR-Topology}
 \label{chap:topology}
+\uses{chap:apparatus, chap:audit}
 
-% Stage 9 — FormalTopology (Coquand/Vickers, Sambin meet). CoverGen.
-% CompactWitness, OperationalFormalTopology, OperationalCompact.
-% prodF, prodF_cover_closure. tychonoff_binary.
-% Bridge to Order.Frame via SatSet.
-% instProdOperationalCompact deferred to v1.1.0 (listLowerOrder one-directional).
-% Axiom profile: [propext, Quot.sound] — no Classical.choice.
-% Note: no preprint and no separate Lean Software record;
-% code lives in GitHub tag v1.13-vr-topology-v1.0.0.
-% \uses{chap:apparatus}
+\section{Position}
+\label{sec:topology_position}
+
+VR-Topology is the ninth and final work of the cycle.  It formalises
+point-free topology in the style of Coquand~(1992) and Vickers~(2006),
+proving a binary Tychonoff theorem with axiom profile
+\texttt{[propext, Quot.sound]} --- no \texttt{Classical.choice}.
+
+\textbf{Architectural principle.} The formal topology structure
+$(\text{S},\,\text{le},\,\text{cov})$ is predicative: \texttt{cov}
+lives in \texttt{Prop}, avoiding the universe-inflation problem that
+blocked the original free-frame construction (Finding~T0).
+The bridge to mathlib's impredactive \texttt{Order.Frame} is built
+separately (Stage~7) and legitimately inherits \texttt{Classical.choice};
+this does not affect the Tychonoff theorem.
+
+\textbf{Unique status.} VR-Topology has no companion preprint by
+curatorial decision.  This chapter is the canonical exposition of the
+result.  It is also the chapter most directly relevant to Bas Spitters'
+school (point-free topology, formal topology, constructive locales).
+
+\textbf{Apparatus application.} \texttt{OperationalFormalTopology}
+and \texttt{OperationalCompact} use \texttt{PredicateOperationality}
+from Chapter~\ref{chap:apparatus}.  This is a fifth confirmation of
+Finding~A3 (apparatus reuse without modification), extending the chain
+AddGroup $\to$ Ring $\to$ Group $\to$ Module $\to$ \emph{FormalTopology}.
+
+\textbf{`instProdOperationalCompact` is deferred.}  The abstract instance
+for the product of two operational compact topologies is \emph{not} proved
+in v1.0.0 due to a structural limitation in \texttt{listLowerOrder}
+(Finding~T20).  Concrete instances on \texttt{Unit × Bool} work because
+\texttt{IsOperational := True} on finite carriers.  Deferred to v1.1.0.
+
+%──────────────────────────────────────────────────────────────────────
+\section{FormalTopology structure}
+\label{sec:topology_formal}
+
+\begin{definition}[Common refinement]
+\label{def:commonRefinement}
+\lean{VRCycle.Topology.commonRefinement}
+\leanok
+$\texttt{commonRefinement}\,\text{le}\,U\,V :=
+\{c \mid \exists\,u \in U,\;\exists\,v \in V,\; \text{le}\,c\,u \land
+\text{le}\,c\,v\}$.
+The set of elements that refine some element of $U$ and some element of $V$.
+Used in the \texttt{cov\_meet} axiom.
+\axiomprofile{[]}.
+\end{definition}
+
+\begin{definition}[Formal topology]
+\label{def:FormalTopology}
+\lean{VRCycle.Topology.FormalTopology}
+\leanok
+\uses{def:commonRefinement}
+\texttt{FormalTopology} is a structure with fields:
+\textbf{(i)}~\texttt{S : Type*} --- the carrier of basic elements;
+\textbf{(ii)}~\texttt{le : S → S → Prop} --- a preorder (with
+\texttt{le\_refl}, \texttt{le\_trans});
+\textbf{(iii)}~\texttt{cov : S → Set S → Prop} --- the coverage
+relation, satisfying five axioms:
+\begin{itemize}
+\item \texttt{cov\_refl}: $a \in U \Rightarrow \texttt{cov}\,a\,U$ (membership implies coverage).
+\item \texttt{cov\_trans}: if $\texttt{cov}\,a\,U$ and $\forall b \in U,\; \texttt{cov}\,b\,V$, then $\texttt{cov}\,a\,V$.
+\item \texttt{cov\_ref\_mono}: if $\text{le}\,a\,b$ and $\texttt{cov}\,b\,U$, then $\texttt{cov}\,a\,U$.
+\item \texttt{cov\_local}: if $\text{le}\,a\,b$ and $\texttt{cov}\,a\,U$, then $\texttt{cov}\,a\,\{c \in U \mid \text{le}\,c\,b\}$.
+\item \texttt{cov\_meet} (Sambin extension, Finding~T7): if $\texttt{cov}\,a\,U$ and $\texttt{cov}\,a\,V$, then $\texttt{cov}\,a\,(\texttt{commonRefinement}\,\text{le}\,U\,V)$.
+\end{itemize}
+The first four axioms are Coquand~(1992); the fifth (\texttt{cov\_meet})
+is the Sambin extension required for the product universal property.
+\texttt{cov} lives in \texttt{Prop}: universe inflation is avoided.
+\axiomprofile{[]}.
+\end{definition}
+
+\begin{definition}[Inductively generated coverage]
+\label{def:CoverGen}
+\lean{VRCycle.Topology.CoverGen}
+\leanok
+$\texttt{CoverGen}\,\text{le}\,\text{basicCov}$ is an inductive
+\texttt{Prop} with six constructors mirroring the coverage axioms:
+\texttt{basic} (import), \texttt{mem} (membership),
+\texttt{trans} (transitivity), \texttt{ref\_mono} (refinement-monotonicity),
+\texttt{local\_} (locality), \texttt{meet} (Sambin meet).
+\texttt{Prop}-valued: no universe issue.  Structural induction on
+\texttt{CoverGen} derivations is the key proof technique for Tychonoff.
+\axiomprofile{[]}.
+\end{definition}
+
+\begin{definition}[Formal topology from a presentation]
+\label{def:ofPresentation}
+\lean{VRCycle.Topology.FormalTopology.ofPresentation}
+\leanok
+\uses{def:FormalTopology, def:CoverGen}
+$\texttt{FormalTopology.ofPresentation}$ assembles a \texttt{FormalTopology}
+from a preorder and a relation of basic covers, using \texttt{CoverGen}
+as the coverage relation.  This is the standard construction; concrete
+formal topologies (Unit, Bool, Product) are built via this function.
+\end{definition}
+
+\begin{theorem}[Coverage monotonicity and singleton]
+\label{thm:cov_utilities}
+\lean{VRCycle.Topology.FormalTopology.cov_mono, VRCycle.Topology.FormalTopology.cov_singleton,
+      VRCycle.Topology.FormalTopology.cov_trans_singleton}
+\leanok
+\uses{def:FormalTopology}
+$\texttt{cov\_mono}$: $U \subseteq V \Rightarrow \texttt{cov}\,a\,U
+\Rightarrow \texttt{cov}\,a\,V$ (monotonicity).
+$\texttt{cov\_singleton}$: $\texttt{cov}\,a\,\{a\}$ (every element
+covers its own singleton).
+$\texttt{cov\_trans\_singleton}$: transitivity via singleton.
+All \axiomprofile{[]}.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Operational layer}
+\label{sec:topology_operational}
+
+\begin{definition}[\texttt{IsDescribable} and \texttt{OpCoverGen}]
+\label{def:IsDescribable}
+\lean{VRCycle.Topology.IsDescribable, VRCycle.Topology.OpCoverGen,
+      VRCycle.Topology.OpCoverGen.toCoverGen, VRCycle.Topology.OpCoverGen.toOpCov}
+\leanok
+\uses{def:CoverGen}
+$\texttt{IsDescribable}$ is a \texttt{class} (data class, not Prop)
+carrying an \texttt{enumerator : ℕ → Option α} for a set $\alpha$.
+Finding~T3: \texttt{IsDescribable} must be a data class (not Prop)
+because the enumerator carries computational content.
+$\texttt{OpCoverGen}$ is a parallel inductive \texttt{Prop} tracking
+operationally-tagged cover derivations.
+$\texttt{OpCoverGen.toCoverGen}$: every operational derivation gives a
+classical derivation.
+\end{definition}
+
+\begin{definition}[\texttt{OperationalFormalTopology}]
+\label{def:OperationalFormalTopology}
+\lean{VRCycle.Topology.OperationalFormalTopology,
+      VRCycle.Topology.OperationalFormalTopology.IsOperationalCov,
+      VRCycle.Topology.opFormalTopologyPredicate}
+\leanok
+\uses{def:FormalTopology, def:PredicateOperationality}
+$\texttt{OperationalFormalTopology}\,(T : \texttt{FormalTopology})$ is a
+\texttt{class} with fields: \texttt{IsOperational : T.S → Prop} (predicate on
+basic elements), \texttt{basicCov : T.S → Set T.S → Prop} (basic cover
+presentation), \texttt{op\_preserved\_by\_le} (operational status preserved under
+$\le$, Finding~T19).
+$\texttt{opFormalTopologyPredicate}$: registers the apparatus instance
+\texttt{PredicateOperationality T.S IsOperational}.
+This is the fifth confirmation of Finding~A3: apparatus reuse extends to formal topology.
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Product of formal topologies}
+\label{sec:topology_product}
+
+\begin{definition}[Binary product]
+\label{def:prod_topology}
+\lean{VRCycle.Topology.FormalTopology.prod,
+      VRCycle.Topology.FormalTopology.prodBase, VRCycle.Topology.FormalTopology.prodLe,
+      VRCycle.Topology.FormalTopology.prodBasicCov, VRCycle.Topology.OperationalFormalTopology.opProdBasicCov,
+      VRCycle.Topology.OperationalFormalTopology.instProd}
+\leanok
+\uses{def:FormalTopology, def:OperationalFormalTopology}
+$\texttt{prod}\,T_1\,T_2$ constructs a \texttt{FormalTopology} with:
+carrier $T_1.S \times T_2.S$, product preorder, and inductively generated
+cover from rectangular basic covers.
+$\texttt{opProdBasicCov}$: the product's operational basic cover
+(Finding~T14: a separate layer over \texttt{prodBasicCov} was needed
+to expose component \texttt{basicCov}).
+$\texttt{instProd}$: the \texttt{OperationalFormalTopology} instance for
+the product.
+\end{definition}
+
+\begin{definition}[Projections]
+\label{def:topology_proj}
+\lean{VRCycle.Topology.ContinuousMap.proj₁,
+      VRCycle.Topology.ContinuousMap.proj₂}
+\leanok
+\uses{def:prod_topology, def:FormalTopology}
+$\texttt{proj}_1$, $\texttt{proj}_2$: continuous maps from the product
+topology to each component.
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Compact witnesses and \texttt{OperationalCompact}}
+\label{sec:topology_compact}
+
+\begin{definition}[\texttt{listLowerOrder}]
+\label{def:listLowerOrder}
+\lean{VRCycle.Topology.FormalTopology.listLowerOrder,
+      VRCycle.Topology.FormalTopology.listLowerOrder_refl,
+      VRCycle.Topology.FormalTopology.listLowerOrder_trans}
+\leanok
+\uses{def:FormalTopology}
+$\texttt{listLowerOrder}\,\text{le}\,A\,B := \forall a \in A,\; \exists b \in B,\; \text{le}\,a\,b$
+(Vickers's $vL$ relation on lists).
+Uses \texttt{List} (not \texttt{Finset}): avoids \texttt{Classical.choice}
+inherited from mathlib's \texttt{Finset} (Finding~T13).
+\axiomprofile{[]}.
+\end{definition}
+
+\begin{definition}[\texttt{CompactWitness}]
+\label{def:CompactWitness}
+\lean{VRCycle.Topology.CompactWitness}
+\leanok
+\uses{def:FormalTopology, def:listLowerOrder}
+$\texttt{CompactWitness}\,(T : \texttt{FormalTopology})\,(\text{basicCov})$:
+a structure with $\texttt{F} : \texttt{Set}\,(\texttt{List}\,T.S)$ and
+four closure axioms (Vickers~2005/2007):
+\texttt{inhabited} (nonempty finite cover),
+\texttt{upper\_closed} (monotone under $vL$),
+\texttt{cover\_closure} (closed under covering),
+\texttt{witness\_operational} (elements of $F$ consist of operational points).
+$\texttt{List}$ over $\texttt{Finset}$ (Finding~T13).
+\end{definition}
+
+\begin{definition}[\texttt{OperationalCompact}]
+\label{def:OperationalCompact}
+\lean{VRCycle.Topology.OperationalCompact,
+      VRCycle.Topology.OperationalCompact.markedAsModeBTarget,
+      VRCycle.Topology.CompactWitness.implies_classical_compact}
+\leanok
+\uses{def:CompactWitness, def:OperationalFormalTopology}
+$\texttt{OperationalCompact}\,(T : \texttt{FormalTopology})$ is a
+\texttt{class} with a single field:
+$\texttt{witness} : \texttt{CompactWitness}\,T\,\text{basicCov}$.
+$\texttt{markedAsModeBTarget}$: identifies \texttt{OperationalCompact}
+as a Mode~B target (operational content extracted from classical compactness).
+$\texttt{implies\_classical\_compact}$: every operational compact topology
+is classically compact.
+\end{definition}
+
+\begin{definition}[Concrete instances]
+\label{def:topology_instances}
+\lean{VRCycle.Topology.Examples.instUnitOperationalCompact,
+      VRCycle.Topology.Examples.instBoolOperationalCompact,
+      VRCycle.Topology.Examples.Unit.operationalFormalTopology,
+      VRCycle.Topology.Examples.Bool.operationalFormalTopology}
+\leanok
+\uses{def:OperationalCompact}
+\texttt{Unit.formalTopology}: formal topology on a one-point space.
+\texttt{Bool.formalTopology}: formal topology on \texttt{Bool} with the
+discrete preorder.
+Both with \texttt{OperationalFormalTopology} and \texttt{OperationalCompact}
+instances.  Finding~T11: Bool F-witness corrected from
+$\{S \mid S = \emptyset \lor \texttt{true} \in S \lor \texttt{false} \in S\}$
+to $\{S \mid \texttt{true} \in S \land \texttt{false} \in S\}$.
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Binary Tychonoff}
+\label{sec:topology_tychonoff}
+
+\begin{definition}[\texttt{prodF} --- Vickers F-witness for the product]
+\label{def:prodF}
+\lean{VRCycle.Topology.prodF, VRCycle.Topology.prodF_inhabited,
+      VRCycle.Topology.prodF_upper_closed}
+\leanok
+\uses{def:CompactWitness, def:prod_topology}
+$\texttt{prodF}\,T_1\,T_2\,w_1\,w_2$: a list $T$ is in \texttt{prodF}
+iff for every decomposition of $T$ into parts $T_{1,\text{part}}$ and
+$T_{2,\text{part}}$, either the first-coordinate projection of
+$T_{1,\text{part}}$ is in $w_1.F$, or the second-coordinate projection
+of $T_{2,\text{part}}$ is in $w_2.F$.
+(Vickers 2006, Theorem~19 decomposition predicate.)
+$\texttt{prodF\_inhabited}$: non-empty; proved by finite case dispatch
+using \texttt{DecidableEq} (Finding~T16: decidability hypotheses
+are required and explicit).
+$\texttt{prodF\_upper\_closed}$: closed under \texttt{listLowerOrder}.
+\end{definition}
+
+\begin{theorem}[\texttt{prodF\_cover\_closure}]
+\label{thm:prodF_cover_closure}
+\lean{VRCycle.Topology.prodF_cover_closure,
+      VRCycle.Topology.prodF_cover_closure_head}
+\leanok
+\uses{def:prodF, def:CoverGen, def:CompactWitness}
+$\texttt{prodF\_cover\_closure}$: the \texttt{cover\_closure} field of
+the \texttt{CompactWitness} built from \texttt{prodF}.
+If $a$ is covered by a basic product cover, then the singleton $\{a\}$ is
+in \texttt{prodF}.
+This is the core technical lemma: structural induction on
+\texttt{CoverGen} derivations, following Vickers~(2006).
+The proof uses \texttt{cov\_meet} at the product level to handle
+rectangular covers (the reason \texttt{cov\_meet} is load-bearing).
+\axiomprofile{[propext, Quot.sound]}.
+\end{theorem}
+
+\begin{definition}[\texttt{tychonoff\_binary}]
+\label{def:tychonoff_binary}
+\lean{VRCycle.Topology.tychonoff_binary}
+\leanok
+\uses{thm:prodF_cover_closure, def:CompactWitness, def:OperationalCompact}
+$\texttt{tychonoff\_binary}\,(T_1\,T_2 : \texttt{FormalTopology})\,
+[w_1 : \texttt{CompactWitness}\,T_1]\,[w_2 : \texttt{CompactWitness}\,T_2]
+\,[\text{decidability instances}]$:
+a \texttt{CompactWitness} for the product topology
+$\texttt{FormalTopology.prod}\,T_1\,T_2$.
+
+The compact witness for the binary product is constructed from the
+Vickers F-witness \texttt{prodF}, \texttt{prodWitness} assembles the
+four fields using \texttt{prodF\_cover\_closure} as the closure axiom.
+This is a concrete \emph{def} (construction), not merely an existence
+proof.
+
+Proof sketch: structural induction on \texttt{CoverGen} derivations
+(hence: Inductive Prop, no \texttt{Classical.choice}).  The
+\texttt{ref\_mono} and \texttt{meet} cases use
+\texttt{prodF\_upper\_closed} and product \texttt{cov\_meet}
+respectively.  Decidability hypotheses (Finding~T16) are required for
+constructive case splits in the \texttt{basic} case.
+
+\noindent\axiomprofile{[propext, Quot.sound]}.
+Zero \texttt{Classical.choice}.  This is the primary claim of
+VR-Topology: a constructive binary Tychonoff without the Axiom of Choice.
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Bridge to \texttt{Order.Frame}}
+\label{sec:topology_bridge}
+
+\begin{definition}[Saturated sets]
+\label{def:SatSet}
+\lean{VRCycle.Topology.IsSaturated, VRCycle.Topology.SatSet,
+      VRCycle.Topology.SatSet.saturate,
+      VRCycle.Topology.SatSet.saturate_isSaturated}
+\leanok
+\uses{def:FormalTopology}
+$\texttt{IsSaturated}\,T\,U := \forall a,\; T.\texttt{cov}\,a\,U \Rightarrow a \in U$:
+a set is saturated iff it is downward-closed under coverage.
+$\texttt{SatSet}\,T := \{U : \texttt{Set}\,T.S \mid \texttt{IsSaturated}\,T\,U\}$.
+$\texttt{saturate}\,T\,U$: smallest saturated set containing $U$.
+These define the frame elements.
+\end{definition}
+
+\begin{definition}[Frame structure on \texttt{SatSet}]
+\label{def:instFrame}
+\lean{VRCycle.Topology.instCompleteLattice,
+      VRCycle.Topology.frameMinAx,
+      VRCycle.Topology.instFrame}
+\leanok
+\uses{def:SatSet}
+$\texttt{instCompleteLattice}$: \texttt{CompleteLattice (SatSet T)};
+$\sup = \texttt{saturate}\,(\bigcup)$, $\inf = \bigcap$.
+$\texttt{frameMinAx}$: \texttt{Order.Frame.MinimalAxioms (SatSet T)};
+frame distributivity $a \sqcap \bigsqcup S = \bigsqcup (a \sqcap \cdot)\,''S$
+proved via \texttt{iSup\_pos} bridging (Finding~T21).
+$\texttt{instFrame}$: \texttt{Order.Frame (SatSet T)} derived from
+\texttt{frameMinAx}.
+
+\begin{remark}[Predicative meets impredicative at the bridge]
+\label{rem:topology_bridge}
+\leanok
+Stages~1--6 (\texttt{FormalTopology} through \texttt{tychonoff\_binary})
+are strict-constructive: axiom profile \texttt{[propext, Quot.sound]}.
+Stage~7 crosses to mathlib's impredicative \texttt{Order.Frame}, which
+legitimately acquires \texttt{Classical.choice} through the frame
+typeclass machinery.  The bridge is expected and documented.
+\texttt{instFrame} has \axiomprofile{[propext, Classical.choice, Quot.sound]}.
+The Tychonoff theorem (\texttt{tychonoff\_binary}) is unaffected:
+it is proved before the bridge and sits in its own constructive stratum.
+\end{remark}
+\end{definition}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Honest scope: deferred abstract instance}
+\label{sec:topology_limitations}
+
+\begin{remark}[\texttt{instProdOperationalCompact} deferred to v1.1.0]
+\label{rem:prod_not_ready}
+\notready
+\uses{def:OperationalCompact, def:listLowerOrder}
+The abstract instance
+$\texttt{OperationalCompact}\,(\texttt{prod}\,T_1\,T_2)$ from
+$[\texttt{OperationalCompact}\,T_1]\,[\texttt{OperationalCompact}\,T_2]$
+is \emph{not} provided in v1.0.0.
+
+Root cause (Finding~T20): \texttt{listLowerOrder} is one-directional
+($\forall a \in A,\; \exists b \in B,\; \text{le}\,a\,b$), which
+suffices for F-membership transfer (\texttt{prodF\_upper\_closed}) but
+is insufficient to propagate per-element operationality from
+\texttt{prodF} witnesses back to the product.  Specifically, elements
+of the product cover may have no \texttt{prodLe}-preimage with
+constrained operationality.
+
+Concrete instances work: \texttt{Unit × Bool} satisfies
+\texttt{OperationalCompact} trivially because \texttt{IsOperational :=
+True} on finite carriers.  Abstract propagation is deferred to v1.1.0
+(bidirectional \texttt{listLowerOrder} or restructured
+\texttt{OperationalCompact}).  This is a scope discipline decision, not
+a methodological failure.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Architectural amendments (T\_FINDINGS)}
+\label{sec:topology_tfindings}
+
+VR-Topology accumulated 18--19 architectural amendments (T0--T21) through
+nine implementation sessions.  At no point did an architect direction error
+propagate into committed Lean code; all were caught at the word-first or
+paper-sketch phase.  The five patterns below document the methodological
+significance.
+
+\begin{remark}[Pattern~1 --- Architect direction errors caught at paper sketch]
+\label{rem:T_pattern1}
+\leanok
+\uses{def:FormalTopology, def:CoverGen}
+Findings T5, T8, T9, T11, T15, T17, T20: seven distinct architect
+direction errors detected at the pre-implementation paper sketch stage
+before any Lean code was committed.  This validates the
+word-first/paper-sketch workflow as a recognition-discipline gate.
+\end{remark}
+
+\begin{remark}[Pattern~2 --- Classical inheritance from mathlib]
+\label{rem:T_pattern2}
+\lean{VRCycle.Topology.FormalTopology.listLowerOrder,
+      VRCycle.Topology.CompactWitness}
+\leanok
+\uses{def:listLowerOrder, def:CompactWitness}
+Finding~T6 (\texttt{Nat.unpair\_pair} pulls \texttt{Classical.choice}
+via \texttt{Nat.sqrt}): resolved by custom bit-interleaving pairing.
+Finding~T13 (\texttt{Finset} transitively imports
+\texttt{Classical.choice} via \texttt{Quot.unquot}): resolved by
+replacing \texttt{Finset T.S} with \texttt{List T.S} throughout
+\texttt{CompactWitness} (${\sim}268$ lines discarded, ${\sim}245$
+rewritten).  The strict constructive baseline requires careful
+verification of all mathlib import chains.
+\end{remark}
+
+\begin{remark}[Pattern~3 --- Under-specification requiring explicit axiomatisation]
+\label{rem:T_pattern3}
+\lean{VRCycle.Topology.FormalTopology}
+\leanok
+\uses{def:FormalTopology}
+Finding~T7 (\texttt{cov\_meet} required for product universal property),
+Finding~T14 (\texttt{opProdBasicCov} layer needed),
+Finding~T16 (decidability hypotheses in \texttt{tychonoff\_binary}
+signature), Finding~T19 (\texttt{op\_preserved\_by\_le} field required).
+All were implicit in architect plans and surfaced as explicit requirements
+during implementation.  Adding \texttt{cov\_meet} to \texttt{FormalTopology}
+was the most architecturally significant (changed the structure definition
+globally).
+\end{remark}
+
+\begin{remark}[Pattern~4 --- Notation/elaboration bridging]
+\label{rem:T_pattern4}
+\lean{VRCycle.Topology.instFrame}
+\leanok
+\uses{def:instFrame}
+Finding~T21 (\texttt{iSup\_pos} bridging): mathlib's notation
+$\bigsqcup_{b \in S} A \sqcap b$ elaborates to nested \texttt{iSup}
+with conditional; bridging required identifying the specific lemma
+\texttt{iSup\_pos}.  This is a notation/elaboration finding, not
+a mathematical one.  The paper proof closes; Lean's infrastructure
+requires a specific bridge tactic.
+\end{remark}
+
+\begin{remark}[Pattern~5 --- Scope discipline under fatigue]
+\label{rem:T_pattern5}
+\leanok
+\uses{rem:prod_not_ready}
+Finding~T20 (R3 resolution): when the abstract
+\texttt{instProdOperationalCompact} could not be proved due to the
+\texttt{listLowerOrder} directionality issue, the correct response was
+to provide concrete-only instances and defer the abstract case to
+v1.1.0, rather than forcing an incorrect proof or adding a
+\texttt{sorry}.  This preserved cycle stability and honesty.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Position relative to existing work}
+\label{sec:topology_comparison}
+
+\begin{remark}[Vickers (2006)]
+\label{rem:compare_vickers}
+The proof of \texttt{tychonoff\_binary} follows Vickers's
+``Compactness in locales and in formal topology'' (2006, Theorem~19).
+The key adaptation is the translation to Lean~4's inductive type theory:
+the classical Kuratowski-finite sets are replaced by
+\texttt{List}-encoded covers (Finding~T13); the classical case splits
+become explicit \texttt{Decidable} hypotheses (Finding~T16).
+\end{remark}
+
+\begin{remark}[Coquand (1992) and Sambin]
+\label{rem:compare_coquand}
+The coverage axioms follow Coquand~(1992)'s presentation.  The fifth
+axiom (\texttt{cov\_meet}) is the Sambin extension, required for the
+product universal property (Finding~T7).  Coquand's minimal four-axiom
+system was insufficient; Sambin's meet axiom is indispensable.
+\end{remark}
+
+\begin{remark}[Tosun and pointless localic algebra]
+\label{rem:compare_tosun}
+Tosun's Agda formalisation of locale theory covers Stone and spectral
+spaces in point-free settings.  VR-Topology uses formal topology
+(coverage relations) rather than frames directly; the bridge to
+\texttt{Order.Frame} (Stage~7) connects the two frameworks.
+The choice of formal topology (not frames) is what enables the
+constructive axiom profile of \texttt{tychonoff\_binary}.
+\end{remark}
+
+\begin{remark}[Spitters and pointless schemes]
+\label{rem:compare_spitters}
+Spitters's programme in pointless algebraic geometry (Grothendieck
+toposes in point-free formulation, topos of sheaves on a locale) is
+the downstream application context for formal topology.  VR-Topology
+provides a verified binary Tychonoff in the style that formal topology
+researchers expect.  The bridge to \texttt{Order.Frame} (Sections~\ref{sec:topology_bridge})
+prepares the infrastructure for sheaf-theoretic applications.
+\end{remark}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Axiom profile}
+\label{sec:topology_axiom_profile}
+
+\axiomprofile{[]} for core abstract objects: \texttt{FormalTopology},
+\texttt{CoverGen} and its constructors, \texttt{commonRefinement},
+\texttt{listLowerOrder}, \texttt{CompactWitness}, \texttt{OperationalCompact},
+\texttt{prodF}, \texttt{prodF\_upper\_closed}, \texttt{prodF\_inhabited}.
+
+\axiomprofile{[propext, Quot.sound]} for the central results:
+\texttt{tychonoff\_binary}, \texttt{prodF\_cover\_closure},
+\texttt{prodF\_cover\_closure\_head}, and all theorems derived through
+\texttt{CoverGen} induction.
+
+\axiomprofile{[propext, Classical.choice, Quot.sound]} for the
+\texttt{Order.Frame} bridge: \texttt{instCompleteLattice},
+\texttt{frameMinAx}, \texttt{instFrame}.  The \texttt{Classical.choice}
+here is inherited from mathlib's impredicative frame infrastructure
+and does not affect the Tychonoff theorem (proved in Stage~6, before
+Stage~7's bridge).
+
+Zero sorry.  Zero admit.  All deferred content is either concrete instances
+or explicitly marked as v1.1.0 scope.
+
+%──────────────────────────────────────────────────────────────────────
+\section{References}
+\label{sec:topology_refs}
+
+No companion preprint by curatorial decision.  This chapter is the
+canonical exposition of VR-Topology.
+
+The Lean~4 formalisation is accessible at
+\href{https://github.com/inventor1975/VRCycle}{github.com/inventor1975/VRCycle},
+directory \texttt{VRCycle/Topology/},
+git tag \texttt{v1.13-vr-topology-v1.0.0}.

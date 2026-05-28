@@ -8,3 +8,4 @@ import VRCycle.Audit
 import VRCycle.SetsZFA
 import VRCycle.Apparatus
 import VRCycle.Algebra
+import VRCycle.Topology
