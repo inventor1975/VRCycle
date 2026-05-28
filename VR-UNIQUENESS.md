@@ -300,9 +300,6 @@ Aspirational claims, not yet externally validated. Internal compass.
   selection from uncountable family) — operational act of description,
   but correlate not operational (requires completed totality that VR
   ontology does not provide).
-- **Inheritance**: structurally identical к author's earlier pseudo-infinity
-  (פ) framework (ZF + DC, boundary at full AC). Not currently cross-referenced
-  in published preprints — integration gap identified.
 - **Philosophical content**: expanded position — **everything is
   operational**, including descriptions of non-operational referents.
   The distinction is not between "operational register" and "formal
