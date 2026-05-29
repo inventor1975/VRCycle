@@ -1,0 +1,270 @@
+\chapter{VR-Transit}
+\label{chap:transit}
+\uses{chap:apparatus, chap:audit, chap:algebra}
+
+\section{Position}
+\label{sec:transit_position}
+
+VR-Transit is the tenth work of the cycle.  It extends VR-Apparatus
+(Chapter~\ref{chap:apparatus}) from \emph{``transit is well-behaved''}
+(closed under composition and identity; \texttt{Factorisable} as the canonical
+Mode~B witness) to two further statements: that transit is \emph{conservative}
+over axioms, and that the leverage it provides takes the form of a \emph{bounded
+library of witnesses}.
+
+\textbf{This is a clarity result, not new power.}  The apparatus does not extend
+what VR can prove.  It contributes no axiom of its own to any transited object;
+it provides a conservative spine and an honest, bounded library of
+\texttt{Factorisable} bridges, and --- the point of this chapter --- it lets us
+say exactly where the axiom cost of a transit lives, and exactly where the
+witness method stops working.  The universal form of conservativity is a meta
+statement about the kernel, exhibited on representatives, not proved as a single
+internal theorem (Section~\ref{sec:transit_conservativity}).
+
+\textbf{Two tracks, one of them out of reach.}  The apparatus has a predicate
+track and a reference track (Finding~S3-A).  The four providers of this chapter
+all live in the predicate track.  The reference track was examined and yielded no
+clean witness method; structurally, non-descent there reduces to the need for
+\texttt{Classical.choice}, which cannot be witnessed
+(Finding~TR-R1, Section~\ref{sec:transit_findings}).  This is the sharpest result
+of the chapter.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Conservativity (I)}
+\label{sec:transit_conservativity}
+
+The apparatus is axiom-neutral: the internal carriers of conservativity are
+existing \axiomprofile{[]} lemmas, re-used, not re-proved.
+
+\begin{theorem}[Internal carriers of conservativity]
+\label{thm:transit_carriers}
+\lean{VR.Apparatus.operand_determines_operational,
+      VR.Apparatus.factorisable_implies_isModeBOp,
+      VR.Apparatus.IsModeBOp_of_factorisable,
+      VR.Apparatus.Factorisable.lift_val,
+      VR.Apparatus.IsModeBOp.compose}
+\leanok
+\uses{chap:apparatus}
+The apparatus path from a witness to a Mode~B operation, the transparency of the
+lift, and the composition of transits are all axiom-free.
+\texttt{operand\_determines\_operational}, \texttt{factorisable\_implies\_isModeBOp},
+\texttt{IsModeBOp\_of\_factorisable}: \axiomprofile{[]} (the apparatus reductions).
+\texttt{Factorisable.lift\_val}: \axiomprofile{[]}, and it is \texttt{rfl} --- the
+transited operation \emph{definitionally is} the operation on the operational
+subtype (transparency).  \texttt{IsModeBOp.compose}: \axiomprofile{[]} --- composing
+two transits injects no axiom.
+\end{theorem}
+
+\textbf{The universal form is meta.}  The statement ``for all $f$,
+$\operatorname{axioms}(\operatorname{transit} f) = \operatorname{axioms}(f)$'' is a
+kernel-level fact: \texttt{\#print axioms} is not an internal predicate one can
+quantify over.  We therefore \emph{exhibit} conservativity on representatives
+(Section~\ref{sec:transit_audit}), exactly as every chapter of the cycle already
+does with its axiom-audit footers, and prove only the schematic internal carriers
+above.  No single universal internal theorem is claimed.
+
+%──────────────────────────────────────────────────────────────────────
+\section{The four-source decomposition of cost}
+\label{sec:transit_decomposition}
+
+The central observation.  Across the representative transited objects audited in
+Section~\ref{sec:transit_audit}, the axiom profile is exhibited as a decomposition
+into four named sources, with the apparatus contributing to none:
+\[
+  \operatorname{axioms}(\text{transit})
+  \;\;\text{is exhibited as}\;\;
+  \underbrace{\text{operation}}_{\text{e.g.\ Riesz, subgroup image}}
+  \;\oplus\;
+  \underbrace{\text{pointwise witness}}_{[\,]}
+  \;\oplus\;
+  \underbrace{\text{aggregation}}_{\texttt{Finset.sum}}
+  \;\oplus\;
+  \underbrace{\text{carrier encoding}}_{\text{Finding TR-FW1}}
+  \;\oplus\;
+  \underbrace{\text{apparatus}}_{\varnothing}.
+\]
+The operation source is itself a spectrum: algebraic infrastructure contributes
+\texttt{[propext]} (subgroup image), analytic operations contribute
+\texttt{[propext, Classical.choice, Quot.sound]} (Riesz); both are operation-side,
+neither is apparatus (Finding~TR-C1).  Aggregation over an explicit \texttt{Finset}
+contributes the choice-free \texttt{[propext, Quot.sound]}.  Carrier encoding is an
+\emph{artefact}: indexing by \texttt{Fintype}/\texttt{Finset.univ} inflates to the
+full ceiling, and is removable (Finding~TR-FW1).
+
+%──────────────────────────────────────────────────────────────────────
+\section{The witness library (II)}
+\label{sec:transit_library}
+
+Leverage is a bounded library of Tier-2 domain-structure $\to$
+\texttt{Factorisable} bridges, each buying one family of transits.  The bridges
+fall into two kinds, distinguished by their achievable axiom profile:
+
+\textbf{Pointwise bridges (target \axiomprofile{[]}).}  Evaluate the witness at a
+single named operand; no summation.
+
+\begin{theorem}[Finite-generator pointwise bridge]
+\label{thm:transit_finiteGen}
+\lean{VR.Transit.HasFiniteGeneratorStructure,
+      VR.Transit.finiteGen_provides_factorisable}
+\leanok
+\uses{chap:apparatus}
+\texttt{HasFiniteGeneratorStructure}\,$(T\,\iota)$ carries an axiom-free generator
+map \texttt{gens : $\iota \to T$} (\axiomprofile{[]}).
+\texttt{finiteGen\_provides\_factorisable}: an operation agreeing with a globally
+operational $g$ on every generator is \texttt{Factorisable} at each generator
+(\axiomprofile{[]}).  This mirrors \texttt{separability\_provides\_factorisable}
+with a finite index in place of a dense sequence.
+\end{theorem}
+
+\begin{theorem}[Located structural bridge (realised Level~B)]
+\label{thm:transit_located}
+\lean{VR.Transit.located_witness_operational,
+      VR.Transit.located_provides_factorisable}
+\leanok
+\uses{chap:audit, chap:apparatus}
+For an operational normable functional $f$ on an operational located subspace
+$M \le E$, the located structure \emph{supplies} the witness $g := f \circ P_M$
+(orthogonal projection), not merely the evaluation points.
+\texttt{located\_witness\_operational}: $g$ is globally operational, re-using
+\texttt{fn\_computable\_everywhere}.  \texttt{located\_provides\_factorisable}: any
+operation agreeing with $g$ on the dense sequence is \texttt{Factorisable} there.
+Both \axiomprofile{[propext, Classical.choice, Quot.sound]} --- faithful, source is
+the \emph{operation} (projection via completeness), apparatus $\varnothing$.  This
+delivers the evaluation-point-level (Level~B) \texttt{Factorisable} that
+Chapter~\ref{chap:apparatus} (separability) left deferred; the witness $g = f\circ
+P_M$ is structural, distinct from the self-witnessing Riesz bridge --- not a
+re-skin.
+\end{theorem}
+
+\textbf{Aggregating bridge (target choice-free \axiomprofile{[propext, Quot.sound]}).}
+Combining a witness over a finite operand set routes through \texttt{Finset.sum};
+the achievable target is choice-free, not \texttt{[]}.
+
+\begin{theorem}[Additive-span aggregating bridge]
+\label{thm:transit_finiteSpan}
+\lean{VR.Transit.finiteSpan_provides_factorisable}
+\leanok
+\uses{thm:transit_finiteGen, chap:apparatus}
+\texttt{finiteSpan\_provides\_factorisable}: for additive maps agreeing on the
+generators, agreement propagates to every $\mathbb{Z}$-combination over an explicit
+\texttt{Finset} of indices, so the operation is \texttt{Factorisable} at any such
+combination (\axiomprofile{[propext, Quot.sound]}).  This is the
+operand-not-operation principle (Finding~S4-A) at the linear-combination level: the
+output's operationality is fixed by the operand's explicit coordinates, not by the
+map.  \texttt{Classical.choice} is absent --- finite additive transit is constructive.
+\end{theorem}
+
+The library thus spans density (separability, Chapter~\ref{chap:apparatus}),
+completeness/projection (located), and finiteness (finite generators, in both a
+pointwise and an aggregating tier).
+
+%──────────────────────────────────────────────────────────────────────
+\section{Axiom-attribution audit}
+\label{sec:transit_audit}
+
+The exhibited classification (file \texttt{VRCycle/Transit/Conservativity.lean},
+which declares no public objects --- it is an exhibition of existing profiles):
+
+\begin{center}
+\begin{tabular}{lll}
+\textbf{object} & \textbf{profile} & \textbf{source} \\
+\hline
+\texttt{operand\_determines\_operational}      & \texttt{[]}        & reduction \\
+\texttt{factorisable\_implies\_isModeBOp}       & \texttt{[]}        & reduction \\
+\texttt{IsModeBOp\_of\_factorisable}            & \texttt{[]}        & reduction \\
+\texttt{Factorisable.lift\_val}                 & \texttt{[]}        & transparency \\
+\texttt{IsModeBOp.compose}                      & \texttt{[]}        & combinator \\
+\texttt{separability\_provides\_factorisable}   & \texttt{[]}        & pointwise \\
+\texttt{finiteGen\_provides\_factorisable}      & \texttt{[]}        & pointwise \\
+\texttt{image\_isOperationalAddSubgroup\_isModeBOp} & \texttt{[propext]} & operation/alg.\ \\
+\texttt{finiteSpan\_provides\_factorisable}     & \texttt{[propext, Quot.sound]} & aggregation \\
+\texttt{riesz\_extension\_isModeBOp}            & \texttt{[propext, Classical.choice, Quot.sound]} & operation/anal.\ \\
+\end{tabular}
+\end{center}
+
+The ``apparatus'' column is empty in every row.  This table \emph{is} the exhibited
+classification; it is not claimed as a single internal theorem.  Gate verdict:
+thesis~(I) holds on real cycle data.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Findings}
+\label{sec:transit_findings}
+
+\textbf{Finding~TR-R1 (headline): the witness method reaches exactly as far as the
+obstacle is witnessable.}  The four providers live in the predicate track, where
+the obstacle is concrete --- density, projection, coordinates --- and a witness can
+be exhibited.  The reference track (setoids/quotients, $\texttt{ZFSet} =
+\texttt{Quotient}\,\texttt{PSet.setoid}$) was examined and yielded no clean witness
+method: a natural non-descending operation (selection) is not totally and purely
+expressible (one cannot extract an element of an arbitrary index type
+\texttt{x.Type}); the only total version uses \texttt{Classical.choice}, whose
+selection is opaque, so the defining non-descent is not even provable.  Structurally,
+then, the reference track's non-descending content coincides with the need for
+\texttt{Classical.choice}, and \texttt{Classical.choice} is precisely what cannot be
+witnessed.  The operationalisation-by-witness method
+therefore works exactly where the obstruction is concrete and witnessable, and fails
+exactly where the obstruction is choice.  This is a characterisation of the method's
+reach, and it complements Finding~S3-A from the Mode~B side.  The \texttt{RefFactorisable}
+abstraction is dropped (no nontrivial instance; recognition discipline).
+
+\textbf{Finding~TR-FW1 (two faces, both removable; the A15 family).}  Finite
+additive transit cost lives in the carrier \emph{encoding}, not the algebra.
+Face~1: indexing by \texttt{Fin}/\texttt{Fintype} and summing over
+\texttt{Finset.univ} inflates to \texttt{[propext, Classical.choice, Quot.sound]} ---
+even a \texttt{rfl} identity carries it --- whereas an explicit \texttt{Finset} keeps
+the sum choice-free.  Face~2: a \texttt{Finset} field placed in the Tier-2 class
+contaminates the class type with \texttt{[propext, Quot.sound]} and the pointwise tier
+inherits it; keeping the class to its axiom-free generator map restores \texttt{[]}.
+Rule canonised: axiom-bearing data belongs to the aggregating bridge's arguments,
+never to a Tier-2 class shared with pointwise bridges.
+
+\textbf{Finding~TR-C1: the operation source is a spectrum.}
+\texttt{image\_isOperationalAddSubgroup\_isModeBOp} is \texttt{[propext]} (algebraic
+infrastructure), \texttt{riesz\_extension\_isModeBOp} is \texttt{[propext,
+Classical.choice, Quot.sound]} (analytic); both attribute to the operation, neither
+to the apparatus.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Honest scope}
+\label{sec:transit_scope}
+
+\textbf{Predicate track only.}  The witness library and the exhibited
+conservativity are predicate-track results (Finding~TR-R1).
+
+\textbf{Both extension candidates were examined and dropped, with reasons.}  An
+arithmetic/computability provider is redundant: \texttt{IsComputableReal} is
+\emph{already defined} as carrying a rational algorithm with a convergence modulus,
+so a ``modulus provider'' restates the existing predicate, and the corpus
+deliberately does not use mathlib's \texttt{Computable} (no \texttt{Computable} proofs
+for $\mathbb{Q}$-arithmetic); over $\mathbb{N}$ the output predicate is trivial and
+the bridge collapses.  A reference-track provider does not exist (Finding~TR-R1).
+The ceiling has been probed from both sides; the spanning set is four predicate-track
+providers, not vapour.
+
+\textbf{Universal conservativity is meta.}  Exhibited on representatives, not an
+internal theorem (Section~\ref{sec:transit_conservativity}).
+
+%──────────────────────────────────────────────────────────────────────
+\section{Position relative to existing work}
+\label{sec:transit_related}
+
+The angle of VR-Transit --- axiom attribution and transit conservativity as a lens
+--- is distinct from proof mining (extracting bounds from classical proofs), reverse
+mathematics (calibrating theorems against subsystems), Bishop-style constructive
+analysis (rebuilding analysis without excluded middle), and computable analysis
+(representations and Type-2 effectivity).  Chapter~\ref{chap:apparatus} already
+situates the cycle against these schools (its Remarks on related work); the delta
+here is only that VR-Transit measures the \emph{apparatus's own} axiom contribution
+(zero) and attributes each transit's cost to a named source, rather than re-founding
+any mathematics.
+
+%──────────────────────────────────────────────────────────────────────
+\section{References}
+\label{sec:transit_refs}
+
+The Lean~4 formalisation lives in the monorepo under \texttt{VRCycle/Transit/}
+(modules \texttt{FiniteWitness}, \texttt{Conservativity}, \texttt{Located}) and is
+cited by GitHub tag on release, following the convention of VR-Algebra and
+VR-Topology.  By curatorial decision there is no companion Zenodo record for this
+work; code is cited by tag, and this chapter is the canonical exposition.  Findings
+are catalogued in \texttt{T\_FINDINGS\_TRANSIT.md} (TR-FW1, TR-C1, TR-R1).

@@ -9,3 +9,4 @@ import VRCycle.SetsZFA
 import VRCycle.Apparatus
 import VRCycle.Algebra
 import VRCycle.Topology
+import VRCycle.Transit

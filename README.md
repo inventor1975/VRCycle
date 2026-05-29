@@ -11,7 +11,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20380344.svg)](https://doi.org/10.5281/zenodo.20380344)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20381417.svg)](https://doi.org/10.5281/zenodo.20381417)
 
-Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, a domain extension demonstrating apparatus generality in algebra, and constructive predicative formal topology with the binary Tychonoff theorem. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra **v1.0.0** — stable release, git tag `v1.12-vr-operational-algebra-v1.0.0`) and **ninth work** (VR-Topology **v1.0.0**, git tag `v1.13-vr-topology-v1.0.0`) in this repository, both pending Zenodo submission. Algebra: 64 public objects, Findings A0–A19, closed Recognition Discipline Loop. Topology: ~85+ public objects, binary Tychonoff, zero `Classical.choice` including Order.Frame bridge.
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, a domain extension demonstrating apparatus generality in algebra, and constructive predicative formal topology with the binary Tychonoff theorem. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra **v1.0.0** — stable release, git tag `v1.12-vr-operational-algebra-v1.0.0`) and **ninth work** (VR-Topology **v1.0.0**, git tag `v1.13-vr-topology-v1.0.0`) in this repository (both pending Zenodo submission); and a **tenth work** (VR-Transit **v1.0.0**, transit conservativity and a bounded witness library, git tag `v1.15-vr-transit-v1.0.0`, code cited by git tag, no Zenodo by curatorial decision). Algebra: 64 public objects, Findings A0–A19, closed Recognition Discipline Loop. Topology: ~85+ public objects, binary Tychonoff, zero `Classical.choice` including Order.Frame bridge.
 
 ## Publications
 
@@ -34,6 +34,7 @@ Fourteen Zenodo records (seven works × Lean + preprint). Two further works (Ope
 | 13 | **VR-Apparatus v1.0.0 (Lean)** | [**10.5281/zenodo.20380344**](https://doi.org/10.5281/zenodo.20380344) | **`v1.7-vr-apparatus-1.0.0`** |
 | 14 | **VR-Apparatus v1.0.0 (preprint)** | [**10.5281/zenodo.20381417**](https://doi.org/10.5281/zenodo.20381417) | — |
 | 15 | **VR-Topology v1.0.0 (Lean)** | — *(Zenodo pending)* | **`v1.13-vr-topology-v1.0.0`** |
+| 16 | **VR-Transit v1.0.0 (Lean)** | — *(no Zenodo; cited by git tag, curatorial decision)* | **`v1.15-vr-transit-v1.0.0`** |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 
@@ -1522,3 +1523,26 @@ The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 | 6b | `Topology/Tychonoff.lean` | `Unit × Bool` concrete operational compactness instance | ✓ | `[propext, Quot.sound]` |
 | 7 | `Topology/Bridge.lean` | **`instFrame`** (bridge to mathlib `Order.Frame`, constructive) | ✓ | **`[propext, Quot.sound]`** |
 | Tag | — | Full axiom audit (FINAL_AXIOM_AUDIT.md), T_FINDINGS.md, git tag `v1.13-vr-topology-v1.0.0` | ✓ | — |
+
+### VR-Transit (transit conservativity, bounded witness library)
+
+**Tenth work.** Extends VR-Apparatus from *"transit is well-behaved"* to *transit is conservative over axioms* and *leverage is a bounded library of witnesses*. **Five public objects** across three files (plus one exhibition file with none). No sorry. No admit. Full build: 3366 jobs. Git tag: `v1.15-vr-transit-v1.0.0`. A clarity result, not new power: the apparatus contributes no axiom of its own to any transited object; this work says exactly where each transit's axiom cost lives, and exactly where the witness method stops.
+
+| Stage | File | Description | Status | Axioms |
+|-------|------|-------------|--------|--------|
+| 1 | `Transit/FiniteWitness.lean` | `HasFiniteGeneratorStructure`; `finiteGen_provides_factorisable` (pointwise); `finiteSpan_provides_factorisable` (aggregating over an explicit `Finset`, choice-free) | ✓ | `[]` / `[]` / **`[propext, Quot.sound]`** |
+| 2 | `Transit/Conservativity.lean` | Conservativity (I) exhibited by axiom attribution; four-source cost decomposition; apparatus column empty (no public objects) | ✓ | exhibition |
+| 3 | `Transit/Located.lean` | `located_witness_operational`, `located_provides_factorisable` — located structure supplies the witness `f ∘ P_M` (realised Level-B; source: operation) | ✓ | **`[propext, Classical.choice, Quot.sound]`** |
+| 4 | — | Reference-track provider examined and dropped (recon-first; no clean instance) — Finding TR-R1 | — | — |
+| 5 | `blueprint/src/chapters/10_transit.tex` | Blueprint Chapter 11; `leanblueprint checkdecls` + `web` green | ✓ | — |
+
+VR-Transit contributes **two new providers** — finiteness (finite generators, in pointwise and aggregating tiers) and completeness/projection (located). With the **inherited** density provider (separability, from VR-Apparatus Stage 6), the predicate-track library now spans four.
+
+**Findings** (`T_FINDINGS_TRANSIT.md`):
+- **TR-FW1** — finite-transit cost lives in the carrier *encoding*, not the algebra (two removable faces: `Fintype`/`Finset.univ` inflation; `Finset`-as-class-field contamination of the pointwise tier).
+- **TR-C1** — the operation source is a spectrum: `[propext]` (algebraic infrastructure) ↔ `[propext, Classical.choice, Quot.sound]` (analytic); neither is apparatus.
+- **TR-R1** (headline) — the witness method reaches exactly as far as the obstacle is witnessable; the reference track's non-descent reduces to `Classical.choice`, which cannot be witnessed, so it admits no clean witness method.
+
+#### Acknowledgement
+
+Developed using **Claude Opus 4.8** in both architectural and implementation roles — architect (PLAN, briefs, halts) and implementer (Lean code, axiom audit) — under human curator Vitaly Reznik. Both roles were carried by the same model (Opus 4.8) in this work (Variant A workflow); here the discipline rested on the structural separation of architect and implementer, not on model diversity.

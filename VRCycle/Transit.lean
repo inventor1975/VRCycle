@@ -1,0 +1,55 @@
+-- VR-Transit: module index (v0.1.0)
+-- Lean 4 formalisation of VR-Transit — extending VR-Apparatus from
+-- "transit is well-behaved" toward "transit is conservative, and leverage is a
+-- bounded witness library".
+--
+-- ============================================================
+-- ## Architecture overview — v0.1.0
+-- ============================================================
+--
+-- VR-Transit sits above VR.Apparatus (it imports Apparatus; it does not modify it)
+-- in a new namespace `VR.Transit`. It grows the witness library of
+-- `[]` / choice-free Tier-2 → `Factorisable` bridges that buy families of transits.
+--
+-- ### Stage 1 — finite-dimensional witness provider (Transit.FiniteWitness)
+--   HasFiniteGeneratorStructure        [] — Tier-2 class, axiom-free (gens : ι → T).
+--   finiteGen_provides_factorisable    [] — pointwise bridge (second clean [] provider
+--                                           after separability).
+--   finiteSpan_provides_factorisable   [propext, Quot.sound] — aggregating bridge over
+--                                           an explicit Finset; choice-free.
+--
+-- The two-tier picture (pointwise [] / aggregating choice-free [propext, Quot.sound])
+-- and the carrier-encoding finding behind it are recorded as FINDING TR-FW1
+-- (T_FINDINGS_TRANSIT.md) and canonised in CLAUDE.md §5.
+--
+-- ### Stage 2 — transit conservativity, exhibited (Transit.Conservativity)
+--   Recognition/exhibition file: no new public objects, only #print axioms +
+--   attribution prose. Exhibits thesis (I) — the apparatus injects no axiom — by
+--   per-representative source attribution (operation ⊕ pointwise-witness ⊕
+--   aggregation ⊕ carrier-encoding); the "apparatus" column is empty everywhere.
+--   Gate verdict: thesis (I) holds on real cycle data. See TR-C1 (T_FINDINGS_TRANSIT.md).
+--
+-- ### Stage 3 — located witness provider (Transit.Located)
+--   located_witness_operational    [propext, Classical.choice, Quot.sound] — f ∘ P_M
+--                                  is globally operational (reuses fn_computable_everywhere).
+--   located_provides_factorisable  [propext, Classical.choice, Quot.sound] — located →
+--                                  Factorisable bridge; witness g = f ∘ P_M supplied by
+--                                  the located structure (analytic/completeness family).
+--   Choice is faithful (source: OPERATION = orthogonal projection); apparatus ∅. Not a
+--   re-skin: structural witness, distinct from riesz self-witness and from separability.
+--
+-- ============================================================
+-- ## Axiom audit — public objects
+-- ============================================================
+-- Stage 1 (FiniteWitness):
+--   HasFiniteGeneratorStructure            []
+--   finiteGen_provides_factorisable        []
+--   finiteSpan_provides_factorisable       [propext, Quot.sound]
+-- Stage 2 (Conservativity): declares no public objects.
+-- Stage 3 (Located):
+--   located_witness_operational            [propext, Classical.choice, Quot.sound]
+--   located_provides_factorisable          [propext, Classical.choice, Quot.sound]
+
+import VRCycle.Transit.FiniteWitness
+import VRCycle.Transit.Conservativity
+import VRCycle.Transit.Located

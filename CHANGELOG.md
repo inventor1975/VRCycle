@@ -1,5 +1,51 @@
 # Changelog
 
+## VR-Transit v1.0.0 — 2026-05-29
+
+Tenth work: transit conservativity (the apparatus is axiom-neutral) plus a
+bounded, predicate-track witness library. Git tag `v1.15-vr-transit-v1.0.0`.
+Zero `sorry`/`admit`; full build 3366 jobs. A clarity result, not new power.
+
+### Witness library — two new providers (four total, counting the inherited one)
+
+New in VR-Transit:
+
+- **`finiteGen_provides_factorisable`** — pointwise finite-generator bridge, `[]`.
+- **`finiteSpan_provides_factorisable`** — aggregating bridge over an explicit
+  `Finset`, choice-free `[propext, Quot.sound]`.
+- **`located_witness_operational` / `located_provides_factorisable`** — the located
+  subspace structure supplies the witness `f ∘ P_M` (realised Level-B),
+  `[propext, Classical.choice, Quot.sound]` (source: the operation, not the apparatus).
+
+Inherited: the **separability** provider (VR-Apparatus, Stage 6) completes the
+spanning set — density, projection, finiteness — all predicate-track.
+
+### Conservativity (I), exhibited
+
+- **`Conservativity.lean`** — no public objects; `#print axioms` attribution shows the
+  apparatus column empty across representatives. Four-source cost decomposition:
+  operation ⊕ pointwise-witness ⊕ aggregation ⊕ carrier-encoding ⊕ apparatus ∅.
+  The universal form is meta (kernel-level), exhibited on representatives.
+
+### Findings (`T_FINDINGS_TRANSIT.md`)
+
+- **TR-FW1** — finite-transit cost lives in the carrier encoding, not the algebra
+  (two removable faces: `Fintype`/`Finset.univ` inflation; `Finset`-in-class contamination).
+- **TR-C1** — the operation source is a spectrum (`[propext]` algebraic ↔ `[P,C,Q]` analytic).
+- **TR-R1** (headline) — the witness method reaches as far as the obstacle is
+  witnessable; the reference track reduces to `Classical.choice` (unwitnessable),
+  so its provider was dropped (recognition discipline).
+
+### Stages
+
+| Stage | Content | File |
+|---|---|---|
+| 1 | Finite-generator providers (pointwise + aggregating) | `Transit/FiniteWitness.lean` |
+| 2 | Conservativity exhibited (axiom attribution) | `Transit/Conservativity.lean` |
+| 3 | Located provider (structural witness) | `Transit/Located.lean` |
+| 4 | Reference-track recon → drop (TR-R1) | — |
+| 5 | Blueprint Chapter 11 | `blueprint/src/chapters/10_transit.tex` |
+
 ## v1.0.0 — 2026-05-28
 
 ### Mode B audit object delivered
