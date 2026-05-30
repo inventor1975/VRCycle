@@ -29,10 +29,10 @@ def osetSuccOp (s : OSet.{0}) : OSet.{0} := insert s s
 Structural recursion on VRObj. `noncomputable` because ZFSet is a
 quotient type. -/
 noncomputable def embedVR : VRObj → OSet.{0}
-  | VRObj.void   => ∅
+  | VRObj.mark   => ∅
   | VRObj.succ x => osetSuccOp (embedVR x)
 
-theorem embedVR_zero : embedVR VRObj.void = (∅ : OSet.{0}) := rfl
+theorem embedVR_zero : embedVR VRObj.mark = (∅ : OSet.{0}) := rfl
 
 theorem embedVR_succ (x : VRObj) :
     embedVR (VRObj.succ x) = osetSuccOp (embedVR x) := rfl
@@ -83,13 +83,13 @@ private theorem embedVR_mem_iff_and_inj (y : VRObj) :
     (∀ x : VRObj, VR.mem x y ↔ ev x ∈ ev y) ∧
     (∀ x : VRObj, ev x = ev y → x = y) := by
   induction y with
-  | void =>
+  | mark =>
     simp only [ev, embedVR]
     exact ⟨
       fun x => ⟨fun h => h.elim, fun h => (ZFSet.notMem_empty _ h).elim⟩,
       fun x hx => by
         cases x with
-        | void => rfl
+        | mark => rfl
         | succ z =>
           simp only [embedVR, osetSuccOp] at hx
           exact absurd (hx ▸ ZFSet.mem_insert (embedVR z) (embedVR z))
@@ -109,7 +109,7 @@ private theorem embedVR_mem_iff_and_inj (y : VRObj) :
         · exact Or.inr ((ihP x).mpr hmem)
     · -- injectivity
       cases x with
-      | void =>
+      | mark =>
         simp only [embedVR] at hx
         exact absurd (hx.symm ▸ ZFSet.mem_insert (embedVR y') (embedVR y'))
                      (ZFSet.notMem_empty _)
@@ -165,7 +165,7 @@ Difference: `VR_PA_iso` is a bijection; `VR_OSet_iso` is an embedding
 etc., vastly more than the image of VRObj). -/
 structure VR_OSet_iso where
   embed : VRObj → OSet.{0}
-  preserve_zero : embed VRObj.void = ∅
+  preserve_zero : embed VRObj.mark = ∅
   preserve_succ : ∀ x, embed (VRObj.succ x) = insert (embed x) (embed x)
   preserve_mem : ∀ x y : VRObj, VR.mem x y ↔ embed x ∈ embed y
   injective : Function.Injective embed

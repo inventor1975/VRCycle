@@ -376,10 +376,10 @@ no reference to specific mathlib quotient types.
 \uses{def:OSet, def:VRObj}
 $\texttt{osetSuccOp}(s) := \texttt{insert}\,s\,s = s \cup \{s\}$.
 $\texttt{embedVR} : \mathrm{VRObj} \to \mathrm{OSet}$ by
-$\texttt{embedVR}(\texttt{void}) := \emptyset$,
+$\texttt{embedVR}(\texttt{mark}) := \emptyset$,
 $\texttt{embedVR}(\texttt{succ}\,x) := \texttt{osetSuccOp}(\texttt{embedVR}(x))$.
 \texttt{noncomputable} (ZFSet is a quotient type).
-Proved: $\texttt{embedVR\_zero} : \texttt{embedVR}(\texttt{void}) = \emptyset$
+Proved: $\texttt{embedVR\_zero} : \texttt{embedVR}(\texttt{mark}) = \emptyset$
 and $\texttt{embedVR\_succ}$ by \texttt{rfl}.
 \end{definition}
 
@@ -411,7 +411,7 @@ argument via the private \texttt{embedVR\_mem\_iff\_and\_inj}.
 \uses{def:OSet, def:VRObj}
 The structure \texttt{VR\_OSet\_iso} has five fields:
 \texttt{embed} ($\mathrm{VRObj} \to \mathrm{OSet}$),
-\texttt{preserve\_zero} ($\texttt{embed}(\texttt{void}) = \emptyset$),
+\texttt{preserve\_zero} ($\texttt{embed}(\texttt{mark}) = \emptyset$),
 \texttt{preserve\_succ} ($\texttt{embed}(\texttt{succ}\,x) = \texttt{insert}(\texttt{embed}(x), \texttt{embed}(x))$),
 \texttt{preserve\_mem} ($\mathrm{VR.mem}\,x\,y \leftrightarrow \texttt{embed}(x) \in \texttt{embed}(y)$),
 \texttt{injective} (Function.Injective embed).

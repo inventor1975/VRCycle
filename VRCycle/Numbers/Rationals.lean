@@ -12,23 +12,23 @@ open VR
 -- ============================================================
 
 -- §II.5 / §III.1. Zero element of ℤ_VR.
--- 0_ℤ = class of (0 ⊖ 0) = embedN void
+-- 0_ℤ = class of (0 ⊖ 0) = embedN mark
 -- (§II.5: natural n embeds as class of n ⊖ 0; for n = 0 this is 0 ⊖ 0).
-def zero_Z : ℤ_VR := embedN VRObj.void
+def zero_Z : ℤ_VR := embedN VRObj.mark
 
 -- §III.1. forward maps zero_Z to integer 0.
--- Proof: forwardExpr (.mk void void) = (O_inv void : Int) - O_inv void = 0 - 0.
+-- Proof: forwardExpr (.mk mark mark) = (O_inv mark : Int) - O_inv mark = 0 - 0.
 -- Used in eq_zero_Z_iff and instDecidableEqIntVR.
 theorem forward_zero_Z : forward zero_Z = 0 := by
   simp only [zero_Z, embedN, forward, Quotient.lift_mk, forwardExpr]
   omega
 
 -- Private bridge: backward 0 = zero_Z.
--- backward (Int.ofNat 0) = ⟦.mk (O 0) void⟧ = ⟦.mk void void⟧ = zero_Z.
--- (O 0 = void definitionally; zero_Z = embedN void = ⟦.mk void void⟧.)
+-- backward (Int.ofNat 0) = ⟦.mk (O 0) mark⟧ = ⟦.mk mark mark⟧ = zero_Z.
+-- (O 0 = mark definitionally; zero_Z = embedN mark = ⟦.mk mark mark⟧.)
 private theorem backward_zero : backward 0 = zero_Z := by
   simp [backward, zero_Z, embedN]
-  -- ⊢ ⟦.mk (O 0) void⟧ = ⟦.mk void void⟧; close by O 0 = void (definitional)
+  -- ⊢ ⟦.mk (O 0) mark⟧ = ⟦.mk mark mark⟧; close by O 0 = mark (definitional)
   rfl
 
 -- §III.1. Equality with zero_Z ↔ forward value is 0.

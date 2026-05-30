@@ -55,7 +55,7 @@ def intEq : IntExpr → IntExpr → Prop
 private theorem vadd_cancel : ∀ a b c : VRObj, vadd a c = vadd b c → a = b := by
   intro a b c h
   induction c with
-  | void      => exact h
+  | mark      => exact h
   | succ d ih => exact ih (P4_succ_inj _ _ h)
 
 -- §II.2. Reflexivity: intEq e e.
@@ -193,7 +193,7 @@ theorem vmul_distrib_right : ∀ a b c : VRObj,
     vmul (vadd a b) c = vadd (vmul a c) (vmul b c) := by
   intro a b c
   induction c with
-  | void      => rfl
+  | mark      => rfl
   | succ d ih =>
     change vadd (vmul (vadd a b) d) (vadd a b) =
            vadd (vadd (vmul a d) a) (vadd (vmul b d) b)
@@ -341,7 +341,7 @@ def isubQ : ℤ_VR → ℤ_VR → ℤ_VR :=
 -- Natural number n maps to the class (n ⊖ ∅): non-negative integer n.
 -- Operational interpretation: n stays n when viewed as the difference n − 0.
 def embedN : VRObj → ℤ_VR :=
-  fun n => Quotient.mk intEqSetoid (.mk n VRObj.void)
+  fun n => Quotient.mk intEqSetoid (.mk n VRObj.mark)
 
 -- ============================================================
 -- §II.4. Canonical form
@@ -355,9 +355,9 @@ private theorem vadd_comparable : ∀ a b : VRObj,
     (∃ n : VRObj, vadd b n = a) ∨ (∃ n : VRObj, vadd a n = b) := by
   intro a
   induction a with
-  | void =>
+  | mark =>
     intro b
-    -- right branch: vadd void b = b (vadd_zero_left)
+    -- right branch: vadd mark b = b (vadd_zero_left)
     exact Or.inr ⟨b, vadd_zero_left b⟩
   | succ a' iha =>
     intro b
@@ -370,20 +370,20 @@ private theorem vadd_comparable : ∀ a b : VRObj,
       obtain ⟨n, hn⟩ := h
       -- hn : vadd a' n = b; split on n
       cases n with
-      | void =>
-        -- vadd a' void = a' = b; left: vadd b (succ void) = succ b = succ a'
-        exact Or.inl ⟨VRObj.succ VRObj.void, congrArg VRObj.succ hn.symm⟩
+      | mark =>
+        -- vadd a' mark = a' = b; left: vadd b (succ mark) = succ b = succ a'
+        exact Or.inl ⟨VRObj.succ VRObj.mark, congrArg VRObj.succ hn.symm⟩
       | succ m =>
         -- hn : vadd a' (succ m) = b; right: vadd (succ a') m = succ (vadd a' m) = b
         exact Or.inr ⟨m, (vadd_succ_left a' m).trans hn⟩
 
 -- §II.4. Canonical form theorem.
 -- Every element of ℤ_VR has a representative of the form (n ⊖ ∅) or (∅ ⊖ n).
--- Both branches cover zero (n = void in either gives .mk void void).
+-- Both branches cover zero (n = mark in either gives .mk mark mark).
 -- Proof: vadd_comparable gives the witness; intEq closes definitionally.
 theorem canonical_form : ∀ e : IntExpr,
-    (∃ n : VRObj, intEq e (.mk n VRObj.void)) ∨
-    (∃ n : VRObj, intEq e (.mk VRObj.void n))
+    (∃ n : VRObj, intEq e (.mk n VRObj.mark)) ∨
+    (∃ n : VRObj, intEq e (.mk VRObj.mark n))
   | .mk a b =>
     (vadd_comparable a b).imp
       (fun ⟨n, hn⟩ => ⟨n, hn.symm⟩)
@@ -441,16 +441,16 @@ def forward : ℤ_VR → Int :=
 -- Negative integers −(n+1): (∅ ⊖ (n+1)) in ℤ_VR.
 -- Int.ofNat / Int.negSucc are Lean's core constructors for Int.
 def backward : Int → ℤ_VR
-  | Int.ofNat n   => Quotient.mk intEqSetoid (.mk (O n) VRObj.void)
-  | Int.negSucc n => Quotient.mk intEqSetoid (.mk VRObj.void (O (n + 1)))
+  | Int.ofNat n   => Quotient.mk intEqSetoid (.mk (O n) VRObj.mark)
+  | Int.negSucc n => Quotient.mk intEqSetoid (.mk VRObj.mark (O (n + 1)))
 
 -- §II.6. Right inverse: forward ∘ backward = id on ℤ.
--- Case ofNat n: forward (backward n) = O_inv (O n) - O_inv void = n - 0 = n.
--- Case negSucc n: forward (backward (−(n+1))) = O_inv void - O_inv (O (n+1)) = 0 − (n+1).
+-- Case ofNat n: forward (backward n) = O_inv (O n) - O_inv mark = n - 0 = n.
+-- Case negSucc n: forward (backward (−(n+1))) = O_inv mark - O_inv (O (n+1)) = 0 − (n+1).
 -- Both branches close by O_left_inv + omega (for the cast arithmetic).
--- O_inv VRObj.void = 0 by definition (first equation of O_inv).
+-- O_inv VRObj.mark = 0 by definition (first equation of O_inv).
 -- Not a consequence of O_left_inv (which rewrites O_inv (O n)); needed separately.
-private theorem O_inv_void : O_inv VRObj.void = 0 := rfl
+private theorem O_inv_void : O_inv VRObj.mark = 0 := rfl
 
 theorem right_inv_int : ∀ i : Int, forward (backward i) = i := by
   intro i
@@ -467,28 +467,28 @@ theorem right_inv_int : ∀ i : Int, forward (backward i) = i := by
 -- Strategy: O_inv is injective (O ∘ O_inv = id via O_right_inv),
 -- so vadd b (O n) = a follows from O_inv_vadd + O_left_inv + hn.
 private theorem intEq_nonneg (a b : VRObj) (n : Nat) (hn : O_inv b + n = O_inv a) :
-    intEq (.mk a b) (.mk (O n) VRObj.void) := by
+    intEq (.mk a b) (.mk (O n) VRObj.mark) := by
   have key : O_inv (vadd b (O n)) = O_inv a := by
     rw [O_inv_vadd, O_left_inv]; exact hn
   have heq : vadd b (O n) = a := by
     have h := congrArg O key; rwa [O_right_inv, O_right_inv] at h
-  -- goal: vadd a VRObj.void = vadd b (O n)
-  change vadd a VRObj.void = vadd b (O n)
-  rw [T1_vadd_comm a VRObj.void, vadd_zero_left a]
+  -- goal: vadd a VRObj.mark = vadd b (O n)
+  change vadd a VRObj.mark = vadd b (O n)
+  rw [T1_vadd_comm a VRObj.mark, vadd_zero_left a]
   exact heq.symm
 
 -- §II.6. Helper: (a ⊖ b) ~ (∅ ⊖ O n) when O_inv a + n = O_inv b.
 -- Mirror of intEq_nonneg: the deficit goes to the right component.
 private theorem intEq_neg (a b : VRObj) (n : Nat) (hn : O_inv a + n = O_inv b) :
-    intEq (.mk a b) (.mk VRObj.void (O n)) := by
+    intEq (.mk a b) (.mk VRObj.mark (O n)) := by
   have key : O_inv (vadd a (O n)) = O_inv b := by
     rw [O_inv_vadd, O_left_inv]; exact hn
   have heq : vadd a (O n) = b := by
     have h := congrArg O key; rwa [O_right_inv, O_right_inv] at h
-  -- intEq (.mk a b) (.mk VRObj.void (O n)) unfolds to vadd a (O n) = vadd b VRObj.void
-  -- (intEq .mk a b .mk c d  =  vadd a d = vadd b c; here c = void, d = O n)
-  change vadd a (O n) = vadd b VRObj.void
-  rw [T1_vadd_comm b VRObj.void, vadd_zero_left b]
+  -- intEq (.mk a b) (.mk VRObj.mark (O n)) unfolds to vadd a (O n) = vadd b VRObj.mark
+  -- (intEq .mk a b .mk c d  =  vadd a d = vadd b c; here c = mark, d = O n)
+  change vadd a (O n) = vadd b VRObj.mark
+  rw [T1_vadd_comm b VRObj.mark, vadd_zero_left b]
   exact heq
 
 -- §II.6. Left inverse: backward ∘ forward = id on ℤ_VR.
@@ -513,7 +513,7 @@ theorem left_inv_int : ∀ z : ℤ_VR, backward (forward z) = z := by
     have hcast : (↑(O_inv a) : Int) - ↑(O_inv b) = Int.negSucc (O_inv b - O_inv a - 1) := by
       omega
     rw [hcast]; simp only [backward]
-    -- backward unfolds to (.mk VRObj.void (O (... - 1 + 1))); fold the ±1 back
+    -- backward unfolds to (.mk VRObj.mark (O (... - 1 + 1))); fold the ±1 back
     have hstep : O_inv b - O_inv a - 1 + 1 = O_inv b - O_inv a := by omega
     rw [hstep]
     exact Quotient.sound (intEq_symm _ _ (intEq_neg a b _ hn))
@@ -619,11 +619,11 @@ theorem imulQ_assoc (a b c : ℤ_VR) : imulQ (imulQ a b) c = imulQ a (imulQ b c)
   forward_injective (by simp only [preserve_mul_int]; ring)
 
 -- §II.5 / §III. Multiplicative identity of ℤ_VR.
--- 1_ℤ = class of (succ void ⊖ void) = embedN (succ void).
-def one_Z : ℤ_VR := embedN (VRObj.succ VRObj.void)
+-- 1_ℤ = class of (succ mark ⊖ mark) = embedN (succ mark).
+def one_Z : ℤ_VR := embedN (VRObj.succ VRObj.mark)
 
 -- §II.6. forward maps one_Z to integer 1.
--- Proof: forwardExpr (.mk (succ void) void) = O_inv (succ void) - O_inv void = 1 - 0 = 1.
+-- Proof: forwardExpr (.mk (succ mark) mark) = O_inv (succ mark) - O_inv mark = 1 - 0 = 1.
 theorem forward_one_Z : forward one_Z = 1 := by
   simp only [one_Z, embedN, forward, Quotient.lift_mk, forwardExpr, O_inv]
   omega

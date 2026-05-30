@@ -10,15 +10,18 @@ namespace VR
 -- The type of VR objects: all objects generated from ∅ by applying t.
 -- Part I, §1 (Primitives) + A4 (Induction): the O_n exhaust the entire domain.
 --
--- Constructor void  — primitive ∅ (constant)
+-- Constructor mark  — primitive ∅ (constant). Ontologically the **first distinction**
+--   (Spencer-Brown's mark, *Laws of Form*): ∅ = {} is a boundary drawn around the void,
+--   i.e. the founding operational *act*, not an inert void as substance. (Earlier framing:
+--   "Leibnizian void"; reframed to the mark so the ontology coheres with VR's operationalism.)
 -- Constructor succ  — primitive t (unary operator, succession)
 --
 -- Lean's induction principle (VRObj.rec) expresses A4:
--- any property that holds for void and is inherited through succ
+-- any property that holds for mark and is inherited through succ
 -- holds for all VR objects.
 --
 -- Preprint, A1: «F is identified with ∅ at the logical level».
--- This is a semantic identification of two points: F in VRBool and void in VRObj —
+-- This is a semantic identification of two points: F in VRBool and mark in VRObj —
 -- the same base point viewed in two registers (logical and ontological).
 --
 -- **Clarification on register language (added 2026-05-26):**
@@ -33,7 +36,7 @@ namespace VR
 -- If a future work (VR-Sets, VR-Forms) requires a formal bridge, it will be
 -- introduced at that point.
 inductive VRObj : Type where
-  | void : VRObj           -- ∅  (Def. 4: O₀ := ∅)
+  | mark : VRObj           -- ∅  (Def. 4: O₀ := ∅)
   | succ : VRObj → VRObj   -- t  (Def. 5: O_{n+1} := t(O_n))
 
 -- ============================================================
@@ -196,11 +199,11 @@ theorem Eq_to_vrEq (x y : VRObj) (h : x = y) : vrEq x y := by
 -- The substantive content of A3 (x ∈ t(x) and x ⊂ t(x)) is proved from mem.
 
 -- Membership relation on VRObj.
--- x ∈ void   — false (the empty set contains nothing).
+-- x ∈ mark   — false (the empty set contains nothing).
 -- x ∈ succ y — x = y (x is y itself) or x ∈ y (x lies deeper).
 -- Recursion is structural on the second argument (y decreases from succ y to y).
 def mem : VRObj → VRObj → Prop
-  | _, VRObj.void   => False
+  | _, VRObj.mark   => False
   | x, VRObj.succ y => x = y ∨ mem x y
 
 -- Subset relation on VRObj.
@@ -232,21 +235,21 @@ theorem A3_subset_succ : ∀ x : VRObj, subset x (VRObj.succ x) :=
 -- declaring VRObj as an inductive type.
 -- This is a methodological strengthening: the VR axiom becomes a Lean theorem.
 theorem A4_induction (P : VRObj → Prop)
-    (h0 : P VRObj.void)
+    (h0 : P VRObj.mark)
     (hs : ∀ x, P x → P (VRObj.succ x)) :
     ∀ n, P n := by
   intro n
   induction n with
-  | void    => exact h0
+  | mark    => exact h0
   | succ x ih => exact hs x ih
 
 -- A4, equivalent formulation (§2):
 -- «The O_n exhaust all objects generated from ∅ via t.»
--- Every VRObj is either void or succ of something — no third option.
-theorem A4_exhaustion : ∀ x : VRObj, x = VRObj.void ∨ ∃ y, x = VRObj.succ y := by
+-- Every VRObj is either mark or succ of something — no third option.
+theorem A4_exhaustion : ∀ x : VRObj, x = VRObj.mark ∨ ∃ y, x = VRObj.succ y := by
   intro x
   cases x with
-  | void   => exact Or.inl rfl
+  | mark   => exact Or.inl rfl
   | succ y => exact Or.inr ⟨y, rfl⟩
 
 -- ============================================================
@@ -266,7 +269,7 @@ theorem A4_exhaustion : ∀ x : VRObj, x = VRObj.void ∨ ∃ y, x = VRObj.succ 
 -- Proved by induction on b; uses only mem and VRObj.rec.
 private theorem mem_succ_left (b : VRObj) : ∀ a, mem (VRObj.succ a) b → mem a b := by
   induction b with
-  | void => intro a h; exact h.elim
+  | mark => intro a h; exact h.elim
   | succ c ih =>
     intro a h
     have h' : VRObj.succ a = c ∨ mem (VRObj.succ a) c := h
@@ -284,7 +287,7 @@ private theorem mem_succ_left (b : VRObj) : ∀ a, mem (VRObj.succ a) b → mem 
 -- using mem_succ_left.
 private theorem mem_asymm (y : VRObj) : ∀ x, mem x y → ¬ mem y x := by
   induction y with
-  | void => intro x h; exact h.elim
+  | mark => intro x h; exact h.elim
   | succ z ih =>
     intro x h hmyx
     have h' : x = z ∨ mem x z := h
@@ -318,7 +321,7 @@ theorem succ_ne_self : ∀ x : VRObj, vrNe (VRObj.succ x) x :=
 -- The function O : Nat → VRObj maps metalanguage indices to VR objects.
 -- Lean's Nat serves as an external source of names, not part of VR itself.
 -- The VR objects are the image of O in VRObj:
---   O 0 = void, O 1 = succ void, O 2 = succ (succ void), ...
+--   O 0 = mark, O 1 = succ mark, O 2 = succ (succ mark), ...
 --
 -- Surjectivity of O onto VRObj (i.e. ∀ x : VRObj, ∃ n, x = O n) expresses
 -- A4_exhaustion at the level of naming. Bijectivity O : Nat → VRObj —
@@ -326,7 +329,7 @@ theorem succ_ne_self : ∀ x : VRObj, vrNe (VRObj.succ x) x :=
 --
 -- At this stage O is a constructive naming, not an identification.
 def O : Nat → VRObj
-  | 0     => VRObj.void
+  | 0     => VRObj.mark
   | n + 1 => VRObj.succ (O n)
 
 -- ============================================================
@@ -334,11 +337,11 @@ def O : Nat → VRObj
 -- ============================================================
 
 -- O₁ = {∅}, O₂ = {∅, {∅}}, O₃ = {∅, {∅}, {∅, {∅}}}.
--- In VRObj encoding: successive applications of succ to void.
+-- In VRObj encoding: successive applications of succ to mark.
 -- All proved by rfl — direct computation from def O.
-theorem O_one   : O 1 = VRObj.succ VRObj.void                               := rfl
-theorem O_two   : O 2 = VRObj.succ (VRObj.succ VRObj.void)                  := rfl
-theorem O_three : O 3 = VRObj.succ (VRObj.succ (VRObj.succ VRObj.void))     := rfl
+theorem O_one   : O 1 = VRObj.succ VRObj.mark                               := rfl
+theorem O_two   : O 2 = VRObj.succ (VRObj.succ VRObj.mark)                  := rfl
+theorem O_three : O 3 = VRObj.succ (VRObj.succ (VRObj.succ VRObj.mark))     := rfl
 
 -- ============================================================
 -- §6. Membership lemma (Part I, §6) — Def. 3.5
@@ -361,29 +364,29 @@ theorem O_mem_lt : ∀ k n : Nat, k < n → mem (O k) (O n) := by
 -- ============================================================
 
 -- Def. 7 (§7). Addition on VRObj.
--- a + void   := a          (neutral element)
+-- a + mark   := a          (neutral element)
 -- a + succ b := succ (a + b)  (recursion step)
 -- Structural recursion on the second argument.
 def vadd : VRObj → VRObj → VRObj
-  | a, VRObj.void   => a
+  | a, VRObj.mark   => a
   | a, VRObj.succ b => VRObj.succ (vadd a b)
 
 -- Def. 8 (§7). Multiplication on VRObj.
--- a × void   := void         (absorbing zero)
+-- a × mark   := mark         (absorbing zero)
 -- a × succ b := (a × b) + a  (recursion step)
 -- Structural recursion on the second argument; uses vadd.
 def vmul : VRObj → VRObj → VRObj
-  | _, VRObj.void   => VRObj.void
+  | _, VRObj.mark   => VRObj.mark
   | a, VRObj.succ b => vadd (vmul a b) a
 
 -- Def. 9 (§7). Exponentiation on VRObj.
--- a ^ void   := succ void  (= O₁ by Def. 4+5; base of exponentiation is one)
+-- a ^ mark   := succ mark  (= O₁ by Def. 4+5; base of exponentiation is one)
 -- a ^ succ b := (a ^ b) × a
 -- Structural recursion on the exponent (second argument). Uses vmul.
--- Note: succ void here is the same as O₁ in the preprint; the equality
--- vpow a void = O 1 is provable by rfl via O_one, if needed in theorems.
+-- Note: succ mark here is the same as O₁ in the preprint; the equality
+-- vpow a mark = O 1 is provable by rfl via O_one, if needed in theorems.
 def vpow : VRObj → VRObj → VRObj
-  | _, VRObj.void   => VRObj.succ VRObj.void
+  | _, VRObj.mark   => VRObj.succ VRObj.mark
   | a, VRObj.succ b => vmul (vpow a b) a
 
 -- ============================================================
@@ -391,12 +394,12 @@ def vpow : VRObj → VRObj → VRObj
 -- ============================================================
 
 -- Auxiliary (for T1): left neutral element of vadd.
--- void + b = b  (right neutral vadd a void = a follows directly from def)
+-- mark + b = b  (right neutral vadd a mark = a follows directly from def)
 -- Proved by induction on b.
-theorem vadd_zero_left : ∀ b : VRObj, vadd VRObj.void b = b := by
+theorem vadd_zero_left : ∀ b : VRObj, vadd VRObj.mark b = b := by
   intro b
   induction b with
-  | void      => rfl
+  | mark      => rfl
   | succ c ih => exact congrArg VRObj.succ ih
 
 -- Auxiliary (for T1): left succ passes through vadd.
@@ -405,7 +408,7 @@ theorem vadd_zero_left : ∀ b : VRObj, vadd VRObj.void b = b := by
 theorem vadd_succ_left : ∀ a b : VRObj, vadd (VRObj.succ a) b = VRObj.succ (vadd a b) := by
   intro a b
   induction b with
-  | void      => rfl
+  | mark      => rfl
   | succ c ih => exact congrArg VRObj.succ ih
 
 -- T1 (§7): commutativity of addition.
@@ -414,7 +417,7 @@ theorem vadd_succ_left : ∀ a b : VRObj, vadd (VRObj.succ a) b = VRObj.succ (va
 theorem T1_vadd_comm : ∀ a b : VRObj, vadd a b = vadd b a := by
   intro a b
   induction b with
-  | void      => exact (vadd_zero_left a).symm
+  | mark      => exact (vadd_zero_left a).symm
   | succ c ih =>
     rw [vadd_succ_left]
     exact congrArg VRObj.succ ih
@@ -429,7 +432,7 @@ theorem T1_vadd_comm : ∀ a b : VRObj, vadd a b = vadd b a := by
 theorem T2_vadd_assoc : ∀ a b c : VRObj, vadd (vadd a b) c = vadd a (vadd b c) := by
   intro a b c
   induction c with
-  | void      => rfl
+  | mark      => rfl
   | succ d ih => exact congrArg VRObj.succ ih
 
 -- ============================================================
@@ -442,7 +445,7 @@ theorem T2_vadd_assoc : ∀ a b c : VRObj, vadd (vadd a b) c = vadd a (vadd b c)
 theorem T3_vmul_distrib : ∀ a b c : VRObj, vmul a (vadd b c) = vadd (vmul a b) (vmul a c) := by
   intro a b c
   induction c with
-  | void      => rfl
+  | mark      => rfl
   | succ d ih =>
     -- after def-reduction:
     -- LHS = vadd (vmul a (vadd b d)) a
@@ -470,7 +473,7 @@ theorem T4_one_plus_one : vadd (O 1) (O 1) = O 2 := rfl
 -- Both proved by rfl from def O.
 
 -- 0 ↦ O₀ = ∅
-theorem O_zero : O 0 = VRObj.void := rfl
+theorem O_zero : O 0 = VRObj.mark := rfl
 
 -- Nat.succ ↦ VRObj.succ (= t)
 theorem O_succ : ∀ n : Nat, O (n + 1) = VRObj.succ (O n) := fun _ => rfl
@@ -499,16 +502,16 @@ theorem O_succ : ∀ n : Nat, O (n + 1) = VRObj.succ (O n) := fun _ => rfl
 -- ============================================================
 
 -- §10, Theorem 4 (P3 in VR): t(O_n) ≠ O₀.
--- succ x ≠ void for every x : VRObj.
+-- succ x ≠ mark for every x : VRObj.
 --
 -- Two proof paths:
---   (1) Via the mem property (preprint §5): void contains 0 elements,
---       succ x contains x as an element (A3_mem_self). If succ x = void,
---       then x ∈ void — false. Formally: A3_mem_self x ▸ h ▸ id.
---   (2) Via VRObj.noConfusion (Lean 4): void and succ are distinct
+--   (1) Via the mem property (preprint §5): mark contains 0 elements,
+--       succ x contains x as an element (A3_mem_self). If succ x = mark,
+--       then x ∈ mark — false. Formally: A3_mem_self x ▸ h ▸ id.
+--   (2) Via VRObj.noConfusion (Lean 4): mark and succ are distinct
 --       constructors; equality between them is refuted automatically.
 -- Path (2) is used here; path (1) is recorded in the comment.
-theorem P3_succ_ne_zero : ∀ x : VRObj, VRObj.succ x ≠ VRObj.void := by
+theorem P3_succ_ne_zero : ∀ x : VRObj, VRObj.succ x ≠ VRObj.mark := by
   intro x h
   exact VRObj.noConfusion h
 
@@ -519,14 +522,14 @@ theorem P3_succ_ne_zero : ∀ x : VRObj, VRObj.succ x ≠ VRObj.void := by
 -- §10, Theorem 5 (P4 in VR): injectivity of t under Leibnizian identity.
 -- Exact preprint form: = in Theorem 5 is vrEq (Def. 2, §4).
 -- Proof via a «revealing» predicate:
---   q z := match z with | void => True | succ w => p w
+--   q z := match z with | mark => True | succ w => p w
 -- Then q (succ x) = p x and q (succ y) = p y by def-reduction,
 -- and vrEq (succ x) (succ y) applied to q gives p x ↔ p y directly.
 theorem P4_succ_inj_leibniz :
     ∀ x y : VRObj, vrEq (VRObj.succ x) (VRObj.succ y) → vrEq x y :=
   fun _ _ h p =>
     h (fun z => match z with
-      | VRObj.void   => True
+      | VRObj.mark   => True
       | VRObj.succ w => p w)
 
 -- Practical form of P4 via Lean Eq (needed in Theorem 11, §5.7).
@@ -536,7 +539,7 @@ theorem P4_succ_inj_leibniz :
 theorem P4_succ_inj :
     ∀ x y : VRObj, VRObj.succ x = VRObj.succ y → x = y :=
   fun _ _ h =>
-    congrArg (fun z => match z with | VRObj.void => VRObj.void | VRObj.succ w => w) h
+    congrArg (fun z => match z with | VRObj.mark => VRObj.mark | VRObj.succ w => w) h
 
 -- ============================================================
 -- §10. P5 — Theorem 6: induction principle (Part II, §10)
@@ -547,7 +550,7 @@ theorem P4_succ_inj :
 -- Coincides with A4_induction (§2, Stage 1): no new proof is needed.
 -- Introduced as a named alias for explicit correspondence with Peano axioms.
 theorem P5_induction : ∀ (P : VRObj → Prop),
-    P VRObj.void → (∀ x, P x → P (VRObj.succ x)) → ∀ n, P n :=
+    P VRObj.mark → (∀ x, P x → P (VRObj.succ x)) → ∀ n, P n :=
   A4_induction
 
 -- ============================================================
@@ -566,7 +569,7 @@ theorem P5_induction : ∀ (P : VRObj → Prop),
 -- The existence of O_inv as a function VRObj → Nat does not introduce Nat into VR.
 -- VRObj and Nat are two independent types; O and O_inv are the bridge between them.
 def O_inv : VRObj → Nat
-  | VRObj.void   => 0
+  | VRObj.mark   => 0
   | VRObj.succ x => O_inv x + 1
 
 -- Left inverse: O_inv (O n) = n.
@@ -582,7 +585,7 @@ theorem O_left_inv : ∀ n : Nat, O_inv (O n) = n := by
 theorem O_right_inv : ∀ x : VRObj, O (O_inv x) = x := by
   intro x
   induction x with
-  | void      => rfl
+  | mark      => rfl
   | succ y ih => exact congrArg VRObj.succ ih
 
 -- Addition isomorphism: O (m + n) = vadd (O m) (O n).
@@ -640,7 +643,7 @@ structure VR_PA_iso where
   backward      : VRObj → Nat
   left_inv      : ∀ n, backward (forward n) = n
   right_inv     : ∀ x, forward (backward x) = x
-  preserve_zero : forward 0 = VRObj.void
+  preserve_zero : forward 0 = VRObj.mark
   preserve_succ : ∀ n, forward (n + 1) = VRObj.succ (forward n)
   preserve_add  : ∀ m n, forward (m + n) = vadd (forward m) (forward n)
   preserve_mul  : ∀ m n, forward (m * n) = vmul (forward m) (forward n)

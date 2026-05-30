@@ -32,7 +32,7 @@ the inductive type is declared.
 Peano axioms P1 ($O_0$ exists as an object) and P2 ($t(O_n)$ exists for
 every $O_n$) require existential proofs in an untyped first-order
 setting.  In Lean they become typing judgements: \texttt{VR.O\_zero :
-O~0 = VRObj.void} and \texttt{VRObj.succ : VRObj → VRObj}.  They have
+O~0 = VRObj.mark} and \texttt{VRObj.succ : VRObj → VRObj}.  They have
 been absorbed into the type system; no separate theorems are needed.
 \end{remark}
 
@@ -93,7 +93,7 @@ type alone.
 \leanok
 The type \texttt{VRObj} is the inductive type with two constructors:
 \[
-  \texttt{void} : \mathrm{VRObj}, \qquad
+  \texttt{mark} : \mathrm{VRObj}, \qquad
   \texttt{succ} : \mathrm{VRObj} \to \mathrm{VRObj}.
 \]
 It represents the domain generated from the primitive $\emptyset$
@@ -154,7 +154,7 @@ The four rows of the classical truth table of implication, all proved by
 \uses{def:VRObj}
 Membership $\texttt{mem} : \mathrm{VRObj} \to \mathrm{VRObj} \to
 \mathrm{Prop}$ is defined by structural recursion: $x \in
-\texttt{void}$ is false; $x \in \texttt{succ}\,y$ holds iff $x = y$
+\texttt{mark}$ is false; $x \in \texttt{succ}\,y$ holds iff $x = y$
 or $x \in y$.  Subset is $x \subseteq y \iff \forall z,\, z \in x \to z \in y$.
 \end{definition}
 
@@ -173,10 +173,10 @@ proved as \texttt{Or.inl rfl}; (ii)~$x \subseteq t(x)$
 \lean{VR.A4_induction, VR.A4_exhaustion}
 \leanok
 \uses{def:VRObj}
-\texttt{A4\_induction}: any property holding at \texttt{void} and
+\texttt{A4\_induction}: any property holding at \texttt{mark} and
 preserved by \texttt{succ} holds for all \texttt{VRObj}; proved by the
 \texttt{induction} tactic from the recursor of \texttt{VRObj}.
-\texttt{A4\_exhaustion}: every \texttt{VRObj} is either \texttt{void}
+\texttt{A4\_exhaustion}: every \texttt{VRObj} is either \texttt{mark}
 or of the form \texttt{succ}~$y$; proved by \texttt{cases}.  See
 Remark~\ref{rem:A4_theorem}.
 \end{theorem}
@@ -254,7 +254,7 @@ If $x = y$ (Lean equality), then $\texttt{vrEq}\,x\,y$.  Proved by
 \leanok
 \uses{def:VRObj}
 The function $O : \mathbb{N} \to \mathrm{VRObj}$ is defined by $O(0) :=
-\texttt{void}$ and $O(n+1) := \texttt{succ}(O(n))$.  Lean's
+\texttt{mark}$ and $O(n+1) := \texttt{succ}(O(n))$.  Lean's
 \texttt{Nat} serves as an external index; the VR objects are the image
 of~$O$.
 \end{definition}
@@ -264,8 +264,8 @@ of~$O$.
 \lean{VR.O_one, VR.O_two, VR.O_three}
 \leanok
 \uses{def:O}
-$O(1) = \texttt{succ}\,\texttt{void}$, $O(2) = \texttt{succ}(\texttt{succ}\,\texttt{void})$,
-$O(3) = \texttt{succ}(\texttt{succ}(\texttt{succ}\,\texttt{void}))$; all by \texttt{rfl}.
+$O(1) = \texttt{succ}\,\texttt{mark}$, $O(2) = \texttt{succ}(\texttt{succ}\,\texttt{mark})$,
+$O(3) = \texttt{succ}(\texttt{succ}(\texttt{succ}\,\texttt{mark}))$; all by \texttt{rfl}.
 \end{theorem}
 
 \begin{theorem}[$O_k \in O_n$ for $k < n$]
@@ -287,7 +287,7 @@ of $k < n$ using the constructors of \texttt{Nat.le}: the base case is
 \lean{VR.vadd}
 \leanok
 \uses{def:VRObj}
-$\texttt{vadd}(a, \texttt{void}) := a$;\quad
+$\texttt{vadd}(a, \texttt{mark}) := a$;\quad
 $\texttt{vadd}(a, \texttt{succ}\,b) := \texttt{succ}(\texttt{vadd}(a, b))$.
 Structural recursion on the second argument.
 \end{definition}
@@ -297,7 +297,7 @@ Structural recursion on the second argument.
 \lean{VR.vmul}
 \leanok
 \uses{def:vadd}
-$\texttt{vmul}(a, \texttt{void}) := \texttt{void}$;\quad
+$\texttt{vmul}(a, \texttt{mark}) := \texttt{mark}$;\quad
 $\texttt{vmul}(a, \texttt{succ}\,b) := \texttt{vadd}(\texttt{vmul}(a,b),\,a)$.
 \end{definition}
 
@@ -306,7 +306,7 @@ $\texttt{vmul}(a, \texttt{succ}\,b) := \texttt{vadd}(\texttt{vmul}(a,b),\,a)$.
 \lean{VR.vpow}
 \leanok
 \uses{def:vmul}
-$\texttt{vpow}(a, \texttt{void}) := \texttt{succ}\,\texttt{void}$ (i.e.~$O(1)$);\quad
+$\texttt{vpow}(a, \texttt{mark}) := \texttt{succ}\,\texttt{mark}$ (i.e.~$O(1)$);\quad
 $\texttt{vpow}(a, \texttt{succ}\,b) := \texttt{vmul}(\texttt{vpow}(a,b),\,a)$.
 \end{definition}
 
@@ -315,7 +315,7 @@ $\texttt{vpow}(a, \texttt{succ}\,b) := \texttt{vmul}(\texttt{vpow}(a,b),\,a)$.
 \lean{VR.vadd_zero_left, VR.vadd_succ_left}
 \leanok
 \uses{def:vadd}
-$\texttt{vadd}(\texttt{void}, b) = b$ (\texttt{vadd\_zero\_left}) and
+$\texttt{vadd}(\texttt{mark}, b) = b$ (\texttt{vadd\_zero\_left}) and
 $\texttt{vadd}(\texttt{succ}\,a, b) = \texttt{succ}(\texttt{vadd}(a, b))$
 (\texttt{vadd\_succ\_left}); both proved by induction on~$b$.  Used in
 the proof of~T1.
@@ -370,7 +370,7 @@ definitional reductions of \texttt{vadd}.
 \lean{VR.O_zero, VR.O_succ}
 \leanok
 \uses{def:O}
-$\texttt{O\_zero}: O(0) = \texttt{void}$ and $\texttt{O\_succ}: O(n+1) =
+$\texttt{O\_zero}: O(0) = \texttt{mark}$ and $\texttt{O\_succ}: O(n+1) =
 \texttt{succ}(O(n))$; both by \texttt{rfl}.  These name the two defining
 equations of~$O$ explicitly to record the Peano correspondence $0
 \mapsto O_0$, $\mathrm{Nat.succ} \mapsto \texttt{VRObj.succ}$.
@@ -392,8 +392,8 @@ type system.  This is a methodological observation, not a defect.
 \lean{VR.P3_succ_ne_zero}
 \leanok
 \uses{def:VRObj}
-$\texttt{succ}\,x \ne \texttt{void}$ for every $x : \mathrm{VRObj}$.
-Proved via \texttt{VRObj.noConfusion}: \texttt{void} and \texttt{succ}
+$\texttt{succ}\,x \ne \texttt{mark}$ for every $x : \mathrm{VRObj}$.
+Proved via \texttt{VRObj.noConfusion}: \texttt{mark} and \texttt{succ}
 are distinct constructors.
 \end{theorem}
 
@@ -404,7 +404,7 @@ are distinct constructors.
 \uses{def:vrEq}
 \texttt{P4\_succ\_inj\_leibniz}: if $\texttt{vrEq}(\texttt{succ}\,x,
 \texttt{succ}\,y)$ then $\texttt{vrEq}(x, y)$; proved via the predicate
-$q\,z := $ if $z = \texttt{void}$ then $\top$ else $p(\text{predecessor of }z)$.
+$q\,z := $ if $z = \texttt{mark}$ then $\top$ else $p(\text{predecessor of }z)$.
 \texttt{P4\_succ\_inj}: if $\texttt{succ}\,x = \texttt{succ}\,y$ (Lean
 equality) then $x = y$; proved by projecting the constructor argument.
 \end{theorem}
@@ -455,7 +455,7 @@ Remark~\ref{rem:acyclicity_no_measure}.
 \lean{VR.O_inv}
 \leanok
 \uses{def:VRObj}
-$O^{-1} : \mathrm{VRObj} \to \mathbb{N}$ by $O^{-1}(\texttt{void}) := 0$,
+$O^{-1} : \mathrm{VRObj} \to \mathbb{N}$ by $O^{-1}(\texttt{mark}) := 0$,
 $O^{-1}(\texttt{succ}\,x) := O^{-1}(x) + 1$.  This is the Gödel
 encoding of the preprint: $\lceil\emptyset\rceil := 0$,
 $\lceil t(x)\rceil := \lceil x\rceil + 1$.
