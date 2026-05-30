@@ -1,0 +1,261 @@
+\chapter{Brouwer via Sperner (mathlib-bound)}
+\label{chap:brouwer}
+\uses{chap:overview, chap:audit}
+
+\section{Position}
+\label{sec:brouwer_position}
+
+This chapter is different from the rest of the cycle: the target is \textbf{mathlib},
+not a VR object.  The deliverable is the Brouwer fixed-point theorem, formalised via
+the Sperner route, as two layers --- a constructive Sperner core and a classical
+limit --- with the boundary between them made precise.  What VR contributes here is
+\emph{not} the mathematics (the theorem is Brouwer; competent mathlib work reaches
+it) but the meta-discipline: an honest constructive/classical partition, an
+abstraction caught vacuous at its first concrete use, and a \emph{machine-checked}
+differential witness.
+
+\textbf{Two layers, one boundary.}  The constructive layer is Sperner's lemma in
+every dimension plus the approximate fixed point; it evaluates the map pointwise but
+uses no continuity and no choice-driven extraction.  The classical layer is the exact
+theorem, where \texttt{Classical.choice} enters --- and only there --- through the
+compactness extraction.  Isolating and \emph{certifying} that single choice point is
+the chapter's distinctive contribution (Section~\ref{sec:brouwer_witness}).
+
+\textbf{Why \texttt{\#print axioms} is not enough here (Findings B-1, B-2).}  The
+cycle's usual axiom-tier discipline fails against the analytic substrate: $\mathbb{R}$
+carries \texttt{Classical.choice} at the type level (B-1), and the canonical
+\texttt{Fin.fintype} enumeration carries it through \texttt{List.nodup\_finRange}
+(B-2).  So absolute \texttt{\#print axioms} cannot discriminate constructivity over
+mathlib's substrate --- every declaration touching $\mathbb{R}$ or a \texttt{Fintype}
+enumeration is Tier-3 regardless of its local argument.  The honest replacement is a
+\emph{dependency} claim, witnessed differentially, not an axiom-tier claim
+(Section~\ref{sec:brouwer_witness}).
+
+%──────────────────────────────────────────────────────────────────────
+\section{The architecture (stage pipeline)}
+\label{sec:brouwer_pipeline}
+
+The formalisation is a linear pipeline of eight modules, each consuming the previous:
+\[
+  \underbrace{\texttt{Skeleton} \to \texttt{Sperner} \to \texttt{Grid} \to
+  \texttt{Handshake} \to \texttt{Kuhn} \to \texttt{KuhnGen}}_{\text{constructive layer
+  (Stages 1--2): no continuity, no \texttt{tendsto\_subseq}}}
+  \;\to\;
+  \underbrace{\texttt{Approx}}_{\text{Stage 3}}
+  \;\to\;
+  \underbrace{\texttt{Fixed}}_{\text{Stage 4: classical}}.
+\]
+\texttt{Handshake} carries the encoding-independent parity kernel; \texttt{Sperner}
+the one-dimensional door count; \texttt{Grid} the realisation
+$\texttt{gridToSimplex}\,k\,v = v/k$ with mesh $\le 1/k$; \texttt{KuhnGen} the
+general Kuhn--Freudenthal cells and the whole dimension recursion.  The three nodes
+that carry the difficulty --- the dimension recursion, the vacuity finding, and the
+differential witness --- are the subject of the next three sections.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Load-bearing node I: the dimension recursion}
+\label{sec:brouwer_recursion}
+
+Sperner's lemma is proved by induction on dimension.  The combinatorial heart is the
+parity bridge --- rainbow cells against boundary doors --- via the handshake.
+
+\begin{theorem}[Handshake parity]
+\label{thm:brouwer_handshake}
+\lean{Brouwer.Handshake.handshake_parity}
+\leanok
+For a bipartite incidence between rooms and doors, the number of odd-degree rooms and
+the number of odd-degree doors have equal parity (each equals the incidence count
+mod~$2$).  The one genuinely hard combinatorial step, isolated from all geometry.
+\end{theorem}
+
+The recursion step itself is a bijection between the degree-one doors of a
+$(n{+}2)$-cell and the rainbow valid $(n{+}1)$-cells under an induced colouring.
+
+\begin{theorem}[The drop bijection]
+\label{thm:brouwer_drop}
+\lean{Brouwer.KuhnGen.drop_card_bij}
+\leanok
+\uses{thm:brouwer_handshake}
+$\#\{\text{degree-1 colored doors of } \mathrm{KCell}\,(n{+}2)\}
+  = \#\{\text{rainbow valid } \mathrm{KCell}\,(n{+}1) \text{ under } \mathrm{col}'\}$,
+via $D \mapsto \texttt{facetSet}(\texttt{liftCell}\,D)\,0$.  Injectivity is the
+$\varphi$-functional argument (a cell is determined by its vertex set); surjectivity
+recovers the cell from a degree-one door (Finding K-3: such a door is exactly
+$\texttt{facetSet}\,C_0\,0$ with first move \texttt{last}).  This was the project's
+last conceptual risk; it is a theorem.
+\end{theorem}
+
+\begin{theorem}[Sperner's lemma, existence form]
+\label{thm:brouwer_sperner}
+\lean{Brouwer.KuhnGen.exists_rainbow_cell}
+\leanok
+\uses{thm:brouwer_drop}
+For every dimension $m \ge 1$ and every admissible colouring of the resolution-$k$
+grid, there is a rainbow valid cell --- one whose vertices realise all $m{+}1$
+colours.  The parity step \texttt{rainbow\_parity\_step} (the drop bijection chained
+with the handshake) drives the induction; the base case is the one-dimensional door
+count \texttt{Sperner.odd\_doors}.
+\axiomprofile{[propext, Classical.choice, Quot.sound]} --- substrate-absolute (B-2,
+\texttt{Fin} enumeration), differentially clean (Section~\ref{sec:brouwer_witness}).
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Load-bearing node II: a vacuous abstraction, caught}
+\label{sec:brouwer_finding}
+
+\begin{finding}[S-1: \texttt{SpernerAdmissible} was unsatisfiable]
+\label{find:brouwer_s1}
+\lean{Brouwer.KuhnGen.SpernerAdmissible, Brouwer.KuhnGen.exists_spernerAdmissible}
+\leanok
+The admissibility predicate driving the whole recursion was first stated as
+$\forall v\,i,\; v_i = 0 \to \operatorname{col} v \ne i$, quantified over \emph{all}
+integer vectors.  The zero vector makes it demand $\operatorname{col} 0 \ne i$ for
+every $i$ --- impossible.  Verified in Lean: \texttt{(h : SpernerAdmissible col)
+$\vdash$ False}.  Consequence: every Stage-2 theorem carrying this hypothesis was
+\emph{vacuously} true --- real, green, axiom-audited, and uninstantiable.
+\end{finding}
+
+The flaw was invisible while Stage~2 only ever \emph{consumed} the hypothesis.  It
+surfaced at the Stage-3 boundary, where one must \emph{construct} the colouring from
+the map and prove it admissible --- the recognition-discipline gate (``no abstraction
+without a concrete user'') firing exactly on first contact with a concrete user.
+The fix guards the predicate with a positive-sum hypothesis
+($0 < \sum_j v_j$, automatically met by grid vertices, which sum to $k>0$) and is
+certified \emph{non-vacuous}: \texttt{exists\_spernerAdmissible} exhibits a witness
+colouring.  The old vacuity proof is now rejected by the kernel.  This is the methods
+contribution of the node: the discipline turned a silent soundness-adjacent defect
+into a documented, repaired, certified finding.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Load-bearing node III: the differential witness (machine-checked)}
+\label{sec:brouwer_witness}
+
+Since absolute axiom tiers are saturated (B-1, B-2), constructivity is witnessed
+\emph{differentially}: the constructive layer introduces no dependency on the
+choice-driven extraction \texttt{IsCompact.tendsto\_subseq} (nor on \texttt{Continuous});
+the classical layer does.  The approximate fixed point is the constructive endpoint.
+
+\begin{theorem}[Approximate fixed point (constructive)]
+\label{thm:brouwer_approx}
+\lean{Brouwer.KuhnGen.exists_approx_fixed}
+\leanok
+\uses{thm:brouwer_sperner}
+For a self-map $f$ of the standard simplex (\texttt{Set.MapsTo}, \emph{not}
+\texttt{Continuous}) and resolution $k>0$, there is a family $y$ (the realised
+vertices of a rainbow cell, one per colour) with $f(y_i)_i \le (y_i)_i$ for every
+coordinate $i$, all points within $2/k$.  The Sperner labeling colours a grid vertex
+by a coordinate $f$ does not increase (the coordinate-sum argument
+\texttt{exists\_coord\_le}); a rainbow cell realises one such witness per coordinate.
+\textbf{Uses $f$ only pointwise.}
+\end{theorem}
+
+\begin{theorem}[Brouwer fixed-point theorem (classical)]
+\label{thm:brouwer_main}
+\lean{Brouwer.KuhnGen.brouwer_stdSimplex}
+\leanok
+\uses{thm:brouwer_approx}
+A \emph{continuous} self-map of $\texttt{stdSimplex}\,\mathbb{R}\,(\texttt{Fin}\,(n{+}1))$,
+$n \ge 1$, has a fixed point.  The approximate fixed points at resolutions $k=m{+}1$
+form a sequence in the compact simplex; \texttt{IsCompact.tendsto\_subseq} extracts a
+convergent subsequence (the \emph{single} classical step); continuity plus mesh
+$\to 0$ force $f(x^\ast)_i \le x^\ast_i$ for every $i$, and equal coordinate sums
+upgrade this to $f\,x^\ast = x^\ast$.
+\axiomprofile{[propext, Classical.choice, Quot.sound]} --- the
+\texttt{Classical.choice} here is \emph{expected and correct}: Brouwer is not
+constructive.
+\end{theorem}
+
+\textbf{The witness is a build invariant, not a claim.}  A transitive-dependency
+checker (\texttt{VRCycle/Meta/DependsOn.lean}, project-agnostic) walks the
+environment and gates the build on the partition below; the \texttt{depends} rows
+certify the boundary is genuine, not vacuous.  A negative control (asserting a false
+dependency) is correctly rejected, so the checker is sound in both directions.
+
+\begin{center}
+\begin{tabular}{lll}
+\textbf{layer} & \texttt{tendsto\_subseq} & \texttt{Continuous} \\
+\hline
+Stage 2 \texttt{exists\_rainbow\_cell} (Sperner)      & free        & free \\
+Stage 3 \texttt{exists\_approx\_fixed} (approximate)  & free        & free \\
+Stage 4 \texttt{brouwer\_stdSimplex} (exact)          & \textbf{depends} & \textbf{depends} \\
+\end{tabular}
+\end{center}
+
+This table is the differential witness, machine-checked at build time
+(\texttt{\#assert\_not\_depends\_on} / \texttt{\#assert\_depends\_on}).  It is the
+dependency-graph cut that absolute \texttt{\#print axioms} could not see: the
+constructive nodes are blue (free of the extraction), the classical node is red, and
+the colouring is sourced from the checker, not asserted by the author.
+
+%──────────────────────────────────────────────────────────────────────
+\section{The general theorem — compact convex sets}
+\label{sec:brouwer_convex}
+
+The simplex form extends to any nonempty compact convex set by a retraction argument that keeps the
+standard simplex as the Brouwer universe. (The gauge/ball homeomorphism route is blocked: the
+standard simplex has \emph{empty interior} in its ambient $\mathbb{R}^{n+1}$, living in the
+hyperplane $\sum = 1$.) The reusable cornerstone is the metric projection, which mathlib packages
+only for subspaces.
+
+\begin{theorem}[Metric projection onto a convex set]
+\label{thm:brouwer_proj}
+\lean{Brouwer.Convex.projConvex, Brouwer.Convex.continuous_projConvex,
+      Brouwer.Convex.projConvex_eq_self}
+\leanok
+For a nonempty complete convex set $K$ in a real inner product space, the nearest-point projection
+$\texttt{projConvex}\,K$ is a $1$-Lipschitz (hence continuous) retraction onto $K$. Built from the
+Hilbert projection theorem (\texttt{exists\_norm\_eq\_iInf\_of\_complete\_convex}) and its
+variational inequality.
+\end{theorem}
+
+\begin{theorem}[Brouwer for the corner simplex]
+\label{thm:brouwer_corner}
+\lean{Brouwer.Convex.brouwer_cornerSimplex}
+\leanok
+\uses{thm:brouwer_main}
+A continuous self-map of the full-dimensional corner simplex
+$\{x \in \mathbb{R}^n \mid x_i \ge 0,\ \sum x_i \le 1\}$ has a fixed point, by conjugating through
+the drop-/extend-last-coordinate maps to the standard simplex.
+\end{theorem}
+
+\begin{theorem}[Brouwer for a compact convex set]
+\label{thm:brouwer_convex}
+\lean{Brouwer.Convex.brouwer_compact_convex}
+\leanok
+\uses{thm:brouwer_proj, thm:brouwer_corner}
+Every continuous self-map of a nonempty compact convex subset $K$ of Euclidean $\mathbb{R}^n$ has a
+fixed point. An affine map $\psi(x) = a\,(x + M\mathbf{1})$ (with $M$ a coordinate bound from
+compactness, $a$ small) fits a copy $K' = \psi(K)$ inside the corner simplex; the projection onto
+$K'$ conjugated with $f$ is a self-map of the corner simplex, and its fixed point — which lands in
+$K'$, where the projection is the identity — pulls back to a fixed point of $f$ in $K$.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Honest scope}
+\label{sec:brouwer_scope}
+
+\textbf{The mathematics is mathlib's, the meta-layer is VR's.}  Roughly ninety percent
+of the code is ordinary formalisation craft (the triangulation, the $\varphi$-functional,
+the drop bijection, the real-analysis limit); VR did not make Brouwer provable.  Its
+value is precision of the constructivity claim and the finding-discipline that caught
+S-1.
+
+\textbf{The differential witness is meta-trusted.}  The checker certifies the dependency
+relation but is not itself kernel-verified --- the same tier as \texttt{\#print axioms}.
+
+\textbf{Coverage.}  The theorem holds for the standard simplex in every dimension (including the
+degenerate point $n=0$, \texttt{brouwer\_stdSimplex\_all}) and for an arbitrary nonempty compact
+convex subset of Euclidean $\mathbb{R}^n$ (Section~\ref{sec:brouwer_convex}). A further extension to
+infinite-dimensional convex sets (Schauder) is out of scope.
+
+%──────────────────────────────────────────────────────────────────────
+\section{References}
+\label{sec:brouwer_refs}
+
+The Lean~4 formalisation lives under \texttt{VRCycle/Brouwer/} (modules
+\texttt{Skeleton}, \texttt{Sperner}, \texttt{Grid}, \texttt{Handshake}, \texttt{Kuhn},
+\texttt{KuhnGen}, \texttt{Approx}, \texttt{Fixed}), with the differential witness in
+\texttt{Brouwer/DiffWitness.lean} over the generic engine
+\texttt{Meta/DependsOn.lean}.  The target is a mathlib pull request; this chapter is
+the canonical exposition of the architecture and the two methods contributions
+(Finding~S-1, the machine-checked differential witness).
