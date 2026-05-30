@@ -925,6 +925,22 @@ Developed using **Claude Opus 4.7** in both architectural and implementation rol
 
 ---
 
+### Brouwer fixed-point theorem (`VRCycle/Brouwer/`) — *mathlib-bound, not part of the VR Cycle*
+
+**Lean: git tag `v1.16-vr-brouwer-v1.0.0`**
+
+A Lean 4 formalisation of **Brouwer's fixed-point theorem via Sperner's lemma** (Kuhn–Freudenthal grid), developed as a candidate contribution to **mathlib** — the VR methodology is shared, but the target is mathlib, not the VR Cycle. It proves Sperner's lemma in every dimension, Brouwer for the standard simplex `stdSimplex ℝ (Fin (n+1))` (all `n`), and for any nonempty compact convex set in `EuclideanSpace ℝ (Fin n)`. `sorry`-free, lint-clean.
+
+Distinctive: the constructive/classical boundary is a **machine-checked differential witness** (`VRCycle/Meta/DependsOn.lean`) — the Sperner combinatorics and the approximate fixed point are certified free of the compactness extraction `IsCompact.tendsto_subseq`, which enters only at the final limit. Exposition in blueprint [Chapter 11](https://inventor1975.github.io/VRCycle/).
+
+*Status: proposed to mathlib (the 1000-theorems entry Q1144897 is currently a Lean 3 external formalisation; this would be the first in Lean 4 / mathlib). Outcome pending community discussion.*
+
+#### Acknowledgement
+
+Developed using **Claude Opus 4.8** in both architectural and implementation roles (Variant A workflow), under human curator Vitaly Reznik. AI assistance is disclosed in the mathlib contribution proposal.
+
+---
+
 ## What this formalisation does NOT claim
 
 **Ontological theses.** The preprint makes claims about minimalism, Leibnizian void, and the operational character of objects. These are interpretive layers on top of the formal system. This Lean formalisation verifies formal derivability given a specific translation into Lean types — not the philosophical claims themselves.
