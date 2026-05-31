@@ -5,17 +5,17 @@
 \section{Position}
 \label{sec:forms_position}
 
-VR-Forms is the two-register apparatus over VR-Sets.  The \emph{ontological
+VR-Forms is the two-register apparatus over VR-Sets.  The \emph{operational
 register} (L\textsubscript{0}) describes operational sets in the sense of
 Chapter~\ref{chap:sets}: objects built from $\emptyset$ by the closure
 principle.  The \emph{formal register} (L\textsubscript{1}) accommodates
-syntactic descriptions without ontological obligation---classically
+syntactic descriptions without operational obligation---classically
 uncountable objects, paradoxical classes, and any correctly built term
 regardless of operationality or consistency.  The two registers are connected
 by the translation $\pi$ and by Theorem~III.1 (conservativity).
 
 \textbf{Clarification on register language.} The registers describe modes
-of description, not separate ontological levels.  All descriptions are
+of description, not separate operational levels.  All descriptions are
 operational acts; the distinction is whether the described referent has an
 operational correlate.
 
@@ -175,10 +175,10 @@ exclusively in the forward direction.
 \notready
 \uses{def:translate_pi, def:isRealisable}
 \textbf{Theorem III.1} (preprint §\,III.2, verbatim): «The theory $T_1$
-(VR-Forms) is conservative over $T_0$ (VR-Sets) in the ontological
+(VR-Forms) is conservative over $T_0$ (VR-Sets) in the operational
 register: any formula $\varphi \in L_0$ that is derivable in $T_1$ is
 already derivable in $T_0$.  Equivalently: formal terms do not produce
-new ontological theorems.»
+new operational theorems.»
 
 The theorem is proved in the preprint via induction on derivations through
 the translation $\pi$.  It is \textbf{not formalised} in the Lean cycle.
@@ -267,7 +267,7 @@ $\emptyset \in \texttt{omega\_OSet} \land
 \texttt{isRealisable}\,\ulcorner$\texttt{"omega\_OSet"}$\urcorner$.
 Proof: $\langle\texttt{translate\_pi\_omega.1},\,
 \texttt{isRealisable\_omega}\rangle$.
-Both registers affirm $\omega$: ontological membership and formal
+Both registers affirm $\omega$: operational membership and formal
 realisability agree on the same object.
 \end{theorem}
 
@@ -314,7 +314,7 @@ Observation~9.
 \uses{def:OSet, def:FormalTerm}
 $\texttt{Carrier}$ is an inductive type with two constructors:
 $\texttt{.obj} : \mathrm{OSet}.{0} \to \texttt{Carrier}$ (operational
-objects in the ontological register) and
+objects in the operational register) and
 $\texttt{.term} : \texttt{FormalTerm} \to \texttt{Carrier}$ (formal terms).
 
 $\texttt{Operational} : \texttt{Carrier} \to \mathrm{Prop}$ by:

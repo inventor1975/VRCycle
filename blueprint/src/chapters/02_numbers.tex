@@ -8,8 +8,8 @@ VR-Numbers constructs the integers~$\mathbb{Z}_{\mathrm{VR}}$, rationals~$\mathb
 reals~$\mathbb{R}_{\mathrm{VR}}$, and complex numbers~$\mathbb{C}_{\mathrm{VR}}$ as successive
 operational superstructures over the VR natural numbers~$\mathrm{VRObj}$.
 Each numerical domain is introduced as a formal language of expressions with an equivalence
-relation; no level uses ordered pairs as ontological objects.
-The single ontological primitive is~$\emptyset$; all number systems are
+relation; no level uses ordered pairs as primitive objects.
+$\emptyset$ is the base operation, not an ontological primitive; all number systems are
 operational constructions of increasing depth over it (§\,VI.4 of the preprint).
 
 The isomorphisms with mathlib's \texttt{Int}, \texttt{Rat}, \texttt{Real}, and
@@ -353,7 +353,7 @@ reading of the same structure.
 $\texttt{ComplexVR}$ is a structure with two fields
 $\texttt{fst} : \mathbb{R}_{\mathrm{VR}}$ (the F$\to$F axis, real component) and
 $\texttt{snd} : \mathbb{R}_{\mathrm{VR}}$ (the F$\to$T axis, imaginary component).
-See Remark~\ref{rem:A1_duality} for the ontological grounding.
+See Remark~\ref{rem:A1_duality} for the structural grounding.
 \end{definition}
 
 \begin{remark}[Two-dimensionality from A1 duality]
@@ -444,20 +444,20 @@ rational arithmetic, not a defect of the VR construction.
 \section{The \S\,VI.5 list of non-primitive objects}
 \label{sec:VI5}
 
-\begin{remark}[Six objects not introduced as ontological primitives]
+\begin{remark}[Six objects not introduced as primitive objects]
 \label{rem:VI5_list}
 \lean{VR.Numbers.IntExpr, VR.Numbers.RatExpr, VR.Numbers.FundSeqVR,
       VR.Numbers.ComplexVR}
 \leanok
 \uses{def:IntExpr, def:RatExpr, def:isFundamentalVR, def:ComplexVR}
 Following §\,VI.5 of the preprint, the following objects are absent as
-independent ontological entities:
+independent objects:
 (1)~ordered pairs (both \texttt{IntExpr.mk} and \texttt{RatExpr.mk}
     are formal binary operators accessed via pattern matching only);
 (2)~negative numbers (classes of $a \ominus b$, not a distinct primitive);
 (3)~fractions (classes of $a \oslash b$ with $b \ne 0$);
 (4)~real numbers (equivalence classes of Cauchy sequences of rationals);
-(5)~complex numbers (pairs of reals, but not ontological pairs---a
+(5)~complex numbers (pairs of reals, but not primitive pairs---a
     plain Lean structure whose fields are real components);
 (6)~zero (emerges as the class $[0_{\mathbb{Z}} \oslash 1_{\mathbb{Z}}]$ or as the
     constant sequence at $0_{\mathbb{Q}}$, not as a primitive object).
@@ -569,7 +569,7 @@ VR-Numbers is built \emph{on} mathlib, not parallel to it.  The isomorphisms
 provide the operational superstructure; mathlib provides the classical substrate.
 \end{remark}
 
-\begin{remark}[O9 --- Pairs absent as ontological objects (\S\,VI.5)]
+\begin{remark}[O9 --- Pairs absent as primitive objects (\S\,VI.5)]
 \label{rem:no_pairs}
 \lean{VR.Numbers.IntExpr, VR.Numbers.RatExpr}
 \leanok
