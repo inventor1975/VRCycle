@@ -4,7 +4,7 @@
 --
 -- **Clarification on register language (added 2026-05-26):**
 -- The two-register language describes modes of description, not separate
--- ontological levels. All descriptions are operational acts; the registers
+-- operational levels. All descriptions are operational acts; the registers
 -- distinguish whether the described referent has an operational correlate
 -- (operational register) or is a formal term referring to a non-operational
 -- concept such as actual infinity (formal register). This clarification
@@ -36,12 +36,12 @@
 --
 -- **(b) Skolem's paradox — two-register reading** (Part V §V.2, §VII.2):
 --   The formal-register half of Skolem's paradox IS a Lean theorem
---   (`not_isRealisable_classical_powerset_N := id`). The ontological half
+--   (`not_isRealisable_classical_powerset_N := id`). The operational half
 --   («℘_VR(ω) is countable») is metatheoretic — documented in comments,
 --   not formalised as a Lean theorem. This is the honest two-level treatment.
 --
 -- **(c) Mixed formulas** (Part VII §VII.2):
---   Lean Props combining OSet quantification (ontological register) with
+--   Lean Props combining OSet quantification (operational register) with
 --   `isRealisable` predicates (formal register). Two concrete examples:
 --   - `mixed_omega_two_register`: positive — both registers affirm ω.
 --   - `mixed_AFA_boundary`: the ZFA structural boundary surfaces in both
@@ -89,7 +89,7 @@ open VR.Sets
 -- countable model of set theory exists. The paradox dissolves in the VR
 -- framework via the two-register reading:
 --
--- **Ontological register**: ℘_VR(ω) is the operational power set — the
+-- **Operational register**: ℘_VR(ω) is the operational power set — the
 -- set of all operationally describable subsets of ω. In VR-Sets Lean,
 -- `ZFSet.powerset omega_OSet` is the classical powerset (full mathlib
 -- powerset, NOT restricted to describable subsets). The countability of
@@ -109,10 +109,10 @@ open VR.Sets
 -- | Side | Claim | Lean status |
 -- |------|-------|------------|
 -- | Formal | ⌜℘(ℕ)⌝ non-realisable | Lean theorem (trivial, id) |
--- | Ontological | ℘_VR(ω) countable | Comment only (metatheoretic) |
+-- | Operational | ℘_VR(ω) countable | Comment only (metatheoretic) |
 --
 -- This is the honest treatment. Composing both into a single `def : Prop`
--- would misrepresent the ontological claim as Lean-provable.
+-- would misrepresent the operational claim as Lean-provable.
 -- See the discussion at the transit pattern boundary (Stage 3, §III.2).
 
 
@@ -130,7 +130,7 @@ description «the set of all sets not containing themselves» is
 syntactically correct. However, ⌜R⌝ is not operationally realisable:
 no operational set A exists in VR-Sets such that the description R
 corresponds to the functionality A. The formal term ⌜R⌝ exists in
-the formal register without any ontological correlate.»
+the formal register without any operational correlate.»
 
 ## Lean proof
 
@@ -211,7 +211,7 @@ theorem not_isRealisable_classical_R : ¬isRealisable ⌜"classical_R"⌝ := id
 operational power set ℘_VR(ω) is countable (metatheoretically): only
 finitely-describable subsets of ω are operational. ⌜℘(ℕ)⌝ (classical,
 uncountable) has no operational correlate. This is the VR reading of
-Skolem's paradox: in the ontological register, ℘_VR(ω) is countable;
+Skolem's paradox: in the operational register, ℘_VR(ω) is countable;
 in the formal register, ⌜℘(ℕ)⌝ is non-realisable. Both registers give
 a coherent picture without contradiction.»
 
@@ -221,7 +221,7 @@ a coherent picture without contradiction.»
 `¬isRealisable ⌜"classical_powerset_N"⌝ := id`.
 
 This is the **formal-register half** of the two-register Skolem reading.
-The ontological half («℘_VR(ω) is countable») is metatheoretic — see
+The operational half («℘_VR(ω) is countable») is metatheoretic — see
 the Skolem documentation block above. Only this half is a Lean theorem.
 
 ## Axiom profile: [propext, Quot.sound] -/
@@ -238,15 +238,15 @@ theorem not_isRealisable_classical_powerset_N :
 -- ## §VII.2, Mixed formulas — verbatim
 --
 -- «A **mixed formula** is a formula that combines quantification over
--- operational sets (the ontological register L₀) with assertions about
+-- operational sets (the operational register L₀) with assertions about
 -- formal terms (the formal register L₁). Mixed formulas have the form:
 --
 --   Φ(x₁, …, xₙ, ⌜τ₁⌝, …, ⌜τₖ⌝)
 --
--- where xᵢ : OSet (ontological variables) and ⌜τⱼ⌝ are formal terms.
+-- where xᵢ : OSet (operational variables) and ⌜τⱼ⌝ are formal terms.
 -- Mixed formulas are legitimate formulas of the two-register theory T₁
 -- (Part III §III.1). By Theorem III.1 (conservativity), if a mixed
--- formula Φ is provable in T₁ and Φ ∈ L₀ (ontological register), it
+-- formula Φ is provable in T₁ and Φ ∈ L₀ (operational register), it
 -- is already provable in T₀ without formal terms.»
 --
 -- ## Lean implementation of mixed formulas
@@ -267,7 +267,7 @@ theorem not_isRealisable_classical_powerset_N :
 ## §VII.2 — positive mixed formula (realisable case)
 
 Both registers affirm ω's existence and properties:
-- Ontological: `∅ ∈ omega_OSet` — the empty set is a member of the
+- Operational: `∅ ∈ omega_OSet` — the empty set is a member of the
   operational ω (VR-Sets Theorem III.6, infinity axiom).
 - Formal: `isRealisable ⌜"omega_OSet"⌝` — the formal term for ω has an
   operational correlate (Stage 2 lemma `isRealisable_omega`).
@@ -297,7 +297,7 @@ The most mathematically substantive mixed formula of this cycle. It
 expresses — in a single Lean Prop — the parallel manifestation of the
 ZFA structural boundary across both registers:
 
-- Ontological: `∀ x : OSet, x ∉ x` — no operational set is self-membered.
+- Operational: `∀ x : OSet, x ∉ x` — no operational set is self-membered.
   This is the foundation / regularity property of VR-Sets. In Lean:
   `ZFSet.mem_irrefl : ∀ x : ZFSet, ¬(x ∈ x)`.
 
@@ -305,7 +305,7 @@ ZFA structural boundary across both registers:
   operational correlate. In Lean: `bridge_AFA := AFA_Refuted` (Stage 4).
 
 Together: the same structural fact (well-foundedness of set membership)
-manifests in the ontological register as the `mem_irrefl` property of OSet,
+manifests in the operational register as the `mem_irrefl` property of OSet,
 and in the formal register as the non-realisability of the AFA claim.
 
 ## §V.4 preprint reference — verbatim

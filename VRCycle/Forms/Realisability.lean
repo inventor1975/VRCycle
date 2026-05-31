@@ -48,7 +48,7 @@ open VR.Sets
 ## §II.7, Definition II.3 (operational realisability) — verbatim
 
 «A formal term ⌜τ⌝ is called **operationally realisable** if in the
-ontological register there exists an operational set A such that the
+operational register there exists an operational set A such that the
 description τ corresponds to the functionality A.
 
 Equivalently: ⌜τ⌝ is operationally realisable if τ (without the
@@ -57,7 +57,7 @@ satisfying the closure principle.»
 
 **Clarification on register language (added 2026-05-26):**
 The two-register language describes modes of description, not separate
-ontological levels. All descriptions are operational acts; the registers
+operational levels. All descriptions are operational acts; the registers
 distinguish whether the described referent has an operational correlate
 (operational register) or is a formal term referring to a non-operational
 concept such as actual infinity (formal register). This clarification
@@ -65,7 +65,7 @@ aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
 
 §II.7 continues (verbatim): «The distinction «realisable / non-realisable»
 is a property of the formal term as a pair (description, register). It only
-tells whether the formal term has an ontological correlate. The formal term
+tells whether the formal term has an operational correlate. The formal term
 itself does not become «better» or «worse» from the presence or absence of
 realisation; in the formal register all terms are equal.»
 
@@ -224,7 +224,7 @@ def isRealisable (t : FormalTerm) : Prop :=
       -- BOUNDARY NOTE: this is the VR-Sets structural boundary appearing inside
       -- the Forms realisability predicate. The formal register admits ⌜AFA_Statement⌝
       -- as a formal term (Principle of Forms, §II.4); it is non-realisable because
-      -- the corresponding ontological claim is refuted in VR-Sets Lean.
+      -- the corresponding operational claim is refuted in VR-Sets Lean.
       AFA_Statement
   | _ =>
       -- Catch-all: all other formal terms are non-realisable.
@@ -244,7 +244,7 @@ def isRealisable (t : FormalTerm) : Prop :=
 
 ## Preprint (§II.7, Examples of realisable formal terms) — verbatim
 «⌜∅⌝ ... all of these are realisable. Each corresponds to an operational
-set of VR-Sets. ∅ is the empty set in the ontological register. By Lemma 2
+set of VR-Sets. ∅ is the empty set in the operational register. By Lemma 2
 of VR-Sets it is the unique operational object with empty functionality.»
 
 ## Lean proof

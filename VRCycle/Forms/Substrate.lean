@@ -6,7 +6,7 @@
 --
 -- **Clarification on register language (added 2026-05-26):**
 -- The two-register language describes modes of description, not separate
--- ontological levels. All descriptions are operational acts; the registers
+-- operational levels. All descriptions are operational acts; the registers
 -- distinguish whether the described referent has an operational correlate
 -- (operational register) or is a formal term referring to a non-operational
 -- concept such as actual infinity (formal register). This clarification
@@ -69,7 +69,7 @@ both modes of the two-register system.
 
 ## Two constructors
 
-- `.obj a` — an operational object (ontological mode): `a : OSet.{0}`
+- `.obj a` — an operational object (operational mode): `a : OSet.{0}`
   (= `ZFSet`). This is any set reachable by the operational closure
   principle: ∅, {∅}, ω, etc. The `.obj` constructor carries the
   well-foundedness content of the substrate predicate.
@@ -209,7 +209,7 @@ theorem operational_total : ∀ c : Carrier, Operational c
 `Operational (.obj osetEmpty)` = `Acc (· ∈ ·) (∅ : ZFSet)`.
 
 ∅ has rank 0 (`Lemma_II_3_DepthEmpty : operationalDepth osetEmpty = 0`,
-Foundation.lean): zero construction steps, no elements, the ontological
+Foundation.lean): zero construction steps, no elements, the operational
 floor. Stage 6 machine-checks that even this limit case — the primordial
 object held by the positing of «nothing» — carries operational substrate.
 

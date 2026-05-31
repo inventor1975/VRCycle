@@ -55,12 +55,12 @@ defining operational predicates.
 «The translation π maps every L₁-formula to an L₀-formula by the
 following rules:
 
-  (i)  For ψ ∈ L₀ (an ontological formula): π(ψ) = ψ.
-       (π is identity on the ontological register.)
+  (i)  For ψ ∈ L₀ (an operational formula): π(ψ) = ψ.
+       (π is identity on the operational register.)
 
 **Clarification on register language (added 2026-05-26):**
 The two-register language describes modes of description, not separate
-ontological levels. All descriptions are operational acts; the registers
+operational levels. All descriptions are operational acts; the registers
 distinguish whether the described referent has an operational correlate
 (operational register) or is a formal term referring to a non-operational
 concept such as actual infinity (formal register). This clarification
@@ -78,11 +78,11 @@ aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
 ## §III.2, Theorem III.1 (conservativity) — verbatim
 
 «**Theorem III.1.** The theory T₁ (VR-Forms) is conservative over T₀
-(VR-Sets) in the ontological register: any formula φ in the language L₀
-of the ontological register that is derivable in T₁ is already derivable
+(VR-Sets) in the operational register: any formula φ in the language L₀
+of the operational register that is derivable in T₁ is already derivable
 in T₀.
 
-Equivalently: formal terms do not produce new ontological theorems.
+Equivalently: formal terms do not produce new operational theorems.
 Any proof in T₁ using formal-register formulas can be translated,
 via π, into a proof in T₀ not mentioning formal terms.»
 

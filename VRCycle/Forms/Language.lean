@@ -23,7 +23,7 @@ namespace VR.Forms
 -- ============================================================
 -- **Clarification on register language (added 2026-05-26):**
 -- The two-register language describes modes of description, not separate
--- ontological levels. All descriptions are operational acts; the registers
+-- operational levels. All descriptions are operational acts; the registers
 -- distinguish whether the described referent has an operational correlate
 -- (operational register) or is a formal term referring to a non-operational
 -- concept such as actual infinity (formal register). This clarification
@@ -36,7 +36,7 @@ namespace VR.Forms
 
 «For any term τ, the notation ⌜τ⌝ means: the term τ is considered
 in the formal register. The notation τ without brackets means: the
-term is considered in the ontological register.
+term is considered in the operational register.
 
 ⌜·⌝ is not a function or operation. It is a sign of the **mode of
 consideration**. It indicates in which of the two registers a given
@@ -47,16 +47,16 @@ term is read.»
 `Register` is a two-constructor inductive type marking the mode
 of consideration:
 
-- `.ontological` — the operational register (L₀): the term denotes
+- `.operational` — the operational register (L₀): the term denotes
   an operational set in the sense of VR-Sets. In VR-Sets notation:
   the term τ is read as an object — an action upon ∅.
 - `.formal` — the formal register (L₁): the term is a syntactic
-  record, considered as a formula. No ontological load is imposed;
+  record, considered as a formula. No operational load is imposed;
   the term may be contradictory, non-operational, or paradoxical.
 
 The `⌜·⌝` notation (below) always produces register `.formal`.
-Ontological register objects are the `OSet` elements of VR-Sets;
-they do not appear as `FormalTerm.mk _ .ontological` in this cycle.
+Operational register objects are the `OSet` elements of VR-Sets;
+they do not appear as `FormalTerm.mk _ .operational` in this cycle.
 
 ## Why no `.mixed` constructor
 
@@ -67,11 +67,11 @@ objects at the meta-level — not a third register for `FormalTerm`.
 A `.mixed` constructor would be a category error: mixed formulas
 are a third kind of *formula in the two-register theory*, not a
 third register for individual terms. The register of a term is
-always `.ontological` or `.formal`; the mixed character is a
+always `.operational` or `.formal`; the mixed character is a
 property of the *formula* combining them. See `Examples.lean`
 (Stage 5) for the Lean formalisation of mixed formulas. -/
 inductive Register where
-  | ontological
+  | operational
   | formal
   deriving DecidableEq, Repr
 
@@ -95,7 +95,7 @@ indicating «formal». The notation ⌜τ⌝ denotes this pair.»
 
 (1) «A formal term is a **pair**: syntax plus indication of mode.
 The same τ specifies different entities depending on the register:
-an operational set (in the ontological) or a formal term (in the
+an operational set (in the operational) or a formal term (in the
 formal).»
 
 (2) «**Correctly built syntactic record** means: the term is built
@@ -160,7 +160,7 @@ shallow embedding deliberately avoids this:
 
 The central result of VR-Forms is **Theorem III.1 (conservativity)**:
 VR-Forms (the two-register theory T₁) is conservative over VR-Sets
-(the operational theory T₀) in the ontological register: the formal
+(the operational theory T₀) in the operational register: the formal
 register does not allow new statements about operational sets to be
 proved (§II.8, «Conservative extensions»).
 
@@ -194,8 +194,8 @@ structure FormalTerm where
       by case analysis on known `FormalTerm` values. -/
   description : String
   /-- Register marker. Defaults to `.formal`; all `⌜·⌝` terms are formal.
-      Ontological-register objects are `OSet` elements (VR-Sets), not
-      `FormalTerm.mk _ .ontological` values. -/
+      Operational-register objects are `OSet` elements (VR-Sets), not
+      `FormalTerm.mk _ .operational` values. -/
   register : Register := .formal
   deriving DecidableEq, Repr
 
