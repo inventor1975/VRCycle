@@ -26,11 +26,11 @@ namespace VR
 --
 -- Preprint, A1: «F is identified with ∅ at the logical level».
 -- This is a semantic identification of two points: F in VRBool and base in VRObj —
--- the same base point viewed in two registers (logical and ontological).
+-- the same base point viewed in two registers (logical and operational).
 --
 -- **Clarification on register language (added 2026-05-26):**
 -- The two-register language describes modes of description, not separate
--- ontological levels. All descriptions are operational acts; the registers
+-- operational levels. All descriptions are operational acts; the registers
 -- distinguish whether the described referent has an operational correlate
 -- (operational register) or is a formal term referring to a non-operational
 -- concept such as actual infinity (formal register). This clarification

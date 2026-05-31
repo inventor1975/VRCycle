@@ -19,7 +19,7 @@
 --
 -- **Clarification on register language (added 2026-05-26):**
 -- The two-register language describes modes of description, not separate
--- ontological levels. All descriptions are operational acts; the registers
+-- operational levels. All descriptions are operational acts; the registers
 -- distinguish whether the described referent has an operational correlate
 -- (operational register) or is a formal term referring to a non-operational
 -- concept such as actual infinity (formal register). This clarification
@@ -50,14 +50,14 @@
 -- consistent with the position established in VR-Numbers Reals.lean §IV.1:
 --
 --   «Lean 4 does not distinguish computable from non-computable functions
---    at the type level. The operational ontology of VR-Numbers (§IV.1)
+--    at the type level. The operational setting of VR-Numbers (§IV.1)
 --    restricts functions to those with finite algorithmic descriptions;
 --    this restriction is a metatheoretic claim not expressible as a Lean
 --    type predicate.»
 --   [VRCycle.Numbers.Reals, §IV.1 comment; cross-referenced here.]
 --
 -- This observation is the first concrete confirmation in VR-Audit of
--- the architectural principle: operational ontology is expressed through
+-- the architectural principle: operationality is expressed through
 -- predicate restrictions, not through Lean's computational machinery.
 -- (Methodological Observation 1; see companion preprint §VI.)
 --

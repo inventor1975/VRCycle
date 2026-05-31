@@ -7,7 +7,7 @@
 -- ## Position statement
 -- Stage 6 of VR-Audit cycle. Provides the first concrete non-trivial instance
 -- of `OperationalHilbertSpace`: n-dimensional Euclidean space ℝⁿ for any n : ℕ.
--- This demonstrates non-vacuity of the operational ontology: the main theorem
+-- This demonstrates non-vacuity of operationality: the main theorem
 -- (Stage 5) applies to at least one concrete, mathematically natural space.
 --
 -- ## Scope decision: ℝⁿ only, ℓ² deferred
@@ -40,12 +40,12 @@
 -- the underlying classical structure (`InnerProductSpace ℝ E`, `CompleteSpace E`) is
 -- provided entirely by mathlib and remains unrestricted.
 --
--- ## Methodological Observation 10 (non-vacuity of operational ontology)
+-- ## Methodological Observation 10 (non-vacuity of operationality)
 -- Stage 5 establishes `HahnBanachOperational_Hilbert` for any `OperationalHilbertSpace`.
--- Stage 6 confirms the ontology is non-vacuous: for every n : ℕ, `ℝⁿ` satisfies the
+-- Stage 6 confirms operationality is non-vacuous: for every n : ℕ, `ℝⁿ` satisfies the
 -- three operational requirements with explicit witnesses. This is the standard VR-Audit
 -- pattern: main theorem in full generality, then at least one explicit instance to show
--- the ontology is inhabited. The instance also serves as a sanity check that the
+-- operationality is inhabited. The instance also serves as a sanity check that the
 -- operational requirements are achievable without exotic mathematics.
 --
 -- ## Connection to main theorem
@@ -105,7 +105,7 @@ bridges the `k_i * m_i = m_i * k_i` argument-order reversal after definitional
 reduction. This pattern applies to any future proof that must bridge between the
 `⟪·,·⟫` notation and arithmetic expressions on ℝ.
 
-## Methodological Observation 10: non-vacuity of operational ontology (see file header).
+## Methodological Observation 10: non-vacuity of operationality (see file header).
 
 ## Axiom profile: [propext, Classical.choice, Quot.sound] -/
 noncomputable instance instOperationalHilbertSpaceEuclidean (n : ℕ) :

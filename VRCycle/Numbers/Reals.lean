@@ -22,7 +22,7 @@ open VR
 -- In Lean 4, this is simply the type ℕ → ℚ_VR (total functions).
 --
 -- Note: Lean 4 does not distinguish computable from non-computable functions
--- at the type level. The operational ontology of VR-Numbers (§IV.1) restricts
+-- at the type level. The operational setting of VR-Numbers (§IV.1) restricts
 -- functions to those with finite algorithmic descriptions; this restriction is
 -- a metatheoretic claim not expressible as a Lean type predicate. See §IV.7
 -- and the methodological note in Theorem_IV_7_RealVR_Real.

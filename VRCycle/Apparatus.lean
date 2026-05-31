@@ -160,7 +160,7 @@
 -- FINDING S1-A (FormsIntegration): Generic Register abstraction unnecessary.
 --   Planned Stage 1 deliverable was a generic Register structure + DirectionalMorphism
 --   typeclass. Reconnaissance showed: (a) VR-Forms already has `Register` (inductive
---   | ontological | formal); (b) DirectionalMorphism type-mismatches transit (predicate
+--   | operational | formal); (b) DirectionalMorphism type-mismatches transit (predicate
 --   implication ≠ morphism between setoid types); (c) translate_implies_realisable IS
 --   IsModeBOp with W = True. The v0.1.0 Mode B schema already captures VR-Forms transit.
 --   Stage 1 = recognition that the apparatus framework suffices without extension.
@@ -168,17 +168,17 @@
 -- FINDING S1-B (FormsIntegration): Three-way identity nature contrast.
 --   VR-Forms apparatus anatomy: instPredicateOpTranslatePi (AsPoint, specific predicate) +
 --   instPredicateOpFormalTerm (AsPoint, existential predicate) + instRefOpPSet (AsReference,
---   ontological register). Two predicate-wrapping for the formal register; one reference-
+--   operational register). Two predicate-wrapping for the formal register; one reference-
 --   semantics for the operational register. Transit (Mode B) connects the two AsPoint
 --
 -- **Clarification on register language (added 2026-05-26):**
 -- The two-register language describes modes of description, not separate
--- ontological levels. All descriptions are operational acts; the registers
+-- operational levels. All descriptions are operational acts; the registers
 -- distinguish whether the described referent has an operational correlate
 -- (operational register) or is a formal term referring to a non-operational
 -- concept such as actual infinity (formal register). This clarification
 -- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
---   instances. The ontological apparatus is the target universe.
+--   instances. The operational apparatus is the target universe.
 --
 -- ============================================================
 -- ## Known limitations — v1.0.0 scope

@@ -13,7 +13,7 @@ open VR
 
 -- §V.1–§V.4. A complex number ℂ_VR is a formal expression a ⊕ b·i (a, b ∈ ℝ_VR).
 --
--- ONTOLOGICAL GROUNDING OF TWO-DIMENSIONALITY (§V.1–§V.2, §V.9).
+-- STRUCTURAL GROUNDING OF TWO-DIMENSIONALITY (§V.1–§V.2, §V.9).
 -- In standard mathematics, two-dimensionality of ℂ is a postulate: ℂ is defined
 -- as ℝ × ℝ with a special multiplication, and there is no deep justification for
 -- the choice of exactly two dimensions.
@@ -46,7 +46,7 @@ open VR
 -- simply two independent copies of ℝ_VR; with it — an algebraic field.
 --
 -- §V.9 distinguishes explicitly: A1 motivates two-dimensionality; the joining
--- rule postulates the algebra. This is the combined result of ontological
+-- rule postulates the algebra. This is the combined result of structural
 -- grounding and an algebraic postulate.
 structure ComplexVR where
   fst : ℝ_VR  -- axis F→F (real component)

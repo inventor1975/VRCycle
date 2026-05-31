@@ -68,7 +68,7 @@ instance instDecidableEqIntVR : DecidableEq ℤ_VR :=
 -- Not an ordered pair (§VI.5, item 1); access exclusively via pattern matching:
 --   match e with | .mk a b => ...
 -- The constraint b ≠ 0_ℤ is not embedded in the type; see NonZeroRatExpr below.
--- Ontological note (§VI.4): RatExpr is a finite syntactic operation over ℤ_VR,
+-- Operational note (§VI.4): RatExpr is a finite syntactic operation over ℤ_VR,
 -- which is itself a finite syntactic operation over ℕ (= VRObj). Depth 2 over ∅.
 inductive RatExpr : Type where
   | mk : ℤ_VR → ℤ_VR → RatExpr

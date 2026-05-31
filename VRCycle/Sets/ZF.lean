@@ -137,7 +137,7 @@ classical object; the preprint's object is the restriction to describable
 (computable, algorithmic) entities within the same universe. The
 restriction is metatheoretic, not formalised in the type.
 
-See Part VI §VI.2 (Cantor's diagonal in the operational ontology) and
+See Part VI §VI.2 (Cantor's diagonal in the operational universe) and
 §VI.3 (countable-from-without vs. enumerable-from-within) of the
 VR-Sets preprint for detailed discussion of this boundary. -/
 def osetPower (a : OSet) : OSet := ZFSet.powerset a
@@ -224,7 +224,7 @@ formula φ of the language of ZF. The quantification over formulas is
 meta-level.
 
 In VR-Sets (§III.7, verbatim): «In VR-Sets an "operationally describable
-procedure F" is a single ontological notion encompassing all ways of
+procedure F" is a single operational notion encompassing all ways of
 specifying functional relations (including all formulas of the language
 of ZF translated into operational descriptions). Therefore **a single
 closure theorem with respect to describable transformations replaces the
@@ -239,7 +239,7 @@ use `Classical.allZFSetDefinable` (Basic.lean), which provides a
 `Definable₁` instance for every function at the cost of `Classical.choice`.
 
 This is a **methodological convergence**: VR-Sets and Lean/mathlib arrive
-at the same simplification of replacement from different ontological
+at the same simplification of replacement from different foundational
 directions — VR-Sets through «operational describability», Lean through
 first-class function types. The result is formally identical: one theorem,
 parametric in F.
@@ -336,7 +336,7 @@ Classical ZF formulation (AC — verbatim §III.9):
 The preprint derives AC from DC + countability of the operational universe
 (verbatim §III.9):
 
-• «**DC (dependent choice)** is built into the operational ontology:
+• «**DC (dependent choice)** is built into the operational universe:
   every operation is carried out concretely, and a sequence of operations
   is built step by step. DC is not an axiom but a property of
   operationality itself.»
@@ -345,7 +345,7 @@ The preprint derives AC from DC + countability of the operational universe
 • «**AC is a theorem, not an axiom.** The Banach–Tarski paradox is absent
   not because AC is weakened, but because the objects on which it is built
   (uncountable subsets of ℝ, non-Lebesgue-measurable sets) do not exist
-  in the operational ontology.»
+  in the operational universe.»
 
 ## What Lean expresses and what it does not
 

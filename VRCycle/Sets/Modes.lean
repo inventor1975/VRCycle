@@ -176,7 +176,7 @@ set in ZFA-mode. AFA guarantees existence and uniqueness of A.»
 
 `isZFAmode` is `True` — every PSet is **declared** to be in ZFA-mode
 conceptually. This is not a vacuous or trivial statement: it records the
-preprint's ontological decision that ZFA-mode is the maximal universe
+preprint's foundational decision that ZFA-mode is the maximal universe
 (no element is excluded). On OSet = ZFSet, `isZFCmode` was also
 universally true (by the inductive structure of ZFSet). The crucial
 difference appears not in the predicate value but in the **underlying

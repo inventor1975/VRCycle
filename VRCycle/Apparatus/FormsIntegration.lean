@@ -3,7 +3,7 @@
 --
 -- **Clarification on register language (added 2026-05-26):**
 -- The two-register language describes modes of description, not separate
--- ontological levels. All descriptions are operational acts; the registers
+-- operational levels. All descriptions are operational acts; the registers
 -- distinguish whether the described referent has an operational correlate
 -- (operational register) or is a formal term referring to a non-operational
 -- concept such as actual infinity (formal register). This clarification
@@ -14,7 +14,7 @@
 -- ## Filename note
 -- This file was planned as `Register.lean`. Renamed to `FormsIntegration.lean` after
 -- reconnaissance: VR-Forms already has a type named `Register` (Language.lean, line 65):
---   `inductive Register where | ontological | formal`
+--   `inductive Register where | operational | formal`
 -- Using `Register.lean` for an apparatus concept with the same name would cause confusion.
 -- The planned "generic apparatus Register structure" is dropped (see §3).
 --
@@ -24,7 +24,7 @@
 -- `DirectionalMorphism` (IAM with asymmetry). Reconnaissance of VR-Forms files reveals:
 --
 -- (1) VR-Forms `Register` inductive (Language.lean) is a two-constructor EXISTING type:
---     `| ontological | formal`. This is a MODE-OF-CONSIDERATION marker, not an apparatus
+--     `| operational | formal`. This is a MODE-OF-CONSIDERATION marker, not an apparatus
 --     concept. Conflating with planned apparatus Register = category error. Dropped.
 --
 -- (2) `DirectionalMorphism` as planned ("IAM extended with asymmetry") does NOT fit VR-Forms
@@ -44,12 +44,12 @@
 -- VR-Forms two-register system, read through apparatus lens, reveals:
 --   (a) Formal specific apparatus (FormalTerm, translate_pi):    AsPoint  [instPredicateOpTranslatePi]
 --   (b) Formal existential apparatus (FormalTerm, isRealisable): AsPoint  [instPredicateOpFormalTerm]
---   (c) Ontological reference apparatus (PSet, instRefOpPSet):   AsReference [Instances.lean]
+--   (c) Operational reference apparatus (PSet, instRefOpPSet):   AsReference [Instances.lean]
 --
 -- Two AsPoint (predicate-wrapping) apparatus instances for the formal register.
--- One AsReference (reference semantics) apparatus instance for the ontological register.
+-- One AsReference (reference semantics) apparatus instance for the operational register.
 -- The transit (vr_forms_transit_isModeBOp) connects (a) to (b): specific → existential.
--- The ontological apparatus (c) is the target universe: realisability says (b) has
+-- The operational apparatus (c) is the target universe: realisability says (b) has
 -- an operational correlate in (c).
 --
 -- This three-way contrast is the complete apparatus anatomy of VR-Forms.
@@ -61,7 +61,7 @@
 --   translate_pi : FormalTerm → Prop  — specific predicate (naming concrete VR-Sets objects)
 --   isRealisable : FormalTerm → Prop  — existential predicate (∃ s : OSet, P(s))
 --   translate_implies_realisable      — transit: translate_pi t → isRealisable t
---   OSet = ZFSet = Quotient PSet.setoid — the ontological universe (instRefOpPSet apparatus)
+--   OSet = ZFSet = Quotient PSet.setoid — the operational universe (instRefOpPSet apparatus)
 --
 -- Stage 1 makes the apparatus structure EXPLICIT by instantiating the apparatus classes.
 --
@@ -118,7 +118,7 @@ plays for `ℝ`: it selects the operationally meaningful sub-collection within t
 The formal register treats formal terms as POINTS (named syntactic objects in a string-indexed
 space). The `AsPoint` identity nature reflects this: formal terms are identified by their
 description string and register marker, not by membership structure. This contrasts with
-the ontological apparatus (`instRefOpPSet`, Instances.lean) which is `AsReference`.
+the operational apparatus (`instRefOpPSet`, Instances.lean) which is `AsReference`.
 
 ## Axiom profile: [propext, Quot.sound]
 PredicateOperationality is a marker class (no fields); its axioms are determined by the
@@ -202,10 +202,10 @@ theorem vr_forms_transit_isModeBOp :
 -- **Generic Register structure**: DROPPED.
 -- Planned: `structure ApparatusRegister where` (collection of apparatus instances).
 -- Reason dropped:
--- (a) Name collision: VR-Forms has `inductive Register where | ontological | formal`
+-- (a) Name collision: VR-Forms has `inductive Register where | operational | formal`
 --     (Language.lean, line 65). The name «Register» in apparatus context would conflict.
 -- (b) VR-Forms is NOT a generic Register — it has exactly two specific apparatus instances
---     (formal: instPredicateOpTranslatePi/instPredicateOpFormalTerm; ontological: instRefOpPSet).
+--     (formal: instPredicateOpTranslatePi/instPredicateOpFormalTerm; operational: instRefOpPSet).
 --     Generic structure adds no mathematical content beyond this specific reading.
 -- (c) Lean's typeclass system already provides the "collection of apparatus instances" concept
 --     implicitly: instantiating PredicateOperationality or ReferenceOperationality IS the

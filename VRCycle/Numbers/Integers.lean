@@ -19,7 +19,7 @@ open VR
 -- An expression a ⊖ b is a syntactic record of the operation
 -- "subtract b from a", where a, b ∈ ℕ (= VRObj in VR).
 --
--- §VI.5, item 1: pairs appear nowhere as independent ontological objects.
+-- §VI.5, item 1: pairs appear nowhere as independent primitive objects.
 -- This is syntactic juxtaposition with binary operator ⊖, not a pair with
 -- named projections. Access is exclusively through pattern matching:
 -- match e with | .mk a b => ...
