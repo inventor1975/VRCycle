@@ -203,6 +203,51 @@ theorem Theorem_III_6_Infinity :
   ⟨Theorem_III_6_Infinity_Zero, Theorem_III_6_Infinity_Succ⟩
 
 -- ============================================================
+-- §III — Separation (bounded comprehension)
+-- ============================================================
+
+/-- The separation set {x ∈ A | p x}: the elements of A satisfying p.
+
+Separation (Aussonderung) is the canonical ZF axiom **schema**: classically
+there is one separation axiom for each formula φ of the language,
+  ∀A ∃B ∀x (x ∈ B ↔ x ∈ A ∧ φ(x)),
+the quantification over formulas being metatheoretic.
+
+In VR-Sets, separation is an instance of the closure principle (§II.3)
+restricted to a describable condition bounded by an existing set A. Here it
+is realised as a **single theorem parametric in a first-class predicate**
+`p : OSet → Prop`: the meta-level quantification over formulas becomes
+object-level quantification over predicates, and the entire schema collapses
+to one statement.
+
+Unlike Replacement (§III.7), Separation is **bounded** — B ⊆ A — so it needs
+no choice/definability machinery. `ZFSet.sep` is **computable** and the
+membership characterisation `Theorem_III_Separation` has axiom profile
+`[propext, Quot.sound]`, **free of `Classical.choice`**. Classically,
+Separation is derivable from Replacement; it is recorded here directly as the
+canonical schema-collapse witness for the finite-axiomatization observation
+(see Part on axiomatic economy / VR-Sets-ZFA).
+
+Implemented as `ZFSet.sep`. -/
+def osetSep (p : OSet → Prop) (a : OSet) : OSet := ZFSet.sep p a
+
+/-- §III, Theorem (separation): the membership characterisation of `osetSep`.
+
+For any x, x ∈ {z ∈ A | p z} if and only if x ∈ A and p x. One theorem
+parametric in the predicate `p`, replacing the entire classical separation
+schema; axiom profile `[propext, Quot.sound]` (no `Classical.choice`). -/
+theorem Theorem_III_Separation (p : OSet → Prop) (a : OSet) :
+    ∀ x : OSet, x ∈ osetSep p a ↔ x ∈ a ∧ p x :=
+  fun _ => ZFSet.mem_sep
+
+/-- Schema-collapse witness: each instance of the classical separation schema
+is recovered as a single application of `Theorem_III_Separation`. Example:
+the empty-witnessing subset {x ∈ A | x ≡ ∅}. -/
+example (a : OSet) :
+    ∀ x : OSet, x ∈ osetSep (fun z => z = ∅) a ↔ x ∈ a ∧ x = ∅ :=
+  Theorem_III_Separation _ a
+
+-- ============================================================
 -- §III.7 — Replacement (Stage 7)
 -- ============================================================
 
