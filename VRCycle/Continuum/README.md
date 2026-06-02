@@ -49,6 +49,13 @@ but operationally TRUE.
 - **CONT-5** `Nat.find_eq_iff` pulls `Classical.choice`; `Nat.find_le` / `Nat.le_find_iff` are choice-free — prove find-equalities by antisymmetry.
 - **CONT-6** `Finset.sum` (`∑`) and `if (b:Bool) then …` pull `Classical.choice` here; even `simp` does on some `ℤ` order goals. Use structural recursion, `cond`, and `omega`/`decide`.
 - **CONT-7** (decisive) mathlib **`ℚ` is entirely Tier-3** — `(2:ℚ)+3`, `*`, `≤` all pull `Classical.choice` (the floor is the ordered-field substrate, not only `ℝ`). `ℤ`/`ℕ` are choice-free. So an operational continuum stays below the floor only by representing points over `ℤ` (integer numerator / `2^N`), never via mathlib `ℚ`/`ℝ`.
+- **CONT-8** `omega` on a **conjunction** goal fails / drags `Classical.choice`+`sorryAx`; a single `ℤ` inequality via `omega` is axiom-free. Split `∧` into separate `omega` calls. (State two-sided bounds, prove each side separately.)
+
+## Operational ℝ (course set; `Real.lean`, M1)
+Bishop-style operational real over `ℤ`, below the ℚ/ℝ floor (plan: `PLAN_OPERATIONAL_REAL.md`).
+`Pre` = dyadic Cauchy sequence `seq : ℕ → ℤ` with two-sided coherence `-1 ≤ 2·seq n - seq(n+1) ≤ 1`.
+`Pre.ofBranch` : every branch's `[0,1]` point (`intval α`) is a `Pre` — `[propext, Quot.sound]`, choice-free.
+Milestones M2 order/apartness · M3 ring · M4 embeddings · M5 a Tier-3-via-ℝ theorem done choice-free.
 
 ## Operational unit interval (ℝ-recon, `UnitInterval.lean`)
 First step toward operational reals, and the first VR result **below the ℚ/ℝ choice floor**.
