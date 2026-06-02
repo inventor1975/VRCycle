@@ -431,6 +431,87 @@ theorem Pre.mul_one (x : Pre) : Pre.equiv (Pre.mul x (Pre.ofInt 1)) x := by
   rw [one_mul]
   exact Int.mul_ediv_cancel _ (by have := two_pow_pos n; omega)
 
+/-- Multiplication respects equality of reals (congruence) — the gateway to `Real.mul`.
+Single-index product error analysis: `x₁y₁ - x₂y₂ = y₁(x₁-x₂) + x₂(y₁-y₂)`, bounded by
+`Pre.bounded` magnitudes and `hx/hy` differences via `mul_abs_bound`.  Choice-free. -/
+theorem Pre.mul_respects {x₁ x₂ y₁ y₂ : Pre} (hx : Pre.equiv x₁ x₂) (hy : Pre.equiv y₁ y₂) :
+    Pre.equiv (Pre.mul x₁ y₁) (Pre.mul x₂ y₂) := by
+  intro k
+  obtain ⟨Bx, Nx, hbx⟩ := x₂.bounded
+  obtain ⟨By, Ny, hby⟩ := y₁.bounded
+  obtain ⟨Nxc, hxc⟩ := hx (k + By + 2)
+  obtain ⟨Nyc, hyc⟩ := hy (k + Bx + 2)
+  refine ⟨max (max Nx Ny) (max Nxc Nyc) + (k + Bx + By + 2), fun n hn => ?_⟩
+  simp only [Pre.mul]
+  obtain ⟨hby1, hby2⟩ := hby n (by omega)
+  obtain ⟨hbx1, hbx2⟩ := hbx n (by omega)
+  -- x-difference  |x₁ₙ - x₂ₙ| ≤ 2^(n-(k+By+2))
+  obtain ⟨hdx1, hdx2⟩ := hxc n (by omega)
+  have hdxre : (2:ℤ) ^ n = 2 ^ ((n - (k + By + 2)) + (k + By + 2)) := by congr 1; omega
+  rw [hdxre] at hdx1 hdx2
+  obtain ⟨hAA1, hAA2⟩ := abs_le_two_pow_of_mul hdx1 hdx2
+  -- y-difference  |y₁ₙ - y₂ₙ| ≤ 2^(n-(k+Bx+2))
+  obtain ⟨hdy1, hdy2⟩ := hyc n (by omega)
+  have hdyre : (2:ℤ) ^ n = 2 ^ ((n - (k + Bx + 2)) + (k + Bx + 2)) := by congr 1; omega
+  rw [hdyre] at hdy1 hdy2
+  obtain ⟨hBB1, hBB2⟩ := abs_le_two_pow_of_mul hdy1 hdy2
+  -- product bounds, each ±2^(2n-k-2)
+  obtain ⟨hP1l, hP1u⟩ := mul_abs_bound (A := y₁.seq n) (P := (2:ℤ) ^ (n + By))
+    (C := x₁.seq n - x₂.seq n) (Q := (2:ℤ) ^ (n - (k + By + 2))) hby2 hby1 hAA1 hAA2
+  have hP1pow : (2:ℤ) ^ (n + By) * 2 ^ (n - (k + By + 2)) = 2 ^ (2 * n - k - 2) := by
+    rw [← pow_add]; congr 1; omega
+  rw [hP1pow] at hP1l hP1u
+  obtain ⟨hP2l, hP2u⟩ := mul_abs_bound (A := x₂.seq n) (P := (2:ℤ) ^ (n + Bx))
+    (C := y₁.seq n - y₂.seq n) (Q := (2:ℤ) ^ (n - (k + Bx + 2))) hbx2 hbx1 hBB1 hBB2
+  have hP2pow : (2:ℤ) ^ (n + Bx) * 2 ^ (n - (k + Bx + 2)) = 2 ^ (2 * n - k - 2) := by
+    rw [← pow_add]; congr 1; omega
+  rw [hP2pow] at hP2l hP2u
+  -- floor brackets (s-terms), single index
+  obtain ⟨hs1l, hs1u⟩ := int_ediv_bracket (x₁.seq n * y₁.seq n) (two_pow_pos n)
+  obtain ⟨hs2l, hs2u⟩ := int_ediv_bracket (x₂.seq n * y₂.seq n) (two_pow_pos n)
+  set P1 := (x₁.seq n * y₁.seq n).ediv (2 ^ n) with hP1def
+  set P2 := (x₂.seq n * y₂.seq n).ediv (2 ^ n) with hP2def
+  -- E = 2^n·(P1-P2) via product decomposition + s-terms
+  have hE : 2 ^ n * (P1 - P2)
+          = y₁.seq n * (x₁.seq n - x₂.seq n) + x₂.seq n * (y₁.seq n - y₂.seq n)
+          - (x₁.seq n * y₁.seq n - 2 ^ n * P1) + (x₂.seq n * y₂.seq n - 2 ^ n * P2) := by
+    ring
+  -- 2^n ≤ 2^(2n-k-2) (since k+2 ≤ n), and 2^(2n-k) = 4·2^(2n-k-2)
+  have h_sle : (2:ℤ) ^ n ≤ 2 ^ (2 * n - k - 2) := by
+    have h := two_pow_le_add n (2 * n - k - 2 - n)
+    have heqs : n + (2 * n - k - 2 - n) = 2 * n - k - 2 := by omega
+    rwa [heqs] at h
+  have hTnn : (0:ℤ) ≤ 2 ^ (2 * n - k - 2) := two_pow_nonneg _
+  have hT4 : (2:ℤ) ^ (2 * n - k) = 4 * 2 ^ (2 * n - k - 2) := by
+    set e := 2 * n - k - 2 with he_def
+    have hee : 2 * n - k = e + 1 + 1 := by omega
+    rw [hee, pow_succ, pow_succ]; ring
+  have hEu : 2 ^ n * (P1 - P2) ≤ 2 ^ (2 * n - k) := by rw [hE]; omega
+  have hEl : -(2 ^ (2 * n - k)) ≤ 2 ^ n * (P1 - P2) := by rw [hE]; omega
+  -- cancel 2^n
+  have hpos := two_pow_pos n
+  have h2 : (2:ℤ) ^ (2 * n - k) * 2 ^ k = 2 ^ n * 2 ^ n := by
+    rw [← pow_add, show (2 * n - k) + k = n + n from by omega, pow_add]
+  refine ⟨?_, ?_⟩
+  · have h1 := Int.mul_le_mul_of_nonneg_right hEu (two_pow_nonneg k)
+    have hr : 2 ^ n * (P1 - P2) * 2 ^ k = 2 ^ n * ((P1 - P2) * 2 ^ k) := by ring
+    rw [h2, hr] at h1
+    exact Int.le_of_mul_le_mul_left h1 hpos
+  · have h1 := Int.mul_le_mul_of_nonneg_right hEl (two_pow_nonneg k)
+    have hl : -(2:ℤ) ^ (2 * n - k) * 2 ^ k = 2 ^ n * (-(2 ^ n)) := by
+      have e : -(2:ℤ) ^ (2 * n - k) * 2 ^ k = -(2 ^ (2 * n - k) * 2 ^ k) := by ring
+      rw [e, h2]; ring
+    have hr : 2 ^ n * (P1 - P2) * 2 ^ k = 2 ^ n * ((P1 - P2) * 2 ^ k) := by ring
+    rw [hl, hr] at h1
+    exact Int.le_of_mul_le_mul_left h1 hpos
+
+/-- Multiplication on `Real` — well-defined on the quotient via `Pre.mul_respects`. -/
+def Real.mul : Real → Real → Real :=
+  Quotient.lift₂ (fun x y => (⟦Pre.mul x y⟧ : Real))
+    (fun _ _ _ _ hx hy => Quotient.sound (Pre.mul_respects hx hy))
+
+instance : Mul Real := ⟨Real.mul⟩
+
 /-- **The operational reals form an additive commutative group** — choice-free, below the
 ℚ/ℝ `Classical.choice` floor. -/
 instance : AddCommGroup Real where
@@ -520,12 +601,14 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Pre.add
 #print axioms Real.neg
 #print axioms Real.add
+#print axioms Real.mul
 #print axioms Pre.ofInt
 #print axioms Real.ofInt
 #print axioms Pre.bounded
 #print axioms Pre.mul
 #print axioms Pre.mul_comm
 #print axioms Pre.mul_one
+#print axioms Pre.mul_respects
 #print axioms Real.add_comm
 #print axioms Real.add_assoc
 #print axioms Real.neg_add_cancel
