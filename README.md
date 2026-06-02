@@ -11,6 +11,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20380344.svg)](https://doi.org/10.5281/zenodo.20380344)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20381417.svg)](https://doi.org/10.5281/zenodo.20381417)
 
+📐 **Blueprint (browsable, with dependency graph): https://inventor1975.github.io/VRCycle/**
+
 Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, a domain extension demonstrating apparatus generality in algebra, and constructive predicative formal topology with the binary Tychonoff theorem. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra **v1.0.0** — stable release, git tag `v1.12-vr-operational-algebra-v1.0.0`) and **ninth work** (VR-Topology **v1.0.0**, git tag `v1.13-vr-topology-v1.0.0`) in this repository (both pending Zenodo submission); and a **tenth work** (VR-Transit **v1.0.0**, transit conservativity and a bounded witness library, git tag `v1.15-vr-transit-v1.0.0`, code cited by git tag, no Zenodo by curatorial decision). Algebra: 64 public objects, Findings A0–A19, closed Recognition Discipline Loop. Topology: ~85+ public objects, binary Tychonoff, zero `Classical.choice` including Order.Frame bridge.
 
 ## Publications
