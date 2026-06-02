@@ -227,6 +227,21 @@ theorem mul_abs_bound {A C P Q : ℤ} (hA1 : -P ≤ A) (hA2 : A ≤ P) (hC1 : -Q
     rw [ee2] at hu
     exact ⟨by omega, by omega⟩
 
+/-- Bridge: cross-multiplied bounds `D·2^p` within `±2^(E+p)` give the clean `±2^E` bound. -/
+theorem abs_le_two_pow_of_mul {D : ℤ} {p E : ℕ}
+    (hu : D * 2 ^ p ≤ 2 ^ (E + p)) (hl : -(2 ^ (E + p)) ≤ D * 2 ^ p) :
+    -(2 ^ E) ≤ D ∧ D ≤ 2 ^ E :=
+  ⟨neg_le_of_mul_two_pow hl, le_of_mul_two_pow hu⟩
+
+/-- Bridge: scaling a magnitude bound by a power.  `|X| ≤ 2^B → |2^n · X| ≤ 2^(n+B)`. -/
+theorem two_pow_mul_abs_bound {X : ℤ} {n B : ℕ} (hl : -(2 ^ B) ≤ X) (hu : X ≤ 2 ^ B) :
+    -(2 ^ (n + B)) ≤ 2 ^ n * X ∧ 2 ^ n * X ≤ 2 ^ (n + B) := by
+  have h := mul_abs_bound (A := (2:ℤ) ^ n) (P := (2:ℤ) ^ n) (C := X) (Q := (2:ℤ) ^ B)
+    (by have := two_pow_nonneg n; omega) (by omega) hl hu
+  have e : (2 : ℤ) ^ n * 2 ^ B = 2 ^ (n + B) := by rw [pow_add]
+  rw [e] at h
+  exact h
+
 /-- **Cross identity for the product** (the algebraic backbone of multiplication's
 Cauchyness): clearing denominators turns the product Cauchy expression into integers.
 Choice-free (`pow_add`, `two_mul`, `ring`). -/
@@ -271,5 +286,7 @@ theorem dyadic_bound {D : ℤ} {m n k : ℕ} (h1 : D < 2 ^ m) (hk : k ≤ n) :
 #print axioms int_ediv_bracket
 #print axioms mul_cross_pow
 #print axioms mul_abs_bound
+#print axioms abs_le_two_pow_of_mul
+#print axioms two_pow_mul_abs_bound
 
 end VRCycle.Continuum
