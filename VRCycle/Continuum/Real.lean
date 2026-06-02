@@ -779,6 +779,34 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
   exact ⟨by omega, by omega⟩
 
 -- ============================================================
+-- §M3.inv  Reciprocal — apartness-witnessed (total `Field` is impossible choice-free:
+-- `¬(x≈0)` gives no lower-bound modulus on `|x|`; that step is Markov's principle).
+-- ============================================================
+
+/-- From a **positivity witness** `2^n ≤ x.seq n · 2^k` (all `n ≥ N`), the numerator is
+strictly positive — so it is a valid Euclidean divisor.  Choice-free. -/
+theorem Pre.pos_of_lb {x : Pre} {k N : ℕ} (hlb : ∀ n, N ≤ n → 2 ^ n ≤ x.seq n * 2 ^ k)
+    {n : ℕ} (hn : N ≤ n) : 0 < x.seq n := by
+  have h := hlb n hn
+  have h2n := two_pow_pos n
+  rcases Int.lt_or_le 0 (x.seq n) with hp | hnp
+  · exact hp
+  · exfalso
+    have hxk := Int.mul_le_mul_of_nonneg_right hnp (two_pow_nonneg k)
+    have hz : (0:ℤ) * 2 ^ k = 0 := by ring
+    rw [hz] at hxk
+    omega
+
+/-- The positivity witness gives a **lower bound** `2^(n-k) ≤ x.seq n` (for `k ≤ n`):
+the value is `≥ 2^{-k}`, the apartness modulus that makes the reciprocal Cauchy.  Choice-free. -/
+theorem Pre.lb_pow {x : Pre} {k N : ℕ} (hlb : ∀ n, N ≤ n → 2 ^ n ≤ x.seq n * 2 ^ k)
+    {n : ℕ} (hn : N ≤ n) (hnk : k ≤ n) : (2:ℤ) ^ (n - k) ≤ x.seq n := by
+  have h := hlb n hn
+  have e : (2:ℤ) ^ n = 2 ^ (n - k) * 2 ^ k := by rw [← pow_add]; congr 1; omega
+  rw [e] at h
+  exact Int.le_of_mul_le_mul_right h (two_pow_pos k)
+
+-- ============================================================
 -- §M5  Payoff: the operational reals are a NONTRIVIAL commutative ring
 -- ============================================================
 
