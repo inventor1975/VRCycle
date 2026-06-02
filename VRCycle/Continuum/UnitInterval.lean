@@ -89,6 +89,52 @@ theorem intval_prefix (α : Branch) (n d : ℕ) :
       rw [hidx, hrec, hQ, hP]
       constructor <;> omega
 
+/-- `0 ≤ (2:ℤ)^n`, choice-free (induction; `pow_pos`/`pow_nonneg` pull `Classical.choice`). -/
+theorem two_pow_nonneg (n : ℕ) : (0 : ℤ) ≤ 2 ^ n := by
+  induction n with
+  | zero => decide
+  | succ m ih => rw [pow_succ]; omega
+
+/-- `0 < (2:ℤ)^n`, choice-free. -/
+theorem two_pow_pos (n : ℕ) : (0 : ℤ) < 2 ^ n := by
+  induction n with
+  | zero => decide
+  | succ m ih => rw [pow_succ]; omega
+
+/-- Monotonicity of `2^·` (choice-free; `pow_pos`/`pow_le_pow_right` and `Nat.le.dest`
+all pull `Classical.choice`, so: induction on the gap, no destructuring). -/
+theorem two_pow_le_add (a e : ℕ) : (2 : ℤ) ^ a ≤ 2 ^ (a + e) := by
+  induction e with
+  | zero => simp only [Nat.add_zero]; omega
+  | succ e ih =>
+      have hnn := two_pow_nonneg (a + e)
+      rw [show a + (e + 1) = (a + e) + 1 from by omega, pow_succ]
+      omega
+
+/-- **Cauchy bound for `intval`** (the bridge from the prefix structure to asymptotic
+Cauchyness): for `n ≤ m`, `0 ≤ intval α m · 2^n - intval α n · 2^m < 2^m`.  Via
+`intval_prefix` (the difference equals `r · 2^n`, `0 ≤ r < 2^{m-n}`); the products are
+bounded by the choice-free `Int.mul_nonneg` / `Int.mul_le_mul_of_nonneg_right`. -/
+theorem intval_diff_bound (α : Branch) {n m : ℕ} (h : n ≤ m) :
+    0 ≤ intval α m * 2 ^ n - intval α n * 2 ^ m ∧
+      intval α m * 2 ^ n - intval α n * 2 ^ m < 2 ^ m := by
+  obtain ⟨hp0, hp1⟩ := intval_prefix α n (m - n)
+  have hd : n + (m - n) = m := by omega
+  rw [hd] at hp0 hp1
+  have hpow : (2 : ℤ) ^ m = 2 ^ (m - n) * 2 ^ n := by rw [← pow_add]; congr 1; omega
+  have hkey : intval α m * 2 ^ n - intval α n * 2 ^ m
+            = (intval α m - intval α n * 2 ^ (m - n)) * 2 ^ n := by rw [hpow]; ring
+  rw [hkey]
+  have h2n := two_pow_nonneg n
+  have h2np := two_pow_pos n
+  refine ⟨Int.mul_nonneg hp0 h2n, ?_⟩
+  have hle : (intval α m - intval α n * 2 ^ (m - n)) * 2 ^ n ≤ (2 ^ (m - n) - 1) * 2 ^ n :=
+    Int.mul_le_mul_of_nonneg_right (by omega) h2n
+  have he : ((2 : ℤ) ^ (m - n) - 1) * 2 ^ n = (2 : ℤ) ^ (m - n) * 2 ^ n - 2 ^ n := by ring
+  rw [he] at hle
+  rw [hpow]
+  omega
+
 -- ============================================================
 -- Axiom audit — operational [0,1], below the ℚ/ℝ floor
 -- ============================================================
@@ -98,5 +144,7 @@ theorem intval_prefix (α : Branch) (n d : ℕ) :
 #print axioms intval_lt_pow
 #print axioms intval_mono_step
 #print axioms intval_prefix
+#print axioms two_pow_le_add
+#print axioms intval_diff_bound
 
 end VRCycle.Continuum

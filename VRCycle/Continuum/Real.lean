@@ -50,12 +50,6 @@ def Pre.equiv (x y : Pre) : Prop :=
   ∀ k : ℕ, ∃ N : ℕ, ∀ n : ℕ, N ≤ n →
     (x.seq n - y.seq n) * 2 ^ k ≤ 2 ^ n ∧ -(2 ^ n) ≤ (x.seq n - y.seq n) * 2 ^ k
 
-/-- `0 ≤ (2:ℤ)^n`, choice-free (induction; `pow_pos` pulls `Classical.choice`). -/
-theorem two_pow_nonneg (n : ℕ) : (0 : ℤ) ≤ 2 ^ n := by
-  induction n with
-  | zero => decide
-  | succ m ih => rw [pow_succ]; omega
-
 theorem Pre.equiv_refl (x : Pre) : Pre.equiv x x := by
   intro k
   refine ⟨0, fun n _ => ?_⟩
@@ -113,12 +107,6 @@ def Pre.neg (x : Pre) : Pre where
 -- ============================================================
 -- §M2  Order and apartness (constructive: positive `<`, `∀k`-style `≤`)
 -- ============================================================
-
-/-- `0 < (2:ℤ)^n`, choice-free (induction; `pow_pos` pulls `Classical.choice`). -/
-theorem two_pow_pos (n : ℕ) : (0 : ℤ) < 2 ^ n := by
-  induction n with
-  | zero => decide
-  | succ m ih => rw [pow_succ]; omega
 
 /-- `x ≤ y`: the difference `x - y` is non-positive up to every precision
 (`∀ k`, eventually `(x_n - y_n)·2^k ≤ 2^n`). -/
