@@ -168,6 +168,17 @@ theorem neg_le_of_mul_two_pow {a : ℤ} {E N : ℕ} (h : -(2 ^ (E + N)) ≤ a * 
   rw [e, e2] at h
   exact Int.le_of_mul_le_mul_right h (two_pow_pos N)
 
+/-- Euclidean-division bracket: for `0 < d`, `d·(z.ediv d) ≤ z < d·(z.ediv d) + d`.
+The foundation for the floor-division product sequence (multiplication).  Choice-free
+(`Int.ediv_add_emod`/`emod_nonneg`/`emod_lt_of_pos` are all `[propext]`; split the `∧`
+into separate `omega`s — `omega` on a conjunction pulls choice, CONT-8). -/
+theorem int_ediv_bracket (z : ℤ) {d : ℤ} (hd : 0 < d) :
+    d * (z.ediv d) ≤ z ∧ z < d * (z.ediv d) + d := by
+  have h1 : d * (z.ediv d) + z.emod d = z := Int.mul_ediv_add_emod z d
+  have h2 : 0 ≤ z.emod d := Int.emod_nonneg z (by omega)
+  have h3 : z.emod d < d := Int.emod_lt_of_pos z hd
+  refine ⟨?_, ?_⟩ <;> omega
+
 /-- Generic dyadic bound: if `0 ≤ D < 2^m` and `k ≤ n` then `D · 2^k ≤ 2^(m+n)`.
 Choice-free (`Int.mul_le_mul_of_nonneg_right`, `pow_add`, `two_pow_le_add`, `omega`). -/
 theorem dyadic_bound {D : ℤ} {m n k : ℕ} (h1 : D < 2 ^ m) (hk : k ≤ n) :
@@ -198,5 +209,6 @@ theorem dyadic_bound {D : ℤ} {m n k : ℕ} (h1 : D < 2 ^ m) (hk : k ≤ n) :
 #print axioms int_two_pow_bound
 #print axioms le_of_mul_two_pow
 #print axioms neg_le_of_mul_two_pow
+#print axioms int_ediv_bracket
 
 end VRCycle.Continuum
