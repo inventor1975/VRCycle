@@ -208,6 +208,51 @@ instance : Add Real := ⟨Real.add⟩
 instance : Neg Real := ⟨Real.neg⟩
 
 -- ============================================================
+-- §M4.2  The additive group structure (all laws reduce to pointwise ℤ equalities)
+-- ============================================================
+
+/-- Pre-reals with pointwise-equal numerators are equal reals (the Cauchy expression
+vanishes).  The workhorse for the ring laws. -/
+theorem Pre.equiv_of_seq {x y : Pre} (h : ∀ n, x.seq n = y.seq n) : Pre.equiv x y := by
+  intro k
+  refine ⟨0, fun n _ => ?_⟩
+  have hz : (x.seq n - y.seq n) * 2 ^ k = 0 := by rw [h n]; ring
+  have hge := two_pow_nonneg n
+  rw [hz]
+  exact ⟨by omega, by omega⟩
+
+theorem Real.add_comm (a b : Real) : a + b = b + a := by
+  refine Quotient.inductionOn₂ a b (fun x y => Quotient.sound (Pre.equiv_of_seq ?_))
+  intro n; simp only [Pre.add]; ring
+
+theorem Real.add_assoc (a b c : Real) : a + b + c = a + (b + c) := by
+  refine Quotient.inductionOn₃ a b c (fun x y z => Quotient.sound (Pre.equiv_of_seq ?_))
+  intro n; simp only [Pre.add]; ring
+
+theorem Real.add_zero (a : Real) : a + 0 = a := by
+  refine Quotient.inductionOn a (fun x => Quotient.sound (Pre.equiv_of_seq ?_))
+  intro n; simp only [Pre.add, Pre.ofInt]; ring
+
+theorem Real.zero_add (a : Real) : 0 + a = a := by
+  refine Quotient.inductionOn a (fun x => Quotient.sound (Pre.equiv_of_seq ?_))
+  intro n; simp only [Pre.add, Pre.ofInt]; ring
+
+theorem Real.neg_add_cancel (a : Real) : -a + a = 0 := by
+  refine Quotient.inductionOn a (fun x => Quotient.sound (Pre.equiv_of_seq ?_))
+  intro n; simp only [Pre.add, Pre.neg, Pre.ofInt]; ring
+
+/-- **The operational reals form an additive commutative group** — choice-free, below the
+ℚ/ℝ `Classical.choice` floor. -/
+instance : AddCommGroup Real where
+  add_assoc := Real.add_assoc
+  zero_add := Real.zero_add
+  add_zero := Real.add_zero
+  neg_add_cancel := Real.neg_add_cancel
+  add_comm := Real.add_comm
+  nsmul := nsmulRec
+  zsmul := zsmulRec
+
+-- ============================================================
 -- §M2  Order and apartness (constructive: positive `<`, `∀k`-style `≤`)
 -- ============================================================
 
@@ -287,5 +332,8 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Real.add
 #print axioms Pre.ofInt
 #print axioms Real.ofInt
+#print axioms Real.add_comm
+#print axioms Real.add_assoc
+#print axioms Real.neg_add_cancel
 
 end VRCycle.Continuum
