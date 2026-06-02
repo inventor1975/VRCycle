@@ -968,6 +968,62 @@ def Pre.invPos (x : Pre) (k N : ℕ) (hlb : ∀ n, N ≤ n → 2 ^ n ≤ x.seq n
         exact Int.le_trans hneg hQl
       exact Int.le_of_mul_le_mul_left hcomb hxmn
 
+/-- **`x · x⁻¹ = 1`** (with the positivity witness): the reciprocal `Pre.invPos` is a genuine
+multiplicative inverse.  Constant-bounded: `t := (x_n·(2^{2n} ediv x_n)) ediv 2^n` satisfies
+`0 ≤ 2^n − t ≤ 2^B` (two nested floors lose `< x_n ≤ 2^{n+B}`), so `t → 2^n` and the value
+→ `1`.  Choice-free `[propext, Quot.sound]`. -/
+theorem Pre.invPos_mul (x : Pre) (k N : ℕ) (hlb : ∀ n, N ≤ n → 2 ^ n ≤ x.seq n * 2 ^ k) :
+    Pre.equiv (Pre.mul x (Pre.invPos x k N hlb)) (Pre.ofInt 1) := by
+  intro k'
+  obtain ⟨B, Nb, hb⟩ := x.bounded
+  refine ⟨max N Nb + (B + k' + 2), fun n hn => ?_⟩
+  simp only [Pre.mul, Pre.invPos, Pre.ofInt]
+  have hxn : 0 < x.seq n := Pre.pos_of_lb hlb (by omega)
+  obtain ⟨hbu, hbl⟩ := hb n (by omega)
+  obtain ⟨hq0, hq1⟩ := int_ediv_bracket ((2:ℤ) ^ (2 * n)) hxn
+  set q := ((2:ℤ) ^ (2 * n)).ediv (x.seq n) with hqdef
+  obtain ⟨ht0, ht1⟩ := int_ediv_bracket (x.seq n * q) (two_pow_pos n)
+  set t := (x.seq n * q).ediv (2 ^ n) with htdef
+  have hpn := two_pow_pos n
+  have h2n : (2:ℤ) ^ (2 * n) = 2 ^ n * 2 ^ n := by rw [two_mul, pow_add]
+  have hBpow : (2:ℤ) ^ n * 2 ^ B = 2 ^ (n + B) := by rw [← pow_add]
+  -- t ≤ 2^n
+  have htu : t ≤ 2 ^ n := by
+    have h : 2 ^ n * t ≤ 2 ^ n * 2 ^ n := by
+      have hq := hq0; rw [h2n] at hq; exact Int.le_trans ht0 hq
+    exact Int.le_of_mul_le_mul_left h hpn
+  -- 2^n - t ≤ 2^B
+  have htl : 2 ^ n - t ≤ 2 ^ B := by
+    have h : 2 ^ n * 2 ^ n < 2 ^ n * (t + 1 + 2 ^ B) := by
+      have e : (2:ℤ) ^ n * (t + 1 + 2 ^ B) = 2 ^ n * t + 2 ^ n + 2 ^ (n + B) := by
+        rw [← hBpow]; ring
+      rw [e, ← h2n]; omega
+    have h2 : 2 ^ n < t + 1 + 2 ^ B := Int.lt_of_mul_lt_mul_left h (by omega)
+    omega
+  have hk' := two_pow_nonneg k'
+  have hBk : (2:ℤ) ^ B * 2 ^ k' = 2 ^ (B + k') := by rw [← pow_add]
+  have hBkn : (2:ℤ) ^ (B + k') ≤ 2 ^ n := by
+    have h := two_pow_le_add (B + k') (n - (B + k'))
+    rwa [show (B + k') + (n - (B + k')) = n from by omega] at h
+  refine ⟨?_, ?_⟩
+  · have hd : t - 1 * 2 ^ n ≤ 0 := by omega
+    have hmul := Int.mul_le_mul_of_nonneg_right hd hk'
+    have e0 : (0:ℤ) * 2 ^ k' = 0 := by ring
+    rw [e0] at hmul
+    omega
+  · have hh := Int.mul_le_mul_of_nonneg_right htl hk'
+    rw [hBk] at hh
+    have e : (2 ^ n - t) * 2 ^ k' = -((t - 1 * 2 ^ n) * 2 ^ k') := by ring
+    rw [e] at hh
+    set D := (t - 1 * 2 ^ n) * 2 ^ k' with hDdef
+    clear_value D
+    omega
+
+-- (A `Real`-level wrapper `⟦x⟧·⟦x⁻¹⟧ = 1` is straightforward but fights the quotient-instance
+-- defeq; the choice-free content lives at the `Pre` level in `Pre.invPos_mul`.  This is the
+-- honest "field" below the floor: inverses for apart-from-0 reals; a *total* `Field` is
+-- impossible choice-free, since `¬(x≈0)` yields no lower-bound modulus on `|x|` (Markov).)
+
 -- ============================================================
 -- §M5  Payoff: the operational reals are a NONTRIVIAL commutative ring
 -- ============================================================
@@ -993,6 +1049,7 @@ theorem Real.zero_ne_one : (0 : Real) ≠ 1 := by
 #print axioms Pre.ofBranch
 #print axioms Real.zero_ne_one
 #print axioms Pre.invPos
+#print axioms Pre.invPos_mul
 #print axioms Pre.equiv_trans
 #print axioms Real.ofBranch
 #print axioms Pre.le_refl
