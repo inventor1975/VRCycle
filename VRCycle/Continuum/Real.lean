@@ -435,9 +435,9 @@ theorem Pre.mul_one (x : Pre) : Pre.equiv (Pre.mul x (Pre.ofInt 1)) x := by
 theorem Pre.zero_mul (x : Pre) : Pre.equiv (Pre.mul (Pre.ofInt 0) x) (Pre.ofInt 0) := by
   apply Pre.equiv_of_seq
   intro n
-  have h2 : (Pre.ofInt 0).seq n = 0 := by show (0:ℤ) * 2 ^ n = 0; ring
+  have h2 : (Pre.ofInt 0).seq n = 0 := by change (0:ℤ) * 2 ^ n = 0; ring
   have h1 : (Pre.mul (Pre.ofInt 0) x).seq n = 0 := by
-    show ((Pre.ofInt 0).seq n * x.seq n).ediv (2 ^ n) = 0
+    change ((Pre.ofInt 0).seq n * x.seq n).ediv (2 ^ n) = 0
     have hz : (Pre.ofInt 0).seq n * x.seq n = 0 := by rw [h2]; ring
     rw [hz]; exact Int.zero_ediv _
   rw [h1, h2]
@@ -480,6 +480,109 @@ theorem Pre.mul_add (x y z : Pre) :
     Int.mul_nonneg (by omega) hkn
   rw [one_mul] at hub
   have hge : (0:ℤ) ≤ 2 ^ n := two_pow_nonneg n
+  exact ⟨by omega, by omega⟩
+
+/-- **Associativity** `(x·y)·z = x·(y·z)`.  Both approximate `abc/2^{2n}`; clearing the two
+floors, `2^{2n}·(L-R) = a·s₂ - s₁·c + 2^n·(s_R - s_L)` (a `ring` identity in the bracket
+remainders).  Each term is bounded by the operands' **magnitudes** (`Pre.bounded`), so the
+difference `|L - R| ≤ 2^Bx + 2^Bz + 1` is **constant** — beaten by `2^n` once `n ≥ k+Bx+Bz+2`.
+The hard part is purely the constant bound; no vanishing needed.  Choice-free. -/
+theorem Pre.mul_assoc (x y z : Pre) :
+    Pre.equiv (Pre.mul (Pre.mul x y) z) (Pre.mul x (Pre.mul y z)) := by
+  intro k
+  obtain ⟨Bx, Nx, hbx⟩ := x.bounded
+  obtain ⟨Bz, Nz, hbz⟩ := z.bounded
+  refine ⟨max (max Nx Nz) (k + Bx + Bz + 2), fun n hn => ?_⟩
+  simp only [Pre.mul]
+  obtain ⟨hxu, hxl⟩ := hbx n (by omega)
+  obtain ⟨hzu, hzl⟩ := hbz n (by omega)
+  have hdpos : (0:ℤ) < 2 ^ n := two_pow_pos n
+  -- brackets for the two inner floors, then set
+  obtain ⟨hab0, hab1⟩ := int_ediv_bracket (x.seq n * y.seq n) hdpos
+  obtain ⟨hbc0, hbc1⟩ := int_ediv_bracket (y.seq n * z.seq n) hdpos
+  set qab := (x.seq n * y.seq n).ediv (2 ^ n) with hqabdef
+  set qbc := (y.seq n * z.seq n).ediv (2 ^ n) with hqbcdef
+  -- brackets for the two outer floors, then set
+  obtain ⟨hL0, hL1⟩ := int_ediv_bracket (qab * z.seq n) hdpos
+  obtain ⟨hR0, hR1⟩ := int_ediv_bracket (x.seq n * qbc) hdpos
+  set L := (qab * z.seq n).ediv (2 ^ n) with hLdef
+  set R := (x.seq n * qbc).ediv (2 ^ n) with hRdef
+  -- remainder bounds (each in [0,2^n) ⊆ [-2^n,2^n])
+  have hge : (0:ℤ) ≤ 2 ^ n := two_pow_nonneg n
+  have hC2l : -(2:ℤ) ^ n ≤ y.seq n * z.seq n - 2 ^ n * qbc := by omega
+  have hC2u : y.seq n * z.seq n - 2 ^ n * qbc ≤ 2 ^ n := by omega
+  have hs1l : -(2:ℤ) ^ n ≤ x.seq n * y.seq n - 2 ^ n * qab := by omega
+  have hs1u : x.seq n * y.seq n - 2 ^ n * qab ≤ 2 ^ n := by omega
+  have hAl : -(2:ℤ) ^ n ≤ (x.seq n * qbc - 2 ^ n * R) - (qab * z.seq n - 2 ^ n * L) := by omega
+  have hAu : (x.seq n * qbc - 2 ^ n * R) - (qab * z.seq n - 2 ^ n * L) ≤ 2 ^ n := by omega
+  -- product bounds for the three terms of the identity
+  obtain ⟨hT1l, hT1u⟩ := mul_abs_bound (A := x.seq n) (P := (2:ℤ) ^ (n + Bx))
+    (C := y.seq n * z.seq n - 2 ^ n * qbc) (Q := (2:ℤ) ^ n) hxl hxu hC2l hC2u
+  have hp1 : (2:ℤ) ^ (n + Bx) * 2 ^ n = 2 ^ (2 * n + Bx) := by rw [← pow_add]; congr 1; omega
+  rw [hp1] at hT1l hT1u
+  obtain ⟨hT2l, hT2u⟩ := mul_abs_bound (A := x.seq n * y.seq n - 2 ^ n * qab) (P := (2:ℤ) ^ n)
+    (C := z.seq n) (Q := (2:ℤ) ^ (n + Bz)) hs1l hs1u hzl hzu
+  have hp2 : (2:ℤ) ^ n * 2 ^ (n + Bz) = 2 ^ (2 * n + Bz) := by rw [← pow_add]; congr 1; omega
+  rw [hp2] at hT2l hT2u
+  obtain ⟨hT3l, hT3u⟩ := mul_abs_bound
+    (A := (x.seq n * qbc - 2 ^ n * R) - (qab * z.seq n - 2 ^ n * L)) (P := (2:ℤ) ^ n)
+    (C := (2:ℤ) ^ n) (Q := (2:ℤ) ^ n) hAl hAu (by omega) (by omega)
+  have hp3 : (2:ℤ) ^ n * 2 ^ n = 2 ^ (2 * n) := by rw [← pow_add, two_mul]
+  rw [hp3] at hT3l hT3u
+  -- the cleared-denominator identity (pure ring in the bracket remainders)
+  have hID : 2 ^ n * 2 ^ n * (L - R)
+           = x.seq n * (y.seq n * z.seq n - 2 ^ n * qbc)
+           - (x.seq n * y.seq n - 2 ^ n * qab) * z.seq n
+           + ((x.seq n * qbc - 2 ^ n * R) - (qab * z.seq n - 2 ^ n * L)) * 2 ^ n := by ring
+  have hSu : 2 ^ n * 2 ^ n * (L - R) ≤ 2 ^ (2 * n + Bx) + 2 ^ (2 * n + Bz) + 2 ^ (2 * n) := by
+    rw [hID]; omega
+  have hSl : -(2 ^ (2 * n + Bx) + 2 ^ (2 * n + Bz) + 2 ^ (2 * n)) ≤ 2 ^ n * 2 ^ n * (L - R) := by
+    rw [hID]; omega
+  -- factor 2^{2n} out of the bound and cancel
+  have hRHSeq : (2:ℤ) ^ (2 * n + Bx) + 2 ^ (2 * n + Bz) + 2 ^ (2 * n)
+      = 2 ^ n * 2 ^ n * (2 ^ Bx + 2 ^ Bz + 1) := by
+    have e1 : (2:ℤ) ^ (2 * n + Bx) = 2 ^ n * 2 ^ n * 2 ^ Bx := by
+      rw [show 2 * n + Bx = n + (n + Bx) from by omega, pow_add, pow_add]; ring
+    have e2 : (2:ℤ) ^ (2 * n + Bz) = 2 ^ n * 2 ^ n * 2 ^ Bz := by
+      rw [show 2 * n + Bz = n + (n + Bz) from by omega, pow_add, pow_add]; ring
+    have e3 : (2:ℤ) ^ (2 * n) = 2 ^ n * 2 ^ n := by rw [two_mul, pow_add]
+    rw [e1, e2, e3]; ring
+  have hpos2 : (0:ℤ) < 2 ^ n * 2 ^ n := Int.mul_pos hdpos hdpos
+  rw [hRHSeq] at hSu hSl
+  have hDu : L - R ≤ 2 ^ Bx + 2 ^ Bz + 1 := Int.le_of_mul_le_mul_left hSu hpos2
+  have hDl : -(2 ^ Bx + 2 ^ Bz + 1) ≤ L - R := by
+    have h2 : 2 ^ n * 2 ^ n * (-(2 ^ Bx + 2 ^ Bz + 1)) ≤ 2 ^ n * 2 ^ n * (L - R) := by
+      have e : (2:ℤ) ^ n * 2 ^ n * (-(2 ^ Bx + 2 ^ Bz + 1))
+             = -(2 ^ n * 2 ^ n * (2 ^ Bx + 2 ^ Bz + 1)) := by ring
+      rw [e]; exact hSl
+    exact Int.le_of_mul_le_mul_left h2 hpos2
+  -- the constant bound C := 2^Bx+2^Bz+1 is beaten by 2^n: C·2^k ≤ 2^n
+  have hkn := two_pow_nonneg k
+  have hCk : ((2:ℤ) ^ Bx + 2 ^ Bz + 1) * 2 ^ k ≤ 2 ^ n := by
+    have hCle : (2:ℤ) ^ Bx + 2 ^ Bz + 1 ≤ 2 ^ (Bx + Bz + 2) := by
+      have h1 := two_pow_le_add Bx Bz
+      have h2 := two_pow_le_add Bz Bx
+      have h3 : (2:ℤ) ^ (Bz + Bx) = 2 ^ (Bx + Bz) := by rw [Nat.add_comm]
+      have h4 : (2:ℤ) ^ (Bx + Bz + 2) = 4 * 2 ^ (Bx + Bz) := by
+        rw [show Bx + Bz + 2 = (Bx + Bz) + 1 + 1 from by omega, pow_succ, pow_succ]; ring
+      have h5 : (1:ℤ) ≤ 2 ^ (Bx + Bz) := by have := two_pow_pos (Bx + Bz); omega
+      rw [h3] at h2; omega
+    have hstep := Int.mul_le_mul_of_nonneg_right hCle hkn
+    have hpw : (2:ℤ) ^ (Bx + Bz + 2) * 2 ^ k = 2 ^ (Bx + Bz + 2 + k) := by rw [← pow_add]
+    have hpw2 : (2:ℤ) ^ (Bx + Bz + 2 + k) ≤ 2 ^ n := by
+      have h := two_pow_le_add (Bx + Bz + 2 + k) (n - (Bx + Bz + 2 + k))
+      rwa [show (Bx + Bz + 2 + k) + (n - (Bx + Bz + 2 + k)) = n from by omega] at h
+    rw [hpw] at hstep; exact Int.le_trans hstep hpw2
+  -- assemble: (L-R)·2^k bounded by ±C·2^k ⊆ ±2^n
+  have hDku : (L - R) * 2 ^ k ≤ (2 ^ Bx + 2 ^ Bz + 1) * 2 ^ k :=
+    Int.mul_le_mul_of_nonneg_right hDu hkn
+  have hDkl : -((2 ^ Bx + 2 ^ Bz + 1) * 2 ^ k) ≤ (L - R) * 2 ^ k := by
+    have h := Int.mul_le_mul_of_nonneg_right hDl hkn
+    have e : (-(2 ^ Bx + 2 ^ Bz + 1)) * 2 ^ k = -((2 ^ Bx + 2 ^ Bz + 1) * 2 ^ k) := by ring
+    rwa [e] at h
+  set D2k := (L - R) * 2 ^ k with hD2kdef
+  set C2k := (2 ^ Bx + 2 ^ Bz + 1) * 2 ^ k with hC2kdef
+  clear_value D2k C2k
   exact ⟨by omega, by omega⟩
 
 /-- Multiplication respects equality of reals (congruence) — the gateway to `Real.mul`.
@@ -563,16 +666,53 @@ def Real.mul : Real → Real → Real :=
 
 instance : Mul Real := ⟨Real.mul⟩
 
-/-- **The operational reals form an additive commutative group** — choice-free, below the
-ℚ/ℝ `Classical.choice` floor. -/
-instance : AddCommGroup Real where
+-- The eight ring laws, lifted from `Pre` to the quotient `Real` (`Quotient.inductionOn` +
+-- `Quotient.sound` of the corresponding `Pre` lemma).  Each inherits `[propext, Quot.sound]`.
+
+theorem Real.mul_comm (a b : Real) : a * b = b * a :=
+  Quotient.inductionOn₂ a b (fun x y => Quotient.sound (Pre.mul_comm x y))
+
+theorem Real.mul_assoc (a b c : Real) : a * b * c = a * (b * c) :=
+  Quotient.inductionOn₃ a b c (fun x y z => Quotient.sound (Pre.mul_assoc x y z))
+
+theorem Real.mul_one (a : Real) : a * 1 = a :=
+  Quotient.inductionOn a (fun x => Quotient.sound (Pre.mul_one x))
+
+theorem Real.one_mul (a : Real) : 1 * a = a := by
+  rw [Real.mul_comm]; exact Real.mul_one a
+
+theorem Real.left_distrib (a b c : Real) : a * (b + c) = a * b + a * c :=
+  Quotient.inductionOn₃ a b c (fun x y z => Quotient.sound (Pre.mul_add x y z))
+
+theorem Real.right_distrib (a b c : Real) : (a + b) * c = a * c + b * c := by
+  rw [Real.mul_comm, Real.left_distrib, Real.mul_comm c a, Real.mul_comm c b]
+
+theorem Real.zero_mul (a : Real) : 0 * a = 0 :=
+  Quotient.inductionOn a (fun x => Quotient.sound (Pre.zero_mul x))
+
+theorem Real.mul_zero (a : Real) : a * 0 = 0 := by
+  rw [Real.mul_comm]; exact Real.zero_mul a
+
+/-- **The operational reals form a commutative ring** — `+`, `−`, `×`, `0`, `1` with all ring
+laws, choice-free `[propext, Quot.sound]`, entirely below the ℚ/ℝ `Classical.choice` floor.
+(`CommRing` subsumes the additive commutative group; no separate `AddCommGroup` instance.) -/
+instance : CommRing Real where
   add_assoc := Real.add_assoc
   zero_add := Real.zero_add
   add_zero := Real.add_zero
   neg_add_cancel := Real.neg_add_cancel
   add_comm := Real.add_comm
+  mul_assoc := Real.mul_assoc
+  one_mul := Real.one_mul
+  mul_one := Real.mul_one
+  left_distrib := Real.left_distrib
+  right_distrib := Real.right_distrib
+  zero_mul := Real.zero_mul
+  mul_zero := Real.mul_zero
+  mul_comm := Real.mul_comm
   nsmul := nsmulRec
   zsmul := zsmulRec
+  npow := npowRec
 
 -- ============================================================
 -- §M2  Order and apartness (constructive: positive `<`, `∀k`-style `≤`)
@@ -653,6 +793,12 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Real.neg
 #print axioms Real.add
 #print axioms Real.mul
+#print axioms Real.mul_comm
+#print axioms Real.mul_assoc
+#print axioms Real.one_mul
+#print axioms Real.left_distrib
+#print axioms Real.right_distrib
+#print axioms Real.zero_mul
 #print axioms Pre.ofInt
 #print axioms Real.ofInt
 #print axioms Pre.bounded
@@ -662,8 +808,12 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Pre.mul_respects
 #print axioms Pre.zero_mul
 #print axioms Pre.mul_add
+#print axioms Pre.mul_assoc
 #print axioms Real.add_comm
 #print axioms Real.add_assoc
 #print axioms Real.neg_add_cancel
+-- The `CommRing Real` instance carries no choice: a law obtained THROUGH the instance
+-- (`_root_.mul_comm`, resolved via `CommRing Real`) is still `[propext, Quot.sound]`.
+example (a b : Real) : a * b = b * a := mul_comm a b
 
 end VRCycle.Continuum
