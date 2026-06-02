@@ -144,6 +144,46 @@ def Pre.add (x y : Pre) : Pre where
     exact ⟨by omega, by omega⟩
 
 -- ============================================================
+-- §M3.2  Lifting negation and addition to `Real` (the quotient)
+-- ============================================================
+
+/-- Negation respects equality of reals (congruence). -/
+theorem Pre.neg_respects {x₁ x₂ : Pre} (h : Pre.equiv x₁ x₂) :
+    Pre.equiv (Pre.neg x₁) (Pre.neg x₂) := by
+  intro k
+  obtain ⟨N, hN⟩ := h k
+  refine ⟨N, fun n hn => ?_⟩
+  obtain ⟨h1, h2⟩ := hN n hn
+  simp only [Pre.neg]
+  have he : ((-x₁.seq n) - (-x₂.seq n)) * 2 ^ k = -((x₁.seq n - x₂.seq n) * 2 ^ k) := by ring
+  rw [he]
+  exact ⟨by omega, by omega⟩
+
+/-- Addition respects equality of reals (congruence in both arguments). -/
+theorem Pre.add_respects {x₁ x₂ y₁ y₂ : Pre} (hx : Pre.equiv x₁ x₂) (hy : Pre.equiv y₁ y₂) :
+    Pre.equiv (Pre.add x₁ y₁) (Pre.add x₂ y₂) := by
+  intro k
+  obtain ⟨N1, hX⟩ := hx (k + 1)
+  obtain ⟨N2, hY⟩ := hy (k + 1)
+  refine ⟨max N1 N2, fun n hn => ?_⟩
+  obtain ⟨hx1, hx2⟩ := hX n (by omega)
+  obtain ⟨hy1, hy2⟩ := hY n (by omega)
+  simp only [Pre.add]
+  have key : 2 * (((x₁.seq n + y₁.seq n) - (x₂.seq n + y₂.seq n)) * 2 ^ k)
+           = (x₁.seq n - x₂.seq n) * 2 ^ (k + 1) + (y₁.seq n - y₂.seq n) * 2 ^ (k + 1) := by
+    rw [pow_succ]; ring
+  exact ⟨by omega, by omega⟩
+
+/-- Negation on `Real`. -/
+def Real.neg : Real → Real :=
+  Quotient.lift (fun x => (⟦Pre.neg x⟧ : Real)) (fun _ _ h => Quotient.sound (Pre.neg_respects h))
+
+/-- Addition on `Real`. -/
+def Real.add : Real → Real → Real :=
+  Quotient.lift₂ (fun x y => (⟦Pre.add x y⟧ : Real))
+    (fun _ _ _ _ hx hy => Quotient.sound (Pre.add_respects hx hy))
+
+-- ============================================================
 -- §M2  Order and apartness (constructive: positive `<`, `∀k`-style `≤`)
 -- ============================================================
 
@@ -219,5 +259,7 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Pre.le_antisymm_equiv
 #print axioms Pre.neg
 #print axioms Pre.add
+#print axioms Real.neg
+#print axioms Real.add
 
 end VRCycle.Continuum
