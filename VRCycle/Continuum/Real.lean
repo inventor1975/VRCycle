@@ -806,6 +806,168 @@ theorem Pre.lb_pow {x : Pre} {k N : ℕ} (hlb : ∀ n, N ≤ n → 2 ^ n ≤ x.s
   rw [e] at h
   exact Int.le_of_mul_le_mul_right h (two_pow_pos k)
 
+/-- **Reciprocal of a positive operational real** (given an explicit positivity witness
+`hlb : 2^n ≤ x.seq n · 2^k`).  `seq n = 2^{2n} ediv x_n` (value `1/value(x)`).  Cauchy because
+clearing denominators `x_m x_n·(p_m 2^n − p_n 2^m) = −2^{m+n}·(x's cauchy diff) + floor residuals`,
+the cross term shrinks via `x.cauchy`, the residuals via `Pre.bounded`, and `x_m x_n ≥ 2^{m+n−2k}`
+(the apartness lower bound) is cancelled.  Choice-free `[propext, Quot.sound]`. -/
+def Pre.invPos (x : Pre) (k N : ℕ) (hlb : ∀ n, N ≤ n → 2 ^ n ≤ x.seq n * 2 ^ k) : Pre where
+  seq := fun n => ((2:ℤ) ^ (2 * n)).ediv (x.seq n)
+  cauchy := by
+    intro k'
+    obtain ⟨B, Nb, hb⟩ := x.bounded
+    obtain ⟨Nc, hc⟩ := x.cauchy (k' + 2 * k + 2)
+    refine ⟨max (max N Nb) Nc + (2 * B + 2 * k + k' + 2), fun m n hm hn => ?_⟩
+    have hxm : 0 < x.seq m := Pre.pos_of_lb hlb (by omega)
+    have hxn : 0 < x.seq n := Pre.pos_of_lb hlb (by omega)
+    obtain ⟨hpm0, hpm1⟩ := int_ediv_bracket ((2:ℤ) ^ (2 * m)) hxm
+    obtain ⟨hpn0, hpn1⟩ := int_ediv_bracket ((2:ℤ) ^ (2 * n)) hxn
+    set pm := ((2:ℤ) ^ (2 * m)).ediv (x.seq m) with hpmdef
+    set pn := ((2:ℤ) ^ (2 * n)).ediv (x.seq n) with hpndef
+    obtain ⟨hbm_u, hbm_l⟩ := hb m (by omega)
+    obtain ⟨hbn_u, hbn_l⟩ := hb n (by omega)
+    have hlbm : (2:ℤ) ^ (m - k) ≤ x.seq m := Pre.lb_pow hlb (by omega) (by omega)
+    have hlbn : (2:ℤ) ^ (n - k) ≤ x.seq n := Pre.lb_pow hlb (by omega) (by omega)
+    obtain ⟨hcu, hcl⟩ := hc m n (by omega) (by omega)
+    have hmn_nn : (0:ℤ) ≤ 2 ^ (m + n) := two_pow_nonneg _
+    have hn_nn : (0:ℤ) ≤ 2 ^ n := two_pow_nonneg _
+    have hm_nn : (0:ℤ) ≤ 2 ^ m := two_pow_nonneg _
+    have hk'_nn : (0:ℤ) ≤ 2 ^ k' := two_pow_nonneg _
+    -- (1) tight bound on the x-cauchy cross at precision k' (divide out 2^(2k+2))
+    have e_pre : (x.seq m * 2 ^ n - x.seq n * 2 ^ m) * 2 ^ (k' + 2 * k + 2)
+               = 2 ^ (2 * k + 2) * ((x.seq m * 2 ^ n - x.seq n * 2 ^ m) * 2 ^ k') := by
+      rw [show k' + 2 * k + 2 = k' + (2 * k + 2) from by omega, pow_add]; ring
+    have e_rhs : (2:ℤ) ^ (m + n) = 2 ^ (2 * k + 2) * 2 ^ (m + n - (2 * k + 2)) := by
+      rw [← pow_add]; congr 1; omega
+    rw [e_pre, e_rhs] at hcu hcl
+    have hpos2k := two_pow_pos (2 * k + 2)
+    have hcross_u : (x.seq m * 2 ^ n - x.seq n * 2 ^ m) * 2 ^ k' ≤ 2 ^ (m + n - (2 * k + 2)) :=
+      Int.le_of_mul_le_mul_left hcu hpos2k
+    have hcross_l : -(2 ^ (m + n - (2 * k + 2)))
+        ≤ (x.seq m * 2 ^ n - x.seq n * 2 ^ m) * 2 ^ k' := by
+      have h2 : 2 ^ (2 * k + 2) * (-(2 ^ (m + n - (2 * k + 2))))
+              ≤ 2 ^ (2 * k + 2) * ((x.seq m * 2 ^ n - x.seq n * 2 ^ m) * 2 ^ k') := by
+        have e : (2:ℤ) ^ (2 * k + 2) * (-(2 ^ (m + n - (2 * k + 2))))
+               = -(2 ^ (2 * k + 2) * 2 ^ (m + n - (2 * k + 2))) := by ring
+        rw [e]; exact hcl
+      exact Int.le_of_mul_le_mul_left h2 hpos2k
+    -- (2) the cleared-denominator identity (pure ring) + the cross/pow bridge
+    have hID : x.seq m * x.seq n * (pm * 2 ^ n - pn * 2 ^ m)
+             = (x.seq n * 2 ^ n * 2 ^ (2 * m) - x.seq m * 2 ^ m * 2 ^ (2 * n))
+             - (x.seq n * 2 ^ n) * (2 ^ (2 * m) - x.seq m * pm)
+             + (x.seq m * 2 ^ m) * (2 ^ (2 * n) - x.seq n * pn) := by ring
+    have e1 : (2:ℤ) ^ (m + n) * 2 ^ m = 2 ^ n * 2 ^ (2 * m) := by
+      rw [← pow_add, ← pow_add]; congr 1; omega
+    have e2 : (2:ℤ) ^ (m + n) * 2 ^ n = 2 ^ m * 2 ^ (2 * n) := by
+      rw [← pow_add, ← pow_add]; congr 1; omega
+    have hbracket : x.seq n * 2 ^ n * 2 ^ (2 * m) - x.seq m * 2 ^ m * 2 ^ (2 * n)
+                  = -(2 ^ (m + n)) * (x.seq m * 2 ^ n - x.seq n * 2 ^ m) := by
+      have l1 : x.seq n * 2 ^ n * 2 ^ (2 * m) = x.seq n * (2 ^ n * 2 ^ (2 * m)) := by ring
+      have l2 : x.seq m * 2 ^ m * 2 ^ (2 * n) = x.seq m * (2 ^ m * 2 ^ (2 * n)) := by ring
+      rw [l1, l2, ← e1, ← e2]; ring
+    have hID2 : x.seq m * x.seq n * (pm * 2 ^ n - pn * 2 ^ m)
+              = -(2 ^ (m + n)) * (x.seq m * 2 ^ n - x.seq n * 2 ^ m)
+              - (x.seq n * 2 ^ n) * (2 ^ (2 * m) - x.seq m * pm)
+              + (x.seq m * 2 ^ m) * (2 ^ (2 * n) - x.seq n * pn) := by rw [hID, hbracket]
+    have hfin : x.seq m * x.seq n * (pm * 2 ^ n - pn * 2 ^ m) * 2 ^ k'
+              = -(2 ^ (m + n) * ((x.seq m * 2 ^ n - x.seq n * 2 ^ m) * 2 ^ k'))
+              - (x.seq n * 2 ^ n) * (2 ^ (2 * m) - x.seq m * pm) * 2 ^ k'
+              + (x.seq m * 2 ^ m) * (2 ^ (2 * n) - x.seq n * pn) * 2 ^ k' := by
+      rw [hID2]; ring
+    -- (3) bound the main (cross) piece by 2^(2(m+n)-2k-2)
+    obtain ⟨hE_l, hE_u⟩ := mul_abs_bound (A := (2:ℤ) ^ (m + n)) (P := (2:ℤ) ^ (m + n))
+      (C := (x.seq m * 2 ^ n - x.seq n * 2 ^ m) * 2 ^ k') (Q := (2:ℤ) ^ (m + n - (2 * k + 2)))
+      (by omega) (by omega) hcross_l hcross_u
+    have hEpow : (2:ℤ) ^ (m + n) * 2 ^ (m + n - (2 * k + 2)) = 2 ^ (2 * (m + n) - (2 * k + 2)) := by
+      rw [← pow_add]; congr 1; omega
+    rw [hEpow] at hE_l hE_u
+    -- (4) bound the two floor residuals, each via NESTED mul_abs_bound (triple products)
+    obtain ⟨hxn2_l, hxn2_u⟩ := mul_abs_bound (A := x.seq n) (P := (2:ℤ) ^ (n + B))
+      (C := (2:ℤ) ^ n) (Q := (2:ℤ) ^ n) hbn_l hbn_u (by omega) (by omega)
+    have hxn2pow : (2:ℤ) ^ (n + B) * 2 ^ n = 2 ^ (2 * n + B) := by rw [← pow_add]; congr 1; omega
+    rw [hxn2pow] at hxn2_l hxn2_u
+    have hrm_l : -(2:ℤ) ^ (m + B) ≤ 2 ^ (2 * m) - x.seq m * pm := by
+      have := two_pow_nonneg (m + B); omega
+    have hrm_u : (2:ℤ) ^ (2 * m) - x.seq m * pm ≤ 2 ^ (m + B) := by omega
+    obtain ⟨hR1_l, hR1_u⟩ := mul_abs_bound (A := x.seq n * 2 ^ n) (P := (2:ℤ) ^ (2 * n + B))
+      (C := (2:ℤ) ^ (2 * m) - x.seq m * pm) (Q := (2:ℤ) ^ (m + B)) hxn2_l hxn2_u hrm_l hrm_u
+    have hR1pow : (2:ℤ) ^ (2 * n + B) * 2 ^ (m + B) = 2 ^ (m + 2 * n + 2 * B) := by
+      rw [← pow_add]; congr 1; omega
+    rw [hR1pow] at hR1_l hR1_u
+    obtain ⟨hR1k_l, hR1k_u⟩ := mul_abs_bound (A := (x.seq n * 2 ^ n) * (2 ^ (2 * m) - x.seq m * pm))
+      (P := (2:ℤ) ^ (m + 2 * n + 2 * B)) (C := (2:ℤ) ^ k') (Q := (2:ℤ) ^ k')
+      hR1_l hR1_u (by omega) (by omega)
+    have hR1kpow : (2:ℤ) ^ (m + 2 * n + 2 * B) * 2 ^ k' = 2 ^ (m + 2 * n + 2 * B + k') := by
+      rw [← pow_add]
+    rw [hR1kpow] at hR1k_l hR1k_u
+    obtain ⟨hxm2_l, hxm2_u⟩ := mul_abs_bound (A := x.seq m) (P := (2:ℤ) ^ (m + B))
+      (C := (2:ℤ) ^ m) (Q := (2:ℤ) ^ m) hbm_l hbm_u (by omega) (by omega)
+    have hxm2pow : (2:ℤ) ^ (m + B) * 2 ^ m = 2 ^ (2 * m + B) := by rw [← pow_add]; congr 1; omega
+    rw [hxm2pow] at hxm2_l hxm2_u
+    have hrn_l : -(2:ℤ) ^ (n + B) ≤ 2 ^ (2 * n) - x.seq n * pn := by
+      have := two_pow_nonneg (n + B); omega
+    have hrn_u : (2:ℤ) ^ (2 * n) - x.seq n * pn ≤ 2 ^ (n + B) := by omega
+    obtain ⟨hR2_l, hR2_u⟩ := mul_abs_bound (A := x.seq m * 2 ^ m) (P := (2:ℤ) ^ (2 * m + B))
+      (C := (2:ℤ) ^ (2 * n) - x.seq n * pn) (Q := (2:ℤ) ^ (n + B)) hxm2_l hxm2_u hrn_l hrn_u
+    have hR2pow : (2:ℤ) ^ (2 * m + B) * 2 ^ (n + B) = 2 ^ (2 * m + n + 2 * B) := by
+      rw [← pow_add]; congr 1; omega
+    rw [hR2pow] at hR2_l hR2_u
+    obtain ⟨hR2k_l, hR2k_u⟩ := mul_abs_bound (A := (x.seq m * 2 ^ m) * (2 ^ (2 * n) - x.seq n * pn))
+      (P := (2:ℤ) ^ (2 * m + n + 2 * B)) (C := (2:ℤ) ^ k') (Q := (2:ℤ) ^ k')
+      hR2_l hR2_u (by omega) (by omega)
+    have hR2kpow : (2:ℤ) ^ (2 * m + n + 2 * B) * 2 ^ k' = 2 ^ (2 * m + n + 2 * B + k') := by
+      rw [← pow_add]
+    rw [hR2kpow] at hR2k_l hR2k_u
+    -- (5) budget: each residual ≤ 2^(2(m+n)-2k-2); and 2^(2(m+n)-2k) = 4·2^(2(m+n)-2k-2)
+    have hbudget1 : (2:ℤ) ^ (m + 2 * n + 2 * B + k') ≤ 2 ^ (2 * (m + n) - (2 * k + 2)) := by
+      have h := two_pow_le_add (m + 2 * n + 2 * B + k')
+        (2 * (m + n) - (2 * k + 2) - (m + 2 * n + 2 * B + k'))
+      rwa [show (m + 2 * n + 2 * B + k') + (2 * (m + n) - (2 * k + 2) - (m + 2 * n + 2 * B + k'))
+            = 2 * (m + n) - (2 * k + 2) from by omega] at h
+    have hbudget2 : (2:ℤ) ^ (2 * m + n + 2 * B + k') ≤ 2 ^ (2 * (m + n) - (2 * k + 2)) := by
+      have h := two_pow_le_add (2 * m + n + 2 * B + k')
+        (2 * (m + n) - (2 * k + 2) - (2 * m + n + 2 * B + k'))
+      rwa [show (2 * m + n + 2 * B + k') + (2 * (m + n) - (2 * k + 2) - (2 * m + n + 2 * B + k'))
+            = 2 * (m + n) - (2 * k + 2) from by omega] at h
+    have h4 : (2:ℤ) ^ (2 * (m + n) - 2 * k) = 4 * 2 ^ (2 * (m + n) - (2 * k + 2)) := by
+      rw [show 2 * (m + n) - 2 * k = (2 * (m + n) - (2 * k + 2)) + 1 + 1 from by omega,
+        pow_succ, pow_succ]; ring
+    -- (6) lower bound on the product x_m x_n, and the cancellation
+    have hxmn : (0:ℤ) < x.seq m * x.seq n := Int.mul_pos hxm hxn
+    have hlbprod0 : (2:ℤ) ^ (m - k) * 2 ^ (n - k) ≤ x.seq m * x.seq n :=
+      Int.mul_le_mul hlbm hlbn (two_pow_nonneg _) (by omega)
+    have hpprod : (2:ℤ) ^ (m - k) * 2 ^ (n - k) = 2 ^ (m + n - 2 * k) := by
+      rw [← pow_add]; congr 1; omega
+    rw [hpprod] at hlbprod0
+    have hge2 : (2:ℤ) ^ (2 * (m + n) - 2 * k) ≤ x.seq m * x.seq n * 2 ^ (m + n) := by
+      have h := Int.mul_le_mul_of_nonneg_right hlbprod0 (two_pow_nonneg (m + n))
+      have hp : (2:ℤ) ^ (m + n - 2 * k) * 2 ^ (m + n) = 2 ^ (2 * (m + n) - 2 * k) := by
+        rw [← pow_add]; congr 1; omega
+      rw [hp] at h; exact h
+    refine ⟨?_, ?_⟩
+    · -- D · 2^k' ≤ 2^(m+n)
+      have hQu : x.seq m * x.seq n * (pm * 2 ^ n - pn * 2 ^ m) * 2 ^ k'
+               ≤ 2 ^ (2 * (m + n) - 2 * k) := by rw [hfin]; omega
+      have hcomb : x.seq m * x.seq n * ((pm * 2 ^ n - pn * 2 ^ m) * 2 ^ k')
+                 ≤ x.seq m * x.seq n * 2 ^ (m + n) := by
+        have e : x.seq m * x.seq n * ((pm * 2 ^ n - pn * 2 ^ m) * 2 ^ k')
+               = x.seq m * x.seq n * (pm * 2 ^ n - pn * 2 ^ m) * 2 ^ k' := by ring
+        rw [e]; exact Int.le_trans hQu hge2
+      exact Int.le_of_mul_le_mul_left hcomb hxmn
+    · -- -(2^(m+n)) ≤ D · 2^k'
+      have hQl : -(2 ^ (2 * (m + n) - 2 * k))
+               ≤ x.seq m * x.seq n * (pm * 2 ^ n - pn * 2 ^ m) * 2 ^ k' := by rw [hfin]; omega
+      have hcomb : x.seq m * x.seq n * (-(2 ^ (m + n)))
+                 ≤ x.seq m * x.seq n * ((pm * 2 ^ n - pn * 2 ^ m) * 2 ^ k') := by
+        have e1' : x.seq m * x.seq n * (-(2 ^ (m + n))) = -(x.seq m * x.seq n * 2 ^ (m + n)) := by
+          ring
+        have e2' : x.seq m * x.seq n * ((pm * 2 ^ n - pn * 2 ^ m) * 2 ^ k')
+                 = x.seq m * x.seq n * (pm * 2 ^ n - pn * 2 ^ m) * 2 ^ k' := by ring
+        rw [e1', e2']
+        have hneg : -(x.seq m * x.seq n * 2 ^ (m + n)) ≤ -(2 ^ (2 * (m + n) - 2 * k)) := by omega
+        exact Int.le_trans hneg hQl
+      exact Int.le_of_mul_le_mul_left hcomb hxmn
+
 -- ============================================================
 -- §M5  Payoff: the operational reals are a NONTRIVIAL commutative ring
 -- ============================================================
@@ -830,6 +992,7 @@ theorem Real.zero_ne_one : (0 : Real) ≠ 1 := by
 -- ============================================================
 #print axioms Pre.ofBranch
 #print axioms Real.zero_ne_one
+#print axioms Pre.invPos
 #print axioms Pre.equiv_trans
 #print axioms Real.ofBranch
 #print axioms Pre.le_refl
