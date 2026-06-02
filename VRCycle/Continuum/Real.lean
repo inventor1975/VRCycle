@@ -98,12 +98,84 @@ def Real : Type := Quotient Pre.setoid
 def Real.ofBranch (α : Branch) : Real := Quotient.mk _ (Pre.ofBranch α)
 
 -- ============================================================
--- Axiom audit — operational ℝ, M1
+-- §M2  Order and apartness (constructive: positive `<`, `∀k`-style `≤`)
+-- ============================================================
+
+/-- `0 < (2:ℤ)^n`, choice-free (induction; `pow_pos` pulls `Classical.choice`). -/
+theorem two_pow_pos (n : ℕ) : (0 : ℤ) < 2 ^ n := by
+  induction n with
+  | zero => decide
+  | succ m ih => rw [pow_succ]; omega
+
+/-- `x ≤ y`: the difference `x - y` is non-positive up to every precision
+(`∀ k`, eventually `(x_n - y_n)·2^k ≤ 2^n`). -/
+def Pre.le (x y : Pre) : Prop :=
+  ∀ k : ℕ, ∃ N : ℕ, ∀ n : ℕ, N ≤ n → (x.seq n - y.seq n) * 2 ^ k ≤ 2 ^ n
+
+/-- `x < y`: `y - x` is positive — bounded below by some `2^{-k}` eventually
+(`∃ k`, eventually `2^n ≤ (y_n - x_n)·2^k`).  Constructive strict order. -/
+def Pre.lt (x y : Pre) : Prop :=
+  ∃ k : ℕ, ∃ N : ℕ, ∀ n : ℕ, N ≤ n → 2 ^ n ≤ (y.seq n - x.seq n) * 2 ^ k
+
+/-- `x # y`: apartness — `x < y` or `y < x` (positive separation). -/
+def Pre.apart (x y : Pre) : Prop := Pre.lt x y ∨ Pre.lt y x
+
+theorem Pre.le_refl (x : Pre) : Pre.le x x := by
+  intro k
+  refine ⟨0, fun n _ => ?_⟩
+  have hp := two_pow_nonneg n
+  have h0 : (x.seq n - x.seq n) * 2 ^ k = 0 := by ring
+  rw [h0]; omega
+
+theorem Pre.le_trans {x y z : Pre} (hxy : Pre.le x y) (hyz : Pre.le y z) : Pre.le x z := by
+  intro k
+  obtain ⟨N1, h1⟩ := hxy (k + 1)
+  obtain ⟨N2, h2⟩ := hyz (k + 1)
+  refine ⟨max N1 N2, fun n hn => ?_⟩
+  have ha := h1 n (by omega)
+  have hb := h2 n (by omega)
+  have key : 2 * ((x.seq n - z.seq n) * 2 ^ k)
+           = (x.seq n - y.seq n) * 2 ^ (k + 1) + (y.seq n - z.seq n) * 2 ^ (k + 1) := by
+    rw [pow_succ]; ring
+  omega
+
+/-- Apartness is irreflexive: `¬ x # x` (in fact `¬ x < x`). -/
+theorem Pre.lt_irrefl (x : Pre) : ¬ Pre.lt x x := by
+  rintro ⟨k, N, h⟩
+  have hb := h N (Nat.le_refl N)
+  have hp := two_pow_pos N
+  have h0 : (x.seq N - x.seq N) * 2 ^ k = 0 := by ring
+  rw [h0] at hb
+  omega
+
+/-- Equal reals are `≤`: `x ≈ y → x ≤ y` (the upper side of the two-sided bound). -/
+theorem Pre.equiv_imp_le {x y : Pre} (h : Pre.equiv x y) : Pre.le x y := by
+  intro k
+  obtain ⟨N, hN⟩ := h k
+  exact ⟨N, fun n hn => (hN n hn).1⟩
+
+/-- Antisymmetry: `x ≤ y` and `y ≤ x` give `x ≈ y` (so `≤` orders reals up to equality). -/
+theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) :
+    Pre.equiv x y := by
+  intro k
+  obtain ⟨N1, h1⟩ := hxy k
+  obtain ⟨N2, h2⟩ := hyx k
+  refine ⟨max N1 N2, fun n hn => ?_⟩
+  have ha := h1 n (by omega)
+  have hb := h2 n (by omega)
+  have he : (y.seq n - x.seq n) * 2 ^ k = -((x.seq n - y.seq n) * 2 ^ k) := by ring
+  rw [he] at hb
+  exact ⟨by omega, by omega⟩
+
+-- ============================================================
+-- Axiom audit — operational ℝ, M1 + M2
 -- ============================================================
 #print axioms Pre.ofBranch
-#print axioms Pre.equiv_refl
-#print axioms Pre.equiv_symm
 #print axioms Pre.equiv_trans
 #print axioms Real.ofBranch
+#print axioms Pre.le_refl
+#print axioms Pre.le_trans
+#print axioms Pre.lt_irrefl
+#print axioms Pre.le_antisymm_equiv
 
 end VRCycle.Continuum
