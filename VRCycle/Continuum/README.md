@@ -70,10 +70,19 @@ A full commutative ring **`CommRing Real`, choice-free** — the first VR develo
   is a **constant** (operand magnitudes), beaten by `2^n` — *no vanishing needed*.
 - **`instance : CommRing Real`** — subsumes the abelian group (one source, no diamond); the instance
   and every law obtained through it stay `[propext, Quot.sound]`.
+- **nontriviality** `Real.zero_ne_one : (0:Real) ≠ 1` (M5 payoff — a fact mathlib states only Tier-3).
+- **reciprocal** (apartness-witnessed, the honest "field" below the floor): `Pre.invPos` (`seq n =
+  2^{2n} ediv x_n`, value `1/x` — the hardest proof, two nested-floor division brackets + the apartness
+  lower bound `x_n ≥ 2^{n-k}` cancelled) and `Pre.invPos_mul` (`x·x⁻¹ = 1`, constant-bounded).  A
+  **total** `Field` is impossible choice-free — `¬(x≈0)` yields no lower-bound modulus on `|x|` (Markov);
+  inverses exist exactly for apart-from-`0` reals, which is the correct constructive statement.
 
-**Deferred:** `inv` (needs an apartness witness — field structure, the hardest) and a constructive
-completeness / payoff theorem (M5).  Constructive caveats persist (no trichotomy, located-only sup) —
-`Real ≠` classical ℝ; it is **Bishop's commutative ring of reals, machine-checked choice-free**.
+**Deferred:** a `Real`-level inverse wrapper (`⟦x⟧·⟦x⁻¹⟧=1`, fiddly quotient-defeq), an analytic M5
+(a genuine limit), and completeness / located-sup (large).  Constructive caveats persist (no trichotomy,
+located-only sup) — `Real ≠` classical ℝ; it is **Bishop's reals, machine-checked choice-free**.
+
+**Finding CONT-11:** `linear_combination` pulls `Classical.choice` (like `le_refl`/`le_trans`, CONT-10) —
+replace with `rw` of the pow-equalities + `ring`.
 
 ## Operational unit interval (`UnitInterval.lean`)
 The integer-numerator substrate feeding `Real` (and the first below-floor result): a branch's `[0,1]`
