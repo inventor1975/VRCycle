@@ -51,19 +51,41 @@ but operationally TRUE.
 - **CONT-7** (decisive) mathlib **`ℚ` is entirely Tier-3** — `(2:ℚ)+3`, `*`, `≤` all pull `Classical.choice` (the floor is the ordered-field substrate, not only `ℝ`). `ℤ`/`ℕ` are choice-free. So an operational continuum stays below the floor only by representing points over `ℤ` (integer numerator / `2^N`), never via mathlib `ℚ`/`ℝ`.
 - **CONT-8** `omega` on a **conjunction** goal fails / drags `Classical.choice`+`sorryAx`; a single `ℤ` inequality via `omega` is axiom-free. Split `∧` into separate `omega` calls. (State two-sided bounds, prove each side separately.)
 
-## Operational ℝ (course set; `Real.lean`, M1)
-Bishop-style operational real over `ℤ`, below the ℚ/ℝ floor (plan: `PLAN_OPERATIONAL_REAL.md`).
-`Pre` = dyadic Cauchy sequence `seq : ℕ → ℤ` with two-sided coherence `-1 ≤ 2·seq n - seq(n+1) ≤ 1`.
-`Pre.ofBranch` : every branch's `[0,1]` point (`intval α`) is a `Pre` — `[propext, Quot.sound]`, choice-free.
-Milestones M2 order/apartness · M3 ring · M4 embeddings · M5 a Tier-3-via-ℝ theorem done choice-free.
+## Operational ℝ (`Real.lean`) — Bishop reals over `ℤ`, **below the ℚ/ℝ choice floor**
+A real is a **dyadic asymptotic-Cauchy sequence** `Pre = (seq : ℕ → ℤ)` with
+`∀k ∃N ∀m,n≥N, |seq m·2^n - seq n·2^m|·2^k ≤ 2^(m+n)` (pure `ℤ`, ring-closed); `Real := Quotient`
+by asymptotic agreement. **All choice-free `[propext, Quot.sound]`** (plan: `PLAN_OPERATIONAL_REAL.md`).
 
-## Operational unit interval (ℝ-recon, `UnitInterval.lean`)
-First step toward operational reals, and the first VR result **below the ℚ/ℝ choice floor**.
-A branch's point in `[0,1]` is carried by its integer numerator `intval α N : ℤ` over `2^N`:
-- `intval` axiom-free; `intval_nonneg`, `intval_lt_pow` (point in `[0,1)`), `intval_mono_step`
-  all `[propext, Quot.sound]` — **choice-free** (where the same facts via mathlib `ℝ`/`ℚ` are Tier-3).
-A full operational `ℝ` (field/order/limits over hand-rolled `ℤ`-dyadics) remains a large further build.
+Done — and this is the first VR development with arithmetic **below the floor that pins the rest of
+the cycle to Tier-3**:
+- `Real` type + equality (setoid quotient); `Pre.ofBranch` (each branch's `[0,1]` point is a real).
+- **Order/apartness**: `Pre.le`, `Pre.lt`, `Pre.apart`; `le_refl`/`le_trans`/`lt_irrefl`; `le_antisymm_equiv`.
+- **`AddCommGroup Real`**: `Real.add`, `Real.neg`, `0`, `1`, ℤ-embedding (`Real.ofInt`); all group laws.
+- **Multiplication** `Pre.mul` (`seq n = (x.seq n·y.seq n) ediv 2^n`) — the **capstone**: full Bishop
+  product Cauchy proof, choice-free (clear denominators → split `A·B−A'·B'` → bound by magnitudes
+  (`Pre.bounded`) + differences (cauchy) via `mul_abs_bound` → cancel `2^(m+n)`).
+- `Pre.mul_comm`, `Pre.mul_one` (easy, pointwise).
+
+**Remaining for full `CommRing Real`** (each a ~100-line asymptotic product-error proof like `Pre.mul`,
+NOT routine): `mul_respects` (gateway to `Real.mul` on the quotient), `mul_assoc`, distributivity. `inv`
+(needs apartness witness) and a constructive completeness/payoff theorem (M5) deferred.  Constructive
+caveats persist (no trichotomy, located-only sup) — `Real ≠` classical ℝ; it is Bishop's, choice-free.
+
+## Operational unit interval (`UnitInterval.lean`)
+The integer-numerator substrate feeding `Real` (and the first below-floor result): a branch's `[0,1]`
+point is `intval α N : ℤ` over `2^N`; `intval_nonneg`/`intval_lt_pow`/`intval_mono_step` choice-free;
+plus the reusable `ℤ` toolkit (`two_pow_*`, `int_two_pow_bound`, `int_ediv_bracket`, `mul_cross_pow`,
+`mul_abs_bound`, `dyadic_bound`, cancellation/scaling bridges) — all `[propext, Quot.sound]`.
+
+- **CONT-9** (the `ℤ`-arithmetic choice toolkit) general `mul_nonneg`/`mul_le_mul`/`mul_lt_mul_of_pos_*`/
+  `mul_zero`/`neg_mul`/`pow_pos`/`pow_le_pow_right`/`abs_mul`/`lt_or_eq_of_le`/`Nat.le.dest` all pull
+  `Classical.choice`. The **choice-free** replacements: `Int.mul_nonneg`, `Int.mul_le_mul`(4-arg),
+  `Int.mul_le_mul_of_nonneg_left/right`, `Int.le_of_mul_le_mul_left/right`, `pow_add`, `Int.lt_or_le`,
+  `abs_le.mp/mpr`, `ring`, `omega`, plus induction-without-dest for `2^·` monotonicity. Also: numeric
+  literals in a standalone `have :` default to `ℕ` (truncated `-`); ascribe `(2:ℤ)`. `omega` does not
+  atomise `z.ediv d` for a variable divisor unless terms are syntactically uniform (no `set`).
 
 ## Files
 `Spread` (A) · `Branch` (B1) · `Cover` (B2) · `UniformContinuity` (B3) · `BarSound` (B4) ·
-`ClassicalBoundary` (B5) · `Registers` (B6) · `Model` (C) · `UnitInterval` (ℝ-recon).
+`ClassicalBoundary` (B5) · `Registers` (B6) · `Model` (C) · `UnitInterval` (`ℤ` substrate) ·
+`Real` (operational ℝ: group + multiplication, choice-free).
