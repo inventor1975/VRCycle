@@ -779,9 +779,29 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
   exact ⟨by omega, by omega⟩
 
 -- ============================================================
+-- §M5  Payoff: the operational reals are a NONTRIVIAL commutative ring
+-- ============================================================
+
+/-- **Nontriviality** `(0 : Real) ≠ 1` — a fact about `ℝ` that mathlib can only state Tier-3
+(every `ℝ` operation pulls `Classical.choice`), proved here **choice-free below the floor**.
+`0` and `1` are apart: their numerators differ by `2^n`, so at precision `k = 1` the lower
+agreement bound `-(2^n) ≤ (0_n - 1_n)·2 = -2·2^n` fails (`2·2^n ≤ 2^n` is false). -/
+theorem Real.zero_ne_one : (0 : Real) ≠ 1 := by
+  intro h
+  have he : Pre.equiv (Pre.ofInt 0) (Pre.ofInt 1) := Quotient.exact h
+  obtain ⟨N, hN⟩ := he 1
+  obtain ⟨_, hlo⟩ := hN N (Nat.le_refl N)
+  simp only [Pre.ofInt] at hlo
+  have hp := two_pow_pos N
+  have e : ((0:ℤ) * 2 ^ N - 1 * 2 ^ N) * 2 ^ 1 = -(2 * 2 ^ N) := by ring
+  rw [e] at hlo
+  omega
+
+-- ============================================================
 -- Axiom audit — operational ℝ, M1 + M2
 -- ============================================================
 #print axioms Pre.ofBranch
+#print axioms Real.zero_ne_one
 #print axioms Pre.equiv_trans
 #print axioms Real.ofBranch
 #print axioms Pre.le_refl
