@@ -179,6 +179,54 @@ theorem int_ediv_bracket (z : ℤ) {d : ℤ} (hd : 0 < d) :
   have h3 : z.emod d < d := Int.emod_lt_of_pos z hd
   refine ⟨?_, ?_⟩ <;> omega
 
+/-- **Signed product bound**: `|A| ≤ P` and `|C| ≤ Q` give `-(P·Q) ≤ A·C ≤ P·Q`.
+Choice-free — by sign cases (`Int.lt_or_le`) using only `Int.mul_*` lemmas (`abs_mul` pulls
+`Classical.choice`; so does the general `mul_le_mul`/`mul_zero`). -/
+theorem mul_abs_bound {A C P Q : ℤ} (hA1 : -P ≤ A) (hA2 : A ≤ P) (hC1 : -Q ≤ C) (hC2 : C ≤ Q) :
+    -(P * Q) ≤ A * C ∧ A * C ≤ P * Q := by
+  have hP : 0 ≤ P := by omega
+  have hQ : 0 ≤ Q := by omega
+  have hPQ : 0 ≤ P * Q := Int.mul_nonneg hP hQ
+  rcases Int.lt_or_le 0 A with hA | hA <;> rcases Int.lt_or_le 0 C with hC | hC
+  · -- 0 < A, 0 < C
+    have hAn : 0 ≤ A := by omega
+    have hCn : 0 ≤ C := by omega
+    have hu : A * C ≤ P * Q := Int.mul_le_mul hA2 hC2 hCn hP
+    have hl : 0 ≤ A * C := Int.mul_nonneg hAn hCn
+    exact ⟨by omega, by omega⟩
+  · -- 0 < A, C ≤ 0
+    have hAn : 0 ≤ A := by omega
+    have hnc : 0 ≤ -C := by omega
+    have hle : 0 ≤ A * (-C) := Int.mul_nonneg hAn hnc
+    have ee : A * (-C) = -(A * C) := by ring
+    rw [ee] at hle
+    have h1 : A * (-Q) ≤ A * C := Int.mul_le_mul_of_nonneg_left hC1 hAn
+    have h2 : A * Q ≤ P * Q := Int.mul_le_mul_of_nonneg_right hA2 hQ
+    have e2 : A * (-Q) = -(A * Q) := by ring
+    rw [e2] at h1
+    exact ⟨by omega, by omega⟩
+  · -- A ≤ 0, 0 < C
+    have hCn : 0 ≤ C := by omega
+    have hna : 0 ≤ -A := by omega
+    have hle : 0 ≤ (-A) * C := Int.mul_nonneg hna hCn
+    have ee : (-A) * C = -(A * C) := by ring
+    rw [ee] at hle
+    have h1 : (-P) * C ≤ A * C := Int.mul_le_mul_of_nonneg_right hA1 hCn
+    have h2 : P * C ≤ P * Q := Int.mul_le_mul_of_nonneg_left hC2 hP
+    have e2 : (-P) * C = -(P * C) := by ring
+    rw [e2] at h1
+    exact ⟨by omega, by omega⟩
+  · -- A ≤ 0, C ≤ 0
+    have hna : 0 ≤ -A := by omega
+    have hnc : 0 ≤ -C := by omega
+    have hl : 0 ≤ (-A) * (-C) := Int.mul_nonneg hna hnc
+    have ee : (-A) * (-C) = A * C := by ring
+    rw [ee] at hl
+    have hu : (-A) * (-C) ≤ P * Q := Int.mul_le_mul (by omega) (by omega) hnc hP
+    have ee2 : (-A) * (-C) = A * C := by ring
+    rw [ee2] at hu
+    exact ⟨by omega, by omega⟩
+
 /-- **Cross identity for the product** (the algebraic backbone of multiplication's
 Cauchyness): clearing denominators turns the product Cauchy expression into integers.
 Choice-free (`pow_add`, `two_mul`, `ring`). -/
@@ -222,5 +270,6 @@ theorem dyadic_bound {D : ℤ} {m n k : ℕ} (h1 : D < 2 ^ m) (hk : k ≤ n) :
 #print axioms neg_le_of_mul_two_pow
 #print axioms int_ediv_bracket
 #print axioms mul_cross_pow
+#print axioms mul_abs_bound
 
 end VRCycle.Continuum
