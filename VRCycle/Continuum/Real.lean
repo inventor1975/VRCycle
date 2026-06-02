@@ -414,6 +414,23 @@ def Pre.mul (x y : Pre) : Pre where
       rw [hl, hr] at h1
       exact Int.le_of_mul_le_mul_left h1 hpos
 
+/-- Multiplication is commutative (the numerators commute in `ℤ`, so the sequences are
+pointwise equal).  Choice-free. -/
+theorem Pre.mul_comm (x y : Pre) : Pre.equiv (Pre.mul x y) (Pre.mul y x) := by
+  apply Pre.equiv_of_seq
+  intro n
+  simp only [Pre.mul]
+  rw [Int.mul_comm (x.seq n) (y.seq n)]
+
+/-- `x · 1 = x`: the value `1` is `Pre.ofInt 1` (numerators `2^n`), and `(x_n · 2^n) ediv 2^n
+= x_n` exactly.  Pointwise equal, hence equal reals.  Choice-free. -/
+theorem Pre.mul_one (x : Pre) : Pre.equiv (Pre.mul x (Pre.ofInt 1)) x := by
+  apply Pre.equiv_of_seq
+  intro n
+  simp only [Pre.mul, Pre.ofInt]
+  rw [one_mul]
+  exact Int.mul_ediv_cancel _ (by have := two_pow_pos n; omega)
+
 /-- **The operational reals form an additive commutative group** — choice-free, below the
 ℚ/ℝ `Classical.choice` floor. -/
 instance : AddCommGroup Real where
@@ -507,6 +524,8 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Real.ofInt
 #print axioms Pre.bounded
 #print axioms Pre.mul
+#print axioms Pre.mul_comm
+#print axioms Pre.mul_one
 #print axioms Real.add_comm
 #print axioms Real.add_assoc
 #print axioms Real.neg_add_cancel
