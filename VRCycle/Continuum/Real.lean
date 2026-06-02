@@ -291,6 +291,129 @@ theorem Pre.bounded (x : Pre) : ∃ (B N : ℕ), ∀ m, N ≤ m →
     rw [hexp] at hfin
     exact neg_le_of_mul_two_pow hfin
 
+/-- **Multiplication** of operational reals: `seq n = (x.seq n · y.seq n) ediv 2^n`.
+Cauchyness via the product error analysis (PLAN / memory).  Choice-free. -/
+def Pre.mul (x y : Pre) : Pre where
+  seq := fun n => (x.seq n * y.seq n).ediv (2 ^ n)
+  cauchy := by
+    intro k
+    obtain ⟨Bx, Nx, hbx⟩ := x.bounded
+    obtain ⟨By, Ny, hby⟩ := y.bounded
+    obtain ⟨Nxc, hxc⟩ := x.cauchy (k + By + 2)
+    obtain ⟨Nyc, hyc⟩ := y.cauchy (k + Bx + 2)
+    refine ⟨max (max Nx Ny) (max Nxc Nyc) + (k + Bx + By + 2), fun m n hm hn => ?_⟩
+    obtain ⟨hbxm1, hbxm2⟩ := hbx m (by omega)
+    obtain ⟨hbyn1, hbyn2⟩ := hby n (by omega)
+    -- |x.seq m * 2^n| ≤ 2^(m+n+Bx)
+    obtain ⟨hAl, hAu⟩ := mul_abs_bound (A := x.seq m) (P := (2:ℤ) ^ (m + Bx))
+      (C := (2:ℤ) ^ n) (Q := (2:ℤ) ^ n) hbxm2 hbxm1 (by have := two_pow_nonneg n; omega) (by omega)
+    have hApow : (2:ℤ) ^ (m + Bx) * 2 ^ n = 2 ^ (m + n + Bx) := by rw [← pow_add]; congr 1; omega
+    rw [hApow] at hAl hAu
+    -- |y.seq n * 2^m| ≤ 2^(m+n+By)
+    obtain ⟨hBl, hBu⟩ := mul_abs_bound (A := y.seq n) (P := (2:ℤ) ^ (n + By))
+      (C := (2:ℤ) ^ m) (Q := (2:ℤ) ^ m) hbyn2 hbyn1 (by have := two_pow_nonneg m; omega) (by omega)
+    have hBpow : (2:ℤ) ^ (n + By) * 2 ^ m = 2 ^ (m + n + By) := by rw [← pow_add]; congr 1; omega
+    rw [hBpow] at hBl hBu
+    -- x-difference A - A' bound ±2^(m+n-(k+By+2))
+    obtain ⟨hdx1, hdx2⟩ := hxc m n (by omega) (by omega)
+    have hdxre : (2:ℤ) ^ (m + n) = 2 ^ ((m + n - (k + By + 2)) + (k + By + 2)) := by
+      congr 1; omega
+    rw [hdxre] at hdx1 hdx2
+    obtain ⟨hAA1, hAA2⟩ := abs_le_two_pow_of_mul hdx1 hdx2
+    -- y-difference B - B' bound ±2^(m+n-(k+Bx+2))
+    obtain ⟨hdy1, hdy2⟩ := hyc m n (by omega) (by omega)
+    have hdyre : (2:ℤ) ^ (m + n) = 2 ^ ((m + n - (k + Bx + 2)) + (k + Bx + 2)) := by
+      congr 1; omega
+    rw [hdyre] at hdy1 hdy2
+    obtain ⟨hBB1, hBB2⟩ := abs_le_two_pow_of_mul hdy1 hdy2
+    -- product bounds A·(B-B') and B'·(A-A'), each ±2^(2(m+n)-k-2)
+    obtain ⟨hP1l, hP1u⟩ := mul_abs_bound (A := x.seq m * 2 ^ n) (P := (2:ℤ) ^ (m + n + Bx))
+      (C := y.seq m * 2 ^ n - y.seq n * 2 ^ m) (Q := (2:ℤ) ^ (m + n - (k + Bx + 2)))
+      hAl hAu hBB1 hBB2
+    have hP1pow : (2:ℤ) ^ (m + n + Bx) * 2 ^ (m + n - (k + Bx + 2))
+        = 2 ^ (2 * (m + n) - k - 2) := by
+      rw [← pow_add]; congr 1; omega
+    rw [hP1pow] at hP1l hP1u
+    obtain ⟨hP2l, hP2u⟩ := mul_abs_bound (A := y.seq n * 2 ^ m) (P := (2:ℤ) ^ (m + n + By))
+      (C := x.seq m * 2 ^ n - x.seq n * 2 ^ m) (Q := (2:ℤ) ^ (m + n - (k + By + 2)))
+      hBl hBu hAA1 hAA2
+    have hP2pow : (2:ℤ) ^ (m + n + By) * 2 ^ (m + n - (k + By + 2))
+        = 2 ^ (2 * (m + n) - k - 2) := by
+      rw [← pow_add]; congr 1; omega
+    rw [hP2pow] at hP2l hP2u
+    -- floor brackets (s-terms)
+    obtain ⟨hsm0, hsm1⟩ := int_ediv_bracket (x.seq m * y.seq m) (two_pow_pos m)
+    obtain ⟨hsn0, hsn1⟩ := int_ediv_bracket (x.seq n * y.seq n) (two_pow_pos n)
+    set Pm := (x.seq m * y.seq m).ediv (2 ^ m) with hPmdef
+    set Pn := (x.seq n * y.seq n).ediv (2 ^ n) with hPndef
+    -- big identity (clear denominators)
+    have hID : 2 ^ (m + n) * (Pm * 2 ^ n - Pn * 2 ^ m)
+             = 2 ^ (2 * n) * (2 ^ m * Pm) - 2 ^ (2 * m) * (2 ^ n * Pn) := mul_cross_pow Pm Pn m n
+    have hMAIN : 2 ^ (2 * n) * (x.seq m * y.seq m) - 2 ^ (2 * m) * (x.seq n * y.seq n)
+             = (x.seq m * 2 ^ n) * (y.seq m * 2 ^ n - y.seq n * 2 ^ m)
+             + (y.seq n * 2 ^ m) * (x.seq m * 2 ^ n - x.seq n * 2 ^ m) := by
+      have e2n : (2:ℤ) ^ (2 * n) = 2 ^ n * 2 ^ n := by rw [two_mul, pow_add]
+      have e2m : (2:ℤ) ^ (2 * m) = 2 ^ m * 2 ^ m := by rw [two_mul, pow_add]
+      rw [e2n, e2m]; ring
+    -- E = 2^(m+n)·D expressed via products and s-terms
+    have hE : 2 ^ (m + n) * (Pm * 2 ^ n - Pn * 2 ^ m)
+            = (x.seq m * 2 ^ n) * (y.seq m * 2 ^ n - y.seq n * 2 ^ m)
+            + (y.seq n * 2 ^ m) * (x.seq m * 2 ^ n - x.seq n * 2 ^ m)
+            - 2 ^ (2 * n) * (x.seq m * y.seq m - 2 ^ m * Pm)
+            + 2 ^ (2 * m) * (x.seq n * y.seq n - 2 ^ n * Pn) := by
+      rw [hID, ← hMAIN]; ring
+    have hTnn : (0:ℤ) ≤ 2 ^ (2 * (m + n) - k - 2) := two_pow_nonneg _
+    have hSMl : (0:ℤ) ≤ 2 ^ (2 * n) * (x.seq m * y.seq m - 2 ^ m * Pm) :=
+      Int.mul_nonneg (two_pow_nonneg _) (by omega)
+    have hSMu : 2 ^ (2 * n) * (x.seq m * y.seq m - 2 ^ m * Pm) ≤ 2 ^ (2 * (m + n) - k - 2) := by
+      have hb := Int.mul_le_mul_of_nonneg_left
+        (by omega : x.seq m * y.seq m - 2 ^ m * Pm ≤ 2 ^ m) (two_pow_nonneg (2 * n))
+      have hpw : (2:ℤ) ^ (2 * n) * 2 ^ m = 2 ^ (2 * n + m) := by rw [← pow_add]
+      have hpw2 : (2:ℤ) ^ (2 * n + m) ≤ 2 ^ (2 * (m + n) - k - 2) := by
+        have h := two_pow_le_add (2 * n + m) (2 * (m + n) - k - 2 - (2 * n + m))
+        have heqs : (2 * n + m) + (2 * (m + n) - k - 2 - (2 * n + m))
+            = 2 * (m + n) - k - 2 := by omega
+        rwa [heqs] at h
+      rw [hpw] at hb; omega
+    have hSNl : (0:ℤ) ≤ 2 ^ (2 * m) * (x.seq n * y.seq n - 2 ^ n * Pn) :=
+      Int.mul_nonneg (two_pow_nonneg _) (by omega)
+    have hSNu : 2 ^ (2 * m) * (x.seq n * y.seq n - 2 ^ n * Pn) ≤ 2 ^ (2 * (m + n) - k - 2) := by
+      have hb := Int.mul_le_mul_of_nonneg_left
+        (by omega : x.seq n * y.seq n - 2 ^ n * Pn ≤ 2 ^ n) (two_pow_nonneg (2 * m))
+      have hpw : (2:ℤ) ^ (2 * m) * 2 ^ n = 2 ^ (2 * m + n) := by rw [← pow_add]
+      have hpw2 : (2:ℤ) ^ (2 * m + n) ≤ 2 ^ (2 * (m + n) - k - 2) := by
+        have h := two_pow_le_add (2 * m + n) (2 * (m + n) - k - 2 - (2 * m + n))
+        have heqs : (2 * m + n) + (2 * (m + n) - k - 2 - (2 * m + n))
+            = 2 * (m + n) - k - 2 := by omega
+        rwa [heqs] at h
+      rw [hpw] at hb; omega
+    have hT4 : (2:ℤ) ^ (2 * (m + n) - k) = 4 * 2 ^ (2 * (m + n) - k - 2) := by
+      set e := 2 * (m + n) - k - 2 with he_def
+      have hee : 2 * (m + n) - k = e + 1 + 1 := by omega
+      rw [hee, pow_succ, pow_succ]; ring
+    have hEu : 2 ^ (m + n) * (Pm * 2 ^ n - Pn * 2 ^ m) ≤ 2 ^ (2 * (m + n) - k) := by
+      rw [hE]; omega
+    have hEl : -(2 ^ (2 * (m + n) - k)) ≤ 2 ^ (m + n) * (Pm * 2 ^ n - Pn * 2 ^ m) := by
+      rw [hE]; omega
+    -- cancel 2^(m+n)
+    have hpos := two_pow_pos (m + n)
+    have h2 : (2:ℤ) ^ (2 * (m + n) - k) * 2 ^ k = 2 ^ (m + n) * 2 ^ (m + n) := by
+      rw [← pow_add, show (2 * (m + n) - k) + k = (m + n) + (m + n) from by omega, pow_add]
+    refine ⟨?_, ?_⟩
+    · have h1 := Int.mul_le_mul_of_nonneg_right hEu (two_pow_nonneg k)
+      have hr : 2 ^ (m + n) * (Pm * 2 ^ n - Pn * 2 ^ m) * 2 ^ k
+              = 2 ^ (m + n) * ((Pm * 2 ^ n - Pn * 2 ^ m) * 2 ^ k) := by ring
+      rw [h2, hr] at h1
+      exact Int.le_of_mul_le_mul_left h1 hpos
+    · have h1 := Int.mul_le_mul_of_nonneg_right hEl (two_pow_nonneg k)
+      have hl : -(2:ℤ) ^ (2 * (m + n) - k) * 2 ^ k = 2 ^ (m + n) * (-(2 ^ (m + n))) := by
+        have e : -(2:ℤ) ^ (2 * (m + n) - k) * 2 ^ k = -(2 ^ (2 * (m + n) - k) * 2 ^ k) := by ring
+        rw [e, h2]; ring
+      have hr : 2 ^ (m + n) * (Pm * 2 ^ n - Pn * 2 ^ m) * 2 ^ k
+              = 2 ^ (m + n) * ((Pm * 2 ^ n - Pn * 2 ^ m) * 2 ^ k) := by ring
+      rw [hl, hr] at h1
+      exact Int.le_of_mul_le_mul_left h1 hpos
+
 /-- **The operational reals form an additive commutative group** — choice-free, below the
 ℚ/ℝ `Classical.choice` floor. -/
 instance : AddCommGroup Real where
@@ -383,6 +506,7 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Pre.ofInt
 #print axioms Real.ofInt
 #print axioms Pre.bounded
+#print axioms Pre.mul
 #print axioms Real.add_comm
 #print axioms Real.add_assoc
 #print axioms Real.neg_add_cancel
