@@ -179,6 +179,17 @@ theorem int_ediv_bracket (z : ℤ) {d : ℤ} (hd : 0 < d) :
   have h3 : z.emod d < d := Int.emod_lt_of_pos z hd
   refine ⟨?_, ?_⟩ <;> omega
 
+/-- **Cross identity for the product** (the algebraic backbone of multiplication's
+Cauchyness): clearing denominators turns the product Cauchy expression into integers.
+Choice-free (`pow_add`, `two_mul`, `ring`). -/
+theorem mul_cross_pow (a b : ℤ) (m n : ℕ) :
+    2 ^ (m + n) * (a * 2 ^ n - b * 2 ^ m)
+      = 2 ^ (2 * n) * (2 ^ m * a) - 2 ^ (2 * m) * (2 ^ n * b) := by
+  have e1 : (2 : ℤ) ^ (m + n) = 2 ^ m * 2 ^ n := by rw [pow_add]
+  have e2 : (2 : ℤ) ^ (2 * n) = 2 ^ n * 2 ^ n := by rw [two_mul, pow_add]
+  have e3 : (2 : ℤ) ^ (2 * m) = 2 ^ m * 2 ^ m := by rw [two_mul, pow_add]
+  rw [e1, e2, e3]; ring
+
 /-- Generic dyadic bound: if `0 ≤ D < 2^m` and `k ≤ n` then `D · 2^k ≤ 2^(m+n)`.
 Choice-free (`Int.mul_le_mul_of_nonneg_right`, `pow_add`, `two_pow_le_add`, `omega`). -/
 theorem dyadic_bound {D : ℤ} {m n k : ℕ} (h1 : D < 2 ^ m) (hk : k ≤ n) :
@@ -210,5 +221,6 @@ theorem dyadic_bound {D : ℤ} {m n k : ℕ} (h1 : D < 2 ^ m) (hk : k ≤ n) :
 #print axioms le_of_mul_two_pow
 #print axioms neg_le_of_mul_two_pow
 #print axioms int_ediv_bracket
+#print axioms mul_cross_pow
 
 end VRCycle.Continuum
