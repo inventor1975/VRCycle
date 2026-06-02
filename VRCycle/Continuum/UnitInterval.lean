@@ -135,6 +135,24 @@ theorem intval_diff_bound (α : Branch) {n m : ℕ} (h : n ≤ m) :
   rw [hpow]
   omega
 
+/-- `(n:ℤ) ≤ 2^n`, choice-free (induction; avoids the renamed `Nat.lt_two_pow`). -/
+theorem nat_le_two_pow (n : ℕ) : (n : ℤ) ≤ 2 ^ n := by
+  induction n with
+  | zero => decide
+  | succ m ih => rw [pow_succ]; have := two_pow_pos m; omega
+
+/-- Every integer is bounded by a power of two (both sides).  Choice-free.  Used to extract
+a magnitude bound for an operational real (prerequisite for multiplication). -/
+theorem int_two_pow_bound (z : ℤ) : ∃ B : ℕ, z ≤ 2 ^ B ∧ -(2 ^ B) ≤ z := by
+  refine ⟨z.natAbs, ?_, ?_⟩
+  · have h1 : z ≤ (z.natAbs : ℤ) := Int.le_natAbs
+    have h2 : (z.natAbs : ℤ) ≤ 2 ^ z.natAbs := nat_le_two_pow z.natAbs
+    omega
+  · have h1 : -z ≤ (z.natAbs : ℤ) := by
+      have h := Int.le_natAbs (a := -z); rwa [Int.natAbs_neg] at h
+    have h2 : (z.natAbs : ℤ) ≤ 2 ^ z.natAbs := nat_le_two_pow z.natAbs
+    omega
+
 /-- Generic dyadic bound: if `0 ≤ D < 2^m` and `k ≤ n` then `D · 2^k ≤ 2^(m+n)`.
 Choice-free (`Int.mul_le_mul_of_nonneg_right`, `pow_add`, `two_pow_le_add`, `omega`). -/
 theorem dyadic_bound {D : ℤ} {m n k : ℕ} (h1 : D < 2 ^ m) (hk : k ≤ n) :
@@ -161,5 +179,7 @@ theorem dyadic_bound {D : ℤ} {m n k : ℕ} (h1 : D < 2 ^ m) (hk : k ≤ n) :
 #print axioms intval_prefix
 #print axioms two_pow_le_add
 #print axioms intval_diff_bound
+#print axioms nat_le_two_pow
+#print axioms int_two_pow_bound
 
 end VRCycle.Continuum
