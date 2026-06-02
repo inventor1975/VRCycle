@@ -431,6 +431,57 @@ theorem Pre.mul_one (x : Pre) : Pre.equiv (Pre.mul x (Pre.ofInt 1)) x := by
   rw [one_mul]
   exact Int.mul_ediv_cancel _ (by have := two_pow_pos n; omega)
 
+/-- `0 · x = 0` — both sides have all-zero numerators (`(0·x_n) ediv 2^n = 0`).  Choice-free. -/
+theorem Pre.zero_mul (x : Pre) : Pre.equiv (Pre.mul (Pre.ofInt 0) x) (Pre.ofInt 0) := by
+  apply Pre.equiv_of_seq
+  intro n
+  have h2 : (Pre.ofInt 0).seq n = 0 := by show (0:ℤ) * 2 ^ n = 0; ring
+  have h1 : (Pre.mul (Pre.ofInt 0) x).seq n = 0 := by
+    show ((Pre.ofInt 0).seq n * x.seq n).ediv (2 ^ n) = 0
+    have hz : (Pre.ofInt 0).seq n * x.seq n = 0 := by rw [h2]; ring
+    rw [hz]; exact Int.zero_ediv _
+  rw [h1, h2]
+
+/-- **Distributivity** `x·(y+z) = x·y + x·z`.  Over `ℤ` the numerators agree exactly
+(`x(y+z) = xy+xz`); the only gap is the discreteness of the floor:
+`⌊(a+b)/2^n⌋ - ⌊a/2^n⌋ - ⌊b/2^n⌋ ∈ {0,1}` (constant-bounded), proved by three `int_ediv_bracket`
+brackets + `Int.lt_of_mul_lt_mul_left` (cannot divide by `2^n` in `omega`).  Choice-free. -/
+theorem Pre.mul_add (x y z : Pre) :
+    Pre.equiv (Pre.mul x (Pre.add y z)) (Pre.add (Pre.mul x y) (Pre.mul x z)) := by
+  intro k
+  refine ⟨k, fun n hn => ?_⟩
+  simp only [Pre.mul, Pre.add]
+  have hsum : x.seq n * (y.seq n + z.seq n) = x.seq n * y.seq n + x.seq n * z.seq n := by ring
+  rw [hsum]
+  have hdpos : (0:ℤ) < 2 ^ n := two_pow_pos n
+  obtain ⟨hqa0, hqa1⟩ := int_ediv_bracket (x.seq n * y.seq n) hdpos
+  obtain ⟨hqb0, hqb1⟩ := int_ediv_bracket (x.seq n * z.seq n) hdpos
+  obtain ⟨hqab0, hqab1⟩ := int_ediv_bracket (x.seq n * y.seq n + x.seq n * z.seq n) hdpos
+  set qa := (x.seq n * y.seq n).ediv (2 ^ n) with hqa
+  set qb := (x.seq n * z.seq n).ediv (2 ^ n) with hqb
+  set qab := (x.seq n * y.seq n + x.seq n * z.seq n).ediv (2 ^ n) with hqab
+  -- qab - qa - qb ∈ {0,1}: divide the bracket inequalities by 2^n via Int.lt_of_mul_lt_mul_left
+  have hlt1 : 2 ^ n * qab < 2 ^ n * (qa + qb + 2) := by
+    have e : (2:ℤ) ^ n * (qa + qb + 2) = 2 ^ n * qa + 2 ^ n * qb + 2 * 2 ^ n := by ring
+    rw [e]; omega
+  have hup : qab < qa + qb + 2 := Int.lt_of_mul_lt_mul_left hlt1 (by omega)
+  have hlt2 : 2 ^ n * (qa + qb) < 2 ^ n * (qab + 1) := by
+    have e1 : (2:ℤ) ^ n * (qa + qb) = 2 ^ n * qa + 2 ^ n * qb := by ring
+    have e2 : (2:ℤ) ^ n * (qab + 1) = 2 ^ n * qab + 2 ^ n := by ring
+    rw [e1, e2]; omega
+  have hlo : qa + qb < qab + 1 := Int.lt_of_mul_lt_mul_left hlt2 (by omega)
+  -- the difference qab - (qa+qb) is 0 or 1; scale by 2^k ≤ 2^n
+  have hk : (2:ℤ) ^ k ≤ 2 ^ n := by
+    have h := two_pow_le_add k (n - k); rwa [show k + (n - k) = n from by omega] at h
+  have hkn := two_pow_nonneg k
+  have hub : (qab - (qa + qb)) * 2 ^ k ≤ 1 * 2 ^ k :=
+    Int.mul_le_mul_of_nonneg_right (by omega) hkn
+  have hlb : (0:ℤ) ≤ (qab - (qa + qb)) * 2 ^ k :=
+    Int.mul_nonneg (by omega) hkn
+  rw [one_mul] at hub
+  have hge : (0:ℤ) ≤ 2 ^ n := two_pow_nonneg n
+  exact ⟨by omega, by omega⟩
+
 /-- Multiplication respects equality of reals (congruence) — the gateway to `Real.mul`.
 Single-index product error analysis: `x₁y₁ - x₂y₂ = y₁(x₁-x₂) + x₂(y₁-y₂)`, bounded by
 `Pre.bounded` magnitudes and `hx/hy` differences via `mul_abs_bound`.  Choice-free. -/
@@ -609,6 +660,8 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Pre.mul_comm
 #print axioms Pre.mul_one
 #print axioms Pre.mul_respects
+#print axioms Pre.zero_mul
+#print axioms Pre.mul_add
 #print axioms Real.add_comm
 #print axioms Real.add_assoc
 #print axioms Real.neg_add_cancel
