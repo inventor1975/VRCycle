@@ -3,41 +3,57 @@
 --
 -- STAGE: ℝ / M1. SOURCE: PLAN_OPERATIONAL_REAL.md.
 --
--- ## Representation (M0, decided)
--- An operational real is a **dyadic Cauchy sequence** `seq : ℕ → ℤ` (value `lim seq n / 2^n`)
--- with **coherence** `∀ n, -1 ≤ 2·seq n - seq (n+1) ≤ 1` — pure `ℤ`, two-sided bounds (NOT
--- `natAbs`, which makes `omega` pull choice — CONT-8), never mathlib `ℚ`/`ℝ` (CONT-7).
+-- ## Representation (M0, revisited)
+-- An operational real is a sequence `seq : ℕ → ℤ` (value `lim seq n / 2^n`) that is
+-- **asymptotically Cauchy**: `∀ k, ∃ N, ∀ m,n ≥ N, |seq m·2^n - seq n·2^m|·2^k ≤ 2^(m+n)`
+-- — pure `ℤ`, two-sided bounds (no `natAbs`/`ℚ`/`ℝ`).  The `∀k∃N` form is **ring-closed**
+-- (a fixed-constant coherence is NOT — it doubles under `+`; see PLAN M0-revisit).
 -- This keeps the whole construction BELOW the `Classical.choice` floor.
 --
--- ## M1 deliverable + gate
--- The type `Pre`, and the fact that every branch's `[0,1]` point (`intval α` from
--- `UnitInterval.lean`) is a `Pre` — both choice-free.  Riskiest-early gate: the substrate
--- and the coherence proof stay `[propext, Quot.sound]`.
+-- ## Milestones: M1 (type + equality) · M2 (order/apartness) · M3 (ring: neg done, +/* next).
+-- Every branch's `[0,1]` point (`intval α` from `UnitInterval.lean`) is a `Pre`; the Cauchy
+-- proof goes via `intval_prefix`/`intval_diff_bound`/`dyadic_bound`.  All `[propext, Quot.sound]`.
 
 import VRCycle.Continuum.UnitInterval
 
 namespace VRCycle.Continuum
 
-/-- A pre-real: a dyadic Cauchy sequence over `ℤ` (value `lim seq n / 2^n`), with
-consecutive **coherence** stated as two-sided `ℤ` bounds (choice-free). -/
+/-- A pre-real: a sequence of integer numerators (`seq n` approximates `value · 2^n`) that
+is **asymptotically Cauchy** — for every precision `k`, eventually any two stages agree:
+`|seq m · 2^n - seq n · 2^m| · 2^k ≤ 2^(m+n)` (two-sided `ℤ` bounds, no `ℚ`/`natAbs`).
+This `∀k∃N` form is **ring-closed** (unlike a fixed-constant coherence — see PLAN M0-revisit). -/
 structure Pre where
   /-- The integer numerators; `seq n` approximates `value · 2^n`. -/
   seq : ℕ → ℤ
-  /-- Consecutive coherence: rescaling stage `n` to `n+1` moves by at most one ulp. -/
-  coherent : ∀ n, -1 ≤ 2 * seq n - seq (n + 1) ∧ 2 * seq n - seq (n + 1) ≤ 1
+  /-- Asymptotic Cauchyness: `∀k`, eventually all pairs agree to precision `2^{-k}`. -/
+  cauchy : ∀ k : ℕ, ∃ N : ℕ, ∀ m n : ℕ, N ≤ m → N ≤ n →
+    (seq m * 2 ^ n - seq n * 2 ^ m) * 2 ^ k ≤ 2 ^ (m + n) ∧
+      -(2 ^ (m + n)) ≤ (seq m * 2 ^ n - seq n * 2 ^ m) * 2 ^ k
 
 /-- Every branch names a pre-real in `[0,1]`: its `[0,1]` point `intval α` is a dyadic
 Cauchy sequence (`2·intval n - intval (n+1) = -bit ∈ {-1,0}`).  Choice-free. -/
 def Pre.ofBranch (α : Branch) : Pre where
   seq := intval α
-  coherent := by
-    intro n
-    simp only [intval]
-    have hb0 := bitZ_nonneg (α n)
-    have hb1 := bitZ_le_one (α n)
-    constructor
-    · omega
-    · omega
+  cauchy := by
+    intro k
+    refine ⟨k, fun m n hm hn => ?_⟩
+    rcases Nat.le_total n m with hnm | hmn
+    · -- n ≤ m: the difference is in [0, 2^m); bound it directly.
+      obtain ⟨hb0, hb1⟩ := intval_diff_bound α hnm
+      have hup := dyadic_bound hb1 hn
+      have h0 := Int.mul_nonneg hb0 (two_pow_nonneg k)
+      have hge : (0 : ℤ) ≤ 2 ^ (m + n) := two_pow_nonneg _
+      exact ⟨by omega, by omega⟩
+    · -- m ≤ n: the difference is the negation of one in [0, 2^n).
+      obtain ⟨hb0, hb1⟩ := intval_diff_bound α hmn
+      have hup := dyadic_bound hb1 hm
+      have h0 := Int.mul_nonneg hb0 (two_pow_nonneg k)
+      have hcomm : (intval α m * 2 ^ n - intval α n * 2 ^ m) * 2 ^ k
+                 = -((intval α n * 2 ^ m - intval α m * 2 ^ n) * 2 ^ k) := by ring
+      have hsym : (2 : ℤ) ^ (n + m) = 2 ^ (m + n) := by rw [Nat.add_comm]
+      have hge : (0 : ℤ) ≤ 2 ^ (m + n) := two_pow_nonneg _
+      rw [hcomm]
+      exact ⟨by omega, by omega⟩
 
 -- ============================================================
 -- §M1.2  Equality of operational reals (asymptotic agreement)
@@ -92,17 +108,22 @@ def Real : Type := Quotient Pre.setoid
 def Real.ofBranch (α : Branch) : Real := Quotient.mk _ (Pre.ofBranch α)
 
 -- ============================================================
--- §M3  Ring: negation (addition needs the M0 coherence revisit — see note below)
+-- §M3  Ring: negation (addition/multiplication next, on the ring-closed Cauchy form)
 -- ============================================================
 
-/-- **Negation** of an operational real: flip every numerator.  Coherence `≤ 1` is
-preserved (sign flip is symmetric).  Choice-free. -/
+/-- **Negation** of an operational real: flip every numerator.  Asymptotic Cauchyness is
+preserved (the Cauchy expression just negates — sign-symmetric).  Choice-free. -/
 def Pre.neg (x : Pre) : Pre where
   seq := fun n => - x.seq n
-  coherent := by
-    intro n
-    obtain ⟨h1, h2⟩ := x.coherent n
-    constructor <;> omega
+  cauchy := by
+    intro k
+    obtain ⟨N, hN⟩ := x.cauchy k
+    refine ⟨N, fun m n hm hn => ?_⟩
+    obtain ⟨h1, h2⟩ := hN m n hm hn
+    have he : ((-x.seq m) * 2 ^ n - (-x.seq n) * 2 ^ m) * 2 ^ k
+            = -((x.seq m * 2 ^ n - x.seq n * 2 ^ m) * 2 ^ k) := by ring
+    rw [he]
+    exact ⟨by omega, by omega⟩
 
 -- ============================================================
 -- §M2  Order and apartness (constructive: positive `<`, `∀k`-style `≤`)

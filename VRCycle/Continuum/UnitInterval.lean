@@ -135,6 +135,21 @@ theorem intval_diff_bound (α : Branch) {n m : ℕ} (h : n ≤ m) :
   rw [hpow]
   omega
 
+/-- Generic dyadic bound: if `0 ≤ D < 2^m` and `k ≤ n` then `D · 2^k ≤ 2^(m+n)`.
+Choice-free (`Int.mul_le_mul_of_nonneg_right`, `pow_add`, `two_pow_le_add`, `omega`). -/
+theorem dyadic_bound {D : ℤ} {m n k : ℕ} (h1 : D < 2 ^ m) (hk : k ≤ n) :
+    D * 2 ^ k ≤ 2 ^ (m + n) := by
+  have hD : D ≤ 2 ^ m - 1 := by omega
+  have step1 : D * 2 ^ k ≤ (2 ^ m - 1) * 2 ^ k :=
+    Int.mul_le_mul_of_nonneg_right hD (two_pow_nonneg k)
+  have step2 : ((2 : ℤ) ^ m - 1) * 2 ^ k = 2 ^ m * 2 ^ k - 2 ^ k := by ring
+  have step3 : (2 : ℤ) ^ m * 2 ^ k = 2 ^ (m + k) := by rw [← pow_add]
+  have step4 : (2 : ℤ) ^ (m + k) ≤ 2 ^ (m + n) := by
+    have h := two_pow_le_add (m + k) (n - k)
+    rwa [show (m + k) + (n - k) = m + n from by omega] at h
+  have h2k := two_pow_nonneg k
+  omega
+
 -- ============================================================
 -- Axiom audit — operational [0,1], below the ℚ/ℝ floor
 -- ============================================================
