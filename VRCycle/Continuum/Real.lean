@@ -241,6 +241,56 @@ theorem Real.neg_add_cancel (a : Real) : -a + a = 0 := by
   refine Quotient.inductionOn a (fun x => Quotient.sound (Pre.equiv_of_seq ?_))
   intro n; simp only [Pre.add, Pre.neg, Pre.ofInt]; ring
 
+-- ============================================================
+-- §M5.0  Boundedness (Cauchy ⇒ bounded — prerequisite for multiplication)
+-- ============================================================
+
+/-- Every operational real is **bounded**: there are `B, N` with `|x.seq m| ≤ 2^(m+B)` for
+all `m ≥ N` (i.e. `|value| ≤ 2^B`).  From `cauchy 0` at the anchor `N`, dividing by `2^N`
+via the choice-free cancellation `le_of_mul_two_pow`. -/
+theorem Pre.bounded (x : Pre) : ∃ (B N : ℕ), ∀ m, N ≤ m →
+    x.seq m ≤ 2 ^ (m + B) ∧ -(2 ^ (m + B)) ≤ x.seq m := by
+  obtain ⟨N, hN⟩ := x.cauchy 0
+  obtain ⟨B0, hu0, hl0⟩ := int_two_pow_bound (x.seq N)
+  refine ⟨max B0 N + 1 - N, N, fun m hm => ?_⟩
+  obtain ⟨hcu, hcl⟩ := hN m N hm (Nat.le_refl N)
+  rw [pow_zero, mul_one] at hcu hcl
+  set C := max B0 N + 1 with hCdef
+  have hmnn := two_pow_nonneg m
+  have emN : (2 : ℤ) ^ (m + N) = 2 ^ N * 2 ^ m := by rw [pow_add]; ring
+  -- 2^B0 + 2^N ≤ 2^C
+  have hsum : (2 : ℤ) ^ B0 + 2 ^ N ≤ 2 ^ C := by
+    have ha : (2 : ℤ) ^ B0 ≤ 2 ^ (max B0 N) := by
+      have h := two_pow_le_add B0 (max B0 N - B0)
+      rwa [show B0 + (max B0 N - B0) = max B0 N from by omega] at h
+    have hb : (2 : ℤ) ^ N ≤ 2 ^ (max B0 N) := by
+      have h := two_pow_le_add N (max B0 N - N)
+      rwa [show N + (max B0 N - N) = max B0 N from by omega] at h
+    have hCe : (2 : ℤ) ^ C = 2 * 2 ^ (max B0 N) := by rw [hCdef, pow_succ]; ring
+    omega
+  have hexp : m + C = (m + (C - N)) + N := by omega
+  refine ⟨?_, ?_⟩
+  · -- upper
+    have hxNu : x.seq N * 2 ^ m ≤ 2 ^ B0 * 2 ^ m :=
+      Int.mul_le_mul_of_nonneg_right hu0 hmnn
+    have hringR : ((2:ℤ) ^ B0 + 2 ^ N) * 2 ^ m = 2 ^ B0 * 2 ^ m + 2 ^ N * 2 ^ m := by ring
+    have hmul : ((2:ℤ) ^ B0 + 2 ^ N) * 2 ^ m ≤ 2 ^ C * 2 ^ m :=
+      Int.mul_le_mul_of_nonneg_right hsum hmnn
+    have hprod : (2 : ℤ) ^ (m + C) = 2 ^ C * 2 ^ m := by rw [pow_add]; ring
+    have hfin : x.seq m * 2 ^ N ≤ 2 ^ (m + C) := by rw [hprod]; omega
+    rw [hexp] at hfin
+    exact le_of_mul_two_pow hfin
+  · -- lower
+    have hxNl : -(2 ^ B0) * 2 ^ m ≤ x.seq N * 2 ^ m :=
+      Int.mul_le_mul_of_nonneg_right hl0 hmnn
+    have hringR : -(((2:ℤ) ^ B0 + 2 ^ N) * 2 ^ m) = -(2 ^ B0) * 2 ^ m - 2 ^ N * 2 ^ m := by ring
+    have hmul : ((2:ℤ) ^ B0 + 2 ^ N) * 2 ^ m ≤ 2 ^ C * 2 ^ m :=
+      Int.mul_le_mul_of_nonneg_right hsum hmnn
+    have hprod : (2 : ℤ) ^ (m + C) = 2 ^ C * 2 ^ m := by rw [pow_add]; ring
+    have hfin : -(2 ^ (m + C)) ≤ x.seq m * 2 ^ N := by rw [hprod]; omega
+    rw [hexp] at hfin
+    exact neg_le_of_mul_two_pow hfin
+
 /-- **The operational reals form an additive commutative group** — choice-free, below the
 ℚ/ℝ `Classical.choice` floor. -/
 instance : AddCommGroup Real where
@@ -332,6 +382,7 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Real.add
 #print axioms Pre.ofInt
 #print axioms Real.ofInt
+#print axioms Pre.bounded
 #print axioms Real.add_comm
 #print axioms Real.add_assoc
 #print axioms Real.neg_add_cancel

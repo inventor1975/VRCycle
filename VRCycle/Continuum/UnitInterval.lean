@@ -153,6 +153,21 @@ theorem int_two_pow_bound (z : ℤ) : ∃ B : ℕ, z ≤ 2 ^ B ∧ -(2 ^ B) ≤ 
     have h2 : (z.natAbs : ℤ) ≤ 2 ^ z.natAbs := nat_le_two_pow z.natAbs
     omega
 
+/-- Cancel a positive power: `a · 2^N ≤ 2^(E+N) → a ≤ 2^E`.  Choice-free via
+`Int.le_of_mul_le_mul_right`. -/
+theorem le_of_mul_two_pow {a : ℤ} {E N : ℕ} (h : a * 2 ^ N ≤ 2 ^ (E + N)) : a ≤ 2 ^ E := by
+  have e : (2 : ℤ) ^ (E + N) = 2 ^ E * 2 ^ N := by rw [pow_add]
+  rw [e] at h
+  exact Int.le_of_mul_le_mul_right h (two_pow_pos N)
+
+/-- Lower analogue: `-(2^(E+N)) ≤ a · 2^N → -(2^E) ≤ a`.  Choice-free. -/
+theorem neg_le_of_mul_two_pow {a : ℤ} {E N : ℕ} (h : -(2 ^ (E + N)) ≤ a * 2 ^ N) :
+    -(2 ^ E) ≤ a := by
+  have e : (2 : ℤ) ^ (E + N) = 2 ^ E * 2 ^ N := by rw [pow_add]
+  have e2 : -((2 : ℤ) ^ E * 2 ^ N) = (-(2 : ℤ) ^ E) * 2 ^ N := by ring
+  rw [e, e2] at h
+  exact Int.le_of_mul_le_mul_right h (two_pow_pos N)
+
 /-- Generic dyadic bound: if `0 ≤ D < 2^m` and `k ≤ n` then `D · 2^k ≤ 2^(m+n)`.
 Choice-free (`Int.mul_le_mul_of_nonneg_right`, `pow_add`, `two_pow_le_add`, `omega`). -/
 theorem dyadic_bound {D : ℤ} {m n k : ℕ} (h1 : D < 2 ^ m) (hk : k ≤ n) :
@@ -181,5 +196,7 @@ theorem dyadic_bound {D : ℤ} {m n k : ℕ} (h1 : D < 2 ^ m) (hk : k ≤ n) :
 #print axioms intval_diff_bound
 #print axioms nat_le_two_pow
 #print axioms int_two_pow_bound
+#print axioms le_of_mul_two_pow
+#print axioms neg_le_of_mul_two_pow
 
 end VRCycle.Continuum
