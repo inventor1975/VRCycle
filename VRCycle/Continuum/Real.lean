@@ -125,6 +125,24 @@ def Pre.neg (x : Pre) : Pre where
     rw [he]
     exact ⟨by omega, by omega⟩
 
+/-- **Addition** of operational reals: add numerators stage-wise.  Asymptotic Cauchyness is
+preserved — the Cauchy expression splits as the sum of `x`'s and `y`'s, and the factor 2 is
+absorbed by taking the witnesses at precision `k+1` (the `ring`+`omega` strait technique). -/
+def Pre.add (x y : Pre) : Pre where
+  seq := fun n => x.seq n + y.seq n
+  cauchy := by
+    intro k
+    obtain ⟨N1, hX⟩ := x.cauchy (k + 1)
+    obtain ⟨N2, hY⟩ := y.cauchy (k + 1)
+    refine ⟨max N1 N2, fun m n hm hn => ?_⟩
+    obtain ⟨hx1, hx2⟩ := hX m n (by omega) (by omega)
+    obtain ⟨hy1, hy2⟩ := hY m n (by omega) (by omega)
+    have key : 2 * (((x.seq m + y.seq m) * 2 ^ n - (x.seq n + y.seq n) * 2 ^ m) * 2 ^ k)
+             = (x.seq m * 2 ^ n - x.seq n * 2 ^ m) * 2 ^ (k + 1)
+             + (y.seq m * 2 ^ n - y.seq n * 2 ^ m) * 2 ^ (k + 1) := by
+      rw [pow_succ]; ring
+    exact ⟨by omega, by omega⟩
+
 -- ============================================================
 -- §M2  Order and apartness (constructive: positive `<`, `∀k`-style `≤`)
 -- ============================================================
@@ -200,5 +218,6 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Pre.lt_irrefl
 #print axioms Pre.le_antisymm_equiv
 #print axioms Pre.neg
+#print axioms Pre.add
 
 end VRCycle.Continuum
