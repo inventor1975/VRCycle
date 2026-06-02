@@ -66,6 +66,29 @@ theorem intval_mono_step (α : Branch) (N : ℕ) :
   have := bitZ_nonneg (α N)
   omega
 
+/-- **Binary prefix structure** (the crux for Cauchyness): for `m = n + d`, the numerator
+`intval α (n+d)` equals `intval α n · 2^d` plus a remainder in `[0, 2^d)`.  I.e. the first
+`n` bits are a prefix.  Proved by induction on `d`; the product `intval α n · 2^d` is
+linearised by `ring` (treated as one atom) so `omega` stays choice-free. -/
+theorem intval_prefix (α : Branch) (n d : ℕ) :
+    0 ≤ intval α (n + d) - intval α n * 2 ^ d ∧
+      intval α (n + d) - intval α n * 2 ^ d < 2 ^ d := by
+  induction d with
+  | zero =>
+      simp only [Nat.add_zero, pow_zero, mul_one]
+      constructor <;> omega
+  | succ d ih =>
+      obtain ⟨ih0, ih1⟩ := ih
+      have hb0 := bitZ_nonneg (α (n + d))
+      have hb1 := bitZ_le_one (α (n + d))
+      have hidx : n + (d + 1) = (n + d) + 1 := by omega
+      have hrec : intval α ((n + d) + 1) = 2 * intval α (n + d) + bitZ (α (n + d)) := by
+        simp only [intval]
+      have hQ : intval α n * 2 ^ (d + 1) = 2 * (intval α n * 2 ^ d) := by rw [pow_succ]; ring
+      have hP : (2 : ℤ) ^ (d + 1) = 2 * 2 ^ d := by rw [pow_succ]; ring
+      rw [hidx, hrec, hQ, hP]
+      constructor <;> omega
+
 -- ============================================================
 -- Axiom audit — operational [0,1], below the ℚ/ℝ floor
 -- ============================================================
@@ -74,5 +97,6 @@ theorem intval_mono_step (α : Branch) (N : ℕ) :
 #print axioms intval_nonneg
 #print axioms intval_lt_pow
 #print axioms intval_mono_step
+#print axioms intval_prefix
 
 end VRCycle.Continuum
