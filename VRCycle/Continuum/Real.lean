@@ -184,6 +184,30 @@ def Real.add : Real → Real → Real :=
     (fun _ _ _ _ hx hy => Quotient.sound (Pre.add_respects hx hy))
 
 -- ============================================================
+-- §M4  Constants: the integer embedding (gives 0 and 1)
+-- ============================================================
+
+/-- The operational real of an integer `z`: numerators `z · 2^n` (value `z`).  The Cauchy
+expression is identically `0`, so Cauchyness is trivial.  Choice-free. -/
+def Pre.ofInt (z : ℤ) : Pre where
+  seq := fun n => z * 2 ^ n
+  cauchy := by
+    intro k
+    refine ⟨0, fun m n _ _ => ?_⟩
+    have h0 : (z * 2 ^ m * 2 ^ n - z * 2 ^ n * 2 ^ m) * 2 ^ k = 0 := by ring
+    have hge : (0 : ℤ) ≤ 2 ^ (m + n) := two_pow_nonneg _
+    rw [h0]
+    exact ⟨by omega, by omega⟩
+
+/-- The integer embedding `ℤ → Real`. -/
+def Real.ofInt (z : ℤ) : Real := (⟦Pre.ofInt z⟧ : Real)
+
+instance : Zero Real := ⟨Real.ofInt 0⟩
+instance : One Real := ⟨Real.ofInt 1⟩
+instance : Add Real := ⟨Real.add⟩
+instance : Neg Real := ⟨Real.neg⟩
+
+-- ============================================================
 -- §M2  Order and apartness (constructive: positive `<`, `∀k`-style `≤`)
 -- ============================================================
 
@@ -261,5 +285,7 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Pre.add
 #print axioms Real.neg
 #print axioms Real.add
+#print axioms Pre.ofInt
+#print axioms Real.ofInt
 
 end VRCycle.Continuum
