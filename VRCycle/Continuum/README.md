@@ -56,20 +56,24 @@ A real is a **dyadic asymptotic-Cauchy sequence** `Pre = (seq : ℕ → ℤ)` wi
 `∀k ∃N ∀m,n≥N, |seq m·2^n - seq n·2^m|·2^k ≤ 2^(m+n)` (pure `ℤ`, ring-closed); `Real := Quotient`
 by asymptotic agreement. **All choice-free `[propext, Quot.sound]`** (plan: `PLAN_OPERATIONAL_REAL.md`).
 
-Done — and this is the first VR development with arithmetic **below the floor that pins the rest of
-the cycle to Tier-3**:
+A full commutative ring **`CommRing Real`, choice-free** — the first VR development with arithmetic
+**below the floor that pins the rest of the cycle to Tier-3**:
 - `Real` type + equality (setoid quotient); `Pre.ofBranch` (each branch's `[0,1]` point is a real).
 - **Order/apartness**: `Pre.le`, `Pre.lt`, `Pre.apart`; `le_refl`/`le_trans`/`lt_irrefl`; `le_antisymm_equiv`.
-- **`AddCommGroup Real`**: `Real.add`, `Real.neg`, `0`, `1`, ℤ-embedding (`Real.ofInt`); all group laws.
-- **Multiplication** `Pre.mul` (`seq n = (x.seq n·y.seq n) ediv 2^n`) — the **capstone**: full Bishop
-  product Cauchy proof, choice-free (clear denominators → split `A·B−A'·B'` → bound by magnitudes
-  (`Pre.bounded`) + differences (cauchy) via `mul_abs_bound` → cancel `2^(m+n)`).
-- `Pre.mul_comm`, `Pre.mul_one` (easy, pointwise).
+- **`+`, `−`, `0`, `1`, ℤ-embedding** (`Real.add`/`neg`/`ofInt`); abelian-group laws.
+- **`×`** `Pre.mul` (`seq n = (x_n·y_n) ediv 2^n`) — the product **capstone**: full Bishop product
+  Cauchy proof (clear denominators → split `A·B−A'·B'` → bound by magnitudes (`Pre.bounded`) +
+  differences via `mul_abs_bound` → cancel `2^(m+n)`).
+- **All eight ring laws**: `mul_comm`/`mul_one` (pointwise); `mul_add` distributivity (floor-of-sum
+  gap `∈{0,1}`, constant); `mul_respects` (single-index congruence → `Real.mul` on the quotient);
+  **`mul_assoc`** — both `(xy)z`, `x(yz)` approximate `abc/2^{2n}`, and `|(xy)z−x(yz)| ≤ 2^Bx+2^Bz+1`
+  is a **constant** (operand magnitudes), beaten by `2^n` — *no vanishing needed*.
+- **`instance : CommRing Real`** — subsumes the abelian group (one source, no diamond); the instance
+  and every law obtained through it stay `[propext, Quot.sound]`.
 
-**Remaining for full `CommRing Real`** (each a ~100-line asymptotic product-error proof like `Pre.mul`,
-NOT routine): `mul_respects` (gateway to `Real.mul` on the quotient), `mul_assoc`, distributivity. `inv`
-(needs apartness witness) and a constructive completeness/payoff theorem (M5) deferred.  Constructive
-caveats persist (no trichotomy, located-only sup) — `Real ≠` classical ℝ; it is Bishop's, choice-free.
+**Deferred:** `inv` (needs an apartness witness — field structure, the hardest) and a constructive
+completeness / payoff theorem (M5).  Constructive caveats persist (no trichotomy, located-only sup) —
+`Real ≠` classical ℝ; it is **Bishop's commutative ring of reals, machine-checked choice-free**.
 
 ## Operational unit interval (`UnitInterval.lean`)
 The integer-numerator substrate feeding `Real` (and the first below-floor result): a branch's `[0,1]`
@@ -84,6 +88,11 @@ plus the reusable `ℤ` toolkit (`two_pow_*`, `int_two_pow_bound`, `int_ediv_bra
   `abs_le.mp/mpr`, `ring`, `omega`, plus induction-without-dest for `2^·` monotonicity. Also: numeric
   literals in a standalone `have :` default to `ℕ` (truncated `-`); ascribe `(2:ℤ)`. `omega` does not
   atomise `z.ediv d` for a variable divisor unless terms are syntactically uniform (no `set`).
+- **CONT-10** the generic order glue `le_refl` / `le_trans` / `·.trans` on `ℤ` pulls `Classical.choice`
+  (the `LinearOrder ℤ` instance path); **choice-free** replacements: `omega` (reflexivity, and any
+  *linear* transitivity) and `Int.le_trans` (when the terms are nonlinear products `omega` can't atomise).
+  Also: `omega` over a `set`-bound nonlinear product re-distributes it — `clear_value` first to keep it
+  opaque. The `CommRing Real` instance built from choice-free fields stays `[propext, Quot.sound]`.
 
 ## Files
 `Spread` (A) · `Branch` (B1) · `Cover` (B2) · `UniformContinuity` (B3) · `BarSound` (B4) ·
