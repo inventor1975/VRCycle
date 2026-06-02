@@ -98,6 +98,19 @@ def Real : Type := Quotient Pre.setoid
 def Real.ofBranch (α : Branch) : Real := Quotient.mk _ (Pre.ofBranch α)
 
 -- ============================================================
+-- §M3  Ring: negation (addition needs the M0 coherence revisit — see note below)
+-- ============================================================
+
+/-- **Negation** of an operational real: flip every numerator.  Coherence `≤ 1` is
+preserved (sign flip is symmetric).  Choice-free. -/
+def Pre.neg (x : Pre) : Pre where
+  seq := fun n => - x.seq n
+  coherent := by
+    intro n
+    obtain ⟨h1, h2⟩ := x.coherent n
+    constructor <;> omega
+
+-- ============================================================
 -- §M2  Order and apartness (constructive: positive `<`, `∀k`-style `≤`)
 -- ============================================================
 
@@ -177,5 +190,6 @@ theorem Pre.le_antisymm_equiv {x y : Pre} (hxy : Pre.le x y) (hyx : Pre.le y x) 
 #print axioms Pre.le_trans
 #print axioms Pre.lt_irrefl
 #print axioms Pre.le_antisymm_equiv
+#print axioms Pre.neg
 
 end VRCycle.Continuum
