@@ -943,6 +943,29 @@ Developed using **Claude Opus 4.8** in both architectural and implementation rol
 
 ---
 
+### Operational continuum & number spectrum (`VRCycle/Continuum/`) — *exploratory, in repository*
+
+A hand-built operational continuum (Path 1, after Brouwer), and an **operational number spectrum** ℤ → ℚ → ℂ → ℝ → Ω, every node constructed from `ℤ` and kept **below the `Classical.choice` floor** (never mathlib `ℚ`/`ℝ`, which are entirely Tier-3). Exploratory and **not a published work** (no DOI).
+
+| node | `DecidableEq` | order | inverse | axioms |
+|------|:---:|---|---|---|
+| ℚ\_op (`Qop`) | ✓ | ✓ trichotomy | ✓ **total** | `[propext, Quot.sound]` |
+| ℂ\_op (`GaussQ`) | ✓ | ✗ (ℂ unorderable — *classical*) | ✓ **total** | `[propext, Quot.sound]` |
+| ℝ\_op (`Real`) | ✗ (Markov) | ✗ apartness | witnessed (`Pre.invPos`) | `[propext, Quot.sound]` |
+
+Two boundaries are machine-witnessed in `Continuum/Spectrum.lean`:
+
+- **Markov line** (decidability of zero): ℚ/ℂ have a *total* reciprocal, choice-free, because zero is decidable; operational ℝ cannot, so its reciprocal takes an explicit apartness witness.
+- **Typeclass line** (content vs packaging): the field *content* (`mul_inv_cancel`) is choice-free, but the mathlib `Field` class forces `ratCast : ℚ → ·`, which reads mathlib ℚ and pulls `Classical.choice` (`Qop.ofRat`). The operations (doing) are operational; the `Field` label (packaging) is not.
+
+The same content/packaging asymmetry appears at the predicate level in `Meta/DoingNotBeing.lean`: operationality is **total on objects** (`Forms.operational_total`) but **discriminating on constructions** (the axiom-tier differential witness) — "nothing is, all is doing" at the meta level. ℂ (`GaussQ`) is a **completeness node**: it inherits its base's operational character and opens no new operational boundary (its lack of order is classical algebra, not operationality). The becoming/Brouwerian core (`Spread`…`Model`) realises a non-enumerable operational continuum via choice sequences, with Brouwerian continuity tracked as hypothesis or earned in a finite-information model (never adopted over classical mathlib). All green, lint-clean, below the floor.
+
+#### Acknowledgement
+
+Developed using **Claude Opus 4.8** in both architectural and implementation roles (Variant A workflow), under human curator Vitaly Reznik.
+
+---
+
 ## What this formalisation does NOT claim
 
 **Ontological theses.** The preprint makes claims about minimalism, the **absence of any ontology of the empty set** (∅ is not "a thing that is empty", and there is no "nothing inside": it is a nullary operation whose entire characterisation is `∀ x, ¬ (x ∈ ∅)`; objects are terms over the operations, so *there are only operations* — the base constructor is named `base`), and the operational character of objects. These are interpretive layers on top of the formal system. This Lean formalisation verifies formal derivability given a specific translation into Lean types — not the philosophical claims themselves.
