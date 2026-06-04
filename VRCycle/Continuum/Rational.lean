@@ -316,6 +316,20 @@ theorem Qop.mul_inv_cancel : ∀ a : Qop, a ≠ 0 → a * a⁻¹ = 1 := by
 /-- `0⁻¹ = 0` on `Qop` (the convention, here a theorem). -/
 theorem Qop.inv_zero : (0 : Qop)⁻¹ = 0 := rfl
 
+-- ## M4 — the DECIDABLE pole (what operational `Real` lacks)
+--
+-- On ℚ, equality is an ℤ equation, hence DECIDABLE — so `DecidableEq Qop`.  Operational `Real`
+-- provably cannot have this (equality of reals is undecidable: deciding `x = 0` is Markov/worse).
+-- This is the sharpest face of "ℚ is the decidable anchor of the operational number spectrum".
+
+/-- The cross-multiplication equivalence is decidable — it is just an equation in `ℤ`. -/
+instance PreQ.decidableEquiv (a b : PreQ) : Decidable (a ≈ b) :=
+  decidable_of_iff (a.num * b.den = b.num * a.den) Iff.rfl
+
+/-- **Equality on `Qop` is decidable** — the decidable pole of the operational spectrum, the one
+thing operational `Real` cannot have.  Choice-free. -/
+instance : DecidableEq Qop := inferInstanceAs (DecidableEq (Quotient PreQ.setoid))
+
 end VRCycle.Continuum
 
 -- Axiom check (expected: [propext, Quot.sound], choice-free — below the floor)
