@@ -330,6 +330,101 @@ instance PreQ.decidableEquiv (a b : PreQ) : Decidable (a ≈ b) :=
 thing operational `Real` cannot have.  Choice-free. -/
 instance : DecidableEq Qop := inferInstanceAs (DecidableEq (Quotient PreQ.setoid))
 
+-- ### Order — decidable `≤`, `<`, and full trichotomy (which operational `Real` lacks)
+
+/-- `a/b ≤ c/d ⟺ a·d ≤ c·b` (denominators positive). -/
+def PreQ.le (a b : PreQ) : Prop := a.num * b.den ≤ b.num * a.den
+
+/-- `a/b < c/d ⟺ a·d < c·b`. -/
+def PreQ.lt (a b : PreQ) : Prop := a.num * b.den < b.num * a.den
+
+/-- The cross identity: `(L−R)·(b'-denoms) = (a-denoms)·(L'−R')`, the algebraic heart of order
+congruence (sign of `L−R` transports through positive denominators). -/
+theorem PreQ.cross_identity {a a' b b' : PreQ}
+    (ha : a.num * a'.den = a'.num * a.den) (hb : b.num * b'.den = b'.num * b.den) :
+    (a.num * b.den - b.num * a.den) * (a'.den * b'.den)
+  = (a.den * b.den) * (a'.num * b'.den - b'.num * a'.den) :=
+  calc (a.num * b.den - b.num * a.den) * (a'.den * b'.den)
+      = (a.num * a'.den) * (b.den * b'.den) - (b.num * b'.den) * (a.den * a'.den) := by ring
+    _ = (a'.num * a.den) * (b.den * b'.den) - (b'.num * b.den) * (a.den * a'.den) := by rw [ha, hb]
+    _ = (a.den * b.den) * (a'.num * b'.den - b'.num * a'.den) := by ring
+
+/-- Sign transport (≤): from `D·P = Q·D'` with `P,Q > 0`, `D ≤ 0` forces `D' ≤ 0`.  Choice-free. -/
+theorem PreQ.le_of_cross {D P Q D' : ℤ} (hid : D * P = Q * D') (hP : 0 < P) (hQ : 0 < Q)
+    (hD : D ≤ 0) : D' ≤ 0 := by
+  have hDP : D * P ≤ 0 := by
+    have hpos : 0 ≤ (-D) * P := Int.mul_nonneg (by omega) (by omega)
+    have e : (-D) * P = -(D * P) := by ring
+    rw [e] at hpos; omega
+  rw [hid] at hDP
+  rcases Int.lt_or_le 0 D' with h | h
+  · exfalso; have h2 : 0 < Q * D' := Int.mul_pos hQ h; omega
+  · exact h
+
+/-- Sign transport (<): from `D·P = Q·D'` with `P,Q > 0`, `D < 0` forces `D' < 0`.  Choice-free. -/
+theorem PreQ.lt_of_cross {D P Q D' : ℤ} (hid : D * P = Q * D') (hP : 0 < P) (hQ : 0 < Q)
+    (hD : D < 0) : D' < 0 := by
+  have hDP : D * P < 0 := by
+    have hpos : 0 < (-D) * P := Int.mul_pos (by omega) hP
+    have e : (-D) * P = -(D * P) := by ring
+    rw [e] at hpos; omega
+  rw [hid] at hDP
+  rcases Int.lt_or_le D' 0 with h | h
+  · exact h
+  · exfalso; have h2 : 0 ≤ Q * D' := Int.mul_nonneg (by omega) h; omega
+
+theorem PreQ.le_respects {a a' b b' : PreQ} (ha : PreQ.equiv a a') (hb : PreQ.equiv b b') :
+    PreQ.le a b ↔ PreQ.le a' b' := by
+  have hP : (0 : ℤ) < a'.den * b'.den := Int.mul_pos a'.den_pos b'.den_pos
+  have hQ : (0 : ℤ) < a.den * b.den := Int.mul_pos a.den_pos b.den_pos
+  constructor
+  · intro hle
+    have := PreQ.le_of_cross (PreQ.cross_identity ha hb) hP hQ (by change _ ≤ _ at hle; omega)
+    change _ ≤ _; omega
+  · intro hle
+    have := PreQ.le_of_cross (PreQ.cross_identity (PreQ.equiv_symm ha) (PreQ.equiv_symm hb)) hQ hP
+      (by change _ ≤ _ at hle; omega)
+    change _ ≤ _; omega
+
+theorem PreQ.lt_respects {a a' b b' : PreQ} (ha : PreQ.equiv a a') (hb : PreQ.equiv b b') :
+    PreQ.lt a b ↔ PreQ.lt a' b' := by
+  have hP : (0 : ℤ) < a'.den * b'.den := Int.mul_pos a'.den_pos b'.den_pos
+  have hQ : (0 : ℤ) < a.den * b.den := Int.mul_pos a.den_pos b.den_pos
+  constructor
+  · intro hlt
+    have := PreQ.lt_of_cross (PreQ.cross_identity ha hb) hP hQ (by change _ < _ at hlt; omega)
+    change _ < _; omega
+  · intro hlt
+    have := PreQ.lt_of_cross (PreQ.cross_identity (PreQ.equiv_symm ha) (PreQ.equiv_symm hb)) hQ hP
+      (by change _ < _ at hlt; omega)
+    change _ < _; omega
+
+/-- `≤` on `Qop`, lifted (well-defined by `PreQ.le_respects`). -/
+def Qop.le : Qop → Qop → Prop :=
+  Quotient.lift₂ PreQ.le (fun _ _ _ _ ha hb => propext (PreQ.le_respects ha hb))
+
+/-- `<` on `Qop`, lifted (well-defined by `PreQ.lt_respects`). -/
+def Qop.lt : Qop → Qop → Prop :=
+  Quotient.lift₂ PreQ.lt (fun _ _ _ _ ha hb => propext (PreQ.lt_respects ha hb))
+
+instance : LE Qop := ⟨Qop.le⟩
+instance : LT Qop := ⟨Qop.lt⟩
+
+/-- **`≤` on `Qop` is decidable** — an ℤ inequality. -/
+instance : DecidableLE Qop := fun a b =>
+  Quotient.recOnSubsingleton₂ a b fun x y =>
+    decidable_of_iff (x.num * y.den ≤ y.num * x.den) Iff.rfl
+
+/-- **Full trichotomy on `Qop`** — `a < b ∨ a = b ∨ b < a` for every pair, choice-free.  This is
+exactly what operational `Real` cannot have (no decidable order; apartness only). -/
+theorem Qop.lt_trichotomy (a b : Qop) : a < b ∨ a = b ∨ b < a := by
+  refine Quotient.inductionOn₂ a b (fun x y => ?_)
+  rcases (by omega : x.num * y.den < y.num * x.den ∨ x.num * y.den = y.num * x.den
+      ∨ y.num * x.den < x.num * y.den) with h | h | h
+  · exact Or.inl h
+  · exact Or.inr (Or.inl (Quotient.sound h))
+  · exact Or.inr (Or.inr h)
+
 end VRCycle.Continuum
 
 -- Axiom check (expected: [propext, Quot.sound], choice-free — below the floor)
@@ -341,3 +436,5 @@ end VRCycle.Continuum
 #print axioms VRCycle.Continuum.PreQ.inv_respects
 #print axioms VRCycle.Continuum.Qop.mul_inv_cancel
 #print axioms VRCycle.Continuum.Qop.inv_zero
+#print axioms VRCycle.Continuum.Qop.lt_trichotomy
+#print axioms VRCycle.Continuum.PreQ.le_respects
