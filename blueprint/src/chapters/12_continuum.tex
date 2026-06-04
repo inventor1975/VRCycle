@@ -1,0 +1,180 @@
+\chapter{Operational continuum and number spectrum (exploratory)}
+\label{chap:continuum}
+\uses{chap:overview, chap:numbers, chap:algebra}
+
+\section{Position}
+\label{sec:continuum_position}
+
+This chapter is \textbf{exploratory} and \emph{not} a published work (no DOI): a
+hand-built operational continuum (Path~1, after Brouwer) and an \textbf{operational
+number spectrum} $\mathbb{Z} \to \mathbb{Q} \to \mathbb{C} \to \mathbb{R} \to \Omega$,
+every node constructed from $\mathbb{Z}$ and kept \textbf{below the
+\texttt{Classical.choice} floor}.  Nothing here passes through mathlib's $\mathbb{Q}$
+or $\mathbb{R}$, which are entirely Tier-3 (Finding CONT-7: even $(2:\mathbb{Q})+3$
+pulls \texttt{Classical.choice}); the construction stays in pure $\mathbb{Z}$
+arithmetic, so every object below is \axiomprofile{[propext, Quot.sound]}.
+
+The deliverable is not new mathematics --- these are textbook rationals and Gaussian
+rationals --- but the precise \emph{location} of two boundaries, each machine-checked,
+and a single thesis they share: the \texttt{Classical.choice} floor is a property of
+\emph{construction}, not of the object.
+
+%──────────────────────────────────────────────────────────────────────
+\section{The number spectrum}
+\label{sec:continuum_spectrum}
+
+\begin{center}
+\begin{tabular}{lccc}
+\textbf{node} & \textbf{\texttt{DecidableEq}} & \textbf{order} & \textbf{inverse} \\
+\hline
+$\mathbb{Q}_{\mathrm{op}}$ (\texttt{Qop})    & yes & yes, trichotomy & \textbf{total} \\
+$\mathbb{C}_{\mathrm{op}}$ (\texttt{GaussQ}) & yes & none ($\mathbb{C}$ unorderable) & \textbf{total} \\
+$\mathbb{R}_{\mathrm{op}}$ (\texttt{Real})   & no (Markov) & apartness only & witnessed (\texttt{Pre.invPos}) \\
+\end{tabular}
+\end{center}
+
+\noindent Every row is \axiomprofile{[propext, Quot.sound]}.  $\mathbb{Q}_{\mathrm{op}}$
+is the \emph{decidable pole}: equality, order and a total reciprocal are all decidable
+and choice-free.
+
+\begin{theorem}[Operational $\mathbb{Q}$ is a decidable ordered field-content]
+\label{thm:continuum_qop}
+\lean{VRCycle.Continuum.Qop.lt_trichotomy, VRCycle.Continuum.Qop.mul_inv_cancel}
+\leanok
+\texttt{Qop} (cross-multiplication quotient of $\mathbb{Z} \times \mathbb{Z}_{>0}$) is a
+\texttt{CommRing} with \texttt{DecidableEq}, full trichotomy
+(\texttt{lt\_trichotomy}), and a \emph{total} reciprocal with
+$a \ne 0 \to a \cdot a^{-1} = 1$ (\texttt{mul\_inv\_cancel}).  All
+\axiomprofile{[propext, Quot.sound]}.
+\end{theorem}
+
+\begin{theorem}[Operational $\mathbb{C}$ --- the Gaussian rationals]
+\label{thm:continuum_gaussq}
+\lean{VRCycle.Continuum.GaussQ.mul_inv_cancel}
+\leanok
+\uses{thm:continuum_qop}
+\texttt{GaussQ} $= \texttt{Qop}[i]$ ($\{re, im : \texttt{Qop}\}$) is a \texttt{CommRing}
+with \texttt{DecidableEq} and a total reciprocal $z^{-1} = \bar z/|z|^2$ for $z \ne 0$.
+\axiomprofile{[propext, Quot.sound]}.  A \emph{completeness} node: it inherits its base
+$\texttt{Qop}$'s operational character and opens no new operational boundary (its lack
+of order is classical algebra --- $\mathbb{C}$ is unorderable --- not operationality).
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Boundary I: the Markov line (decidability of zero)}
+\label{sec:continuum_markov}
+
+$\mathbb{Q}_{\mathrm{op}}$ and $\mathbb{C}_{\mathrm{op}}$ carry a \emph{total}
+reciprocal because zero is \textbf{decidable} there.  Operational $\mathbb{R}$ cannot:
+$\lnot(x \approx 0)$ gives no lower-bound modulus on $|x|$ (that step is Markov's
+principle, non-constructive), so the operational real reciprocal \texttt{Pre.invPos}
+must take an explicit positivity/apartness witness rather than being total.  The
+$\texttt{Field}/\texttt{CommRing}$ line across the spectrum is exactly the decidability
+of zero.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Boundary II: content versus packaging (machine-checked)}
+\label{sec:continuum_typeclass}
+
+The field \emph{content} (\texttt{mul\_inv\_cancel}) is choice-free, but registering
+\texttt{Qop} as a mathlib \texttt{Field} is blocked below the floor: \texttt{Field}
+extends \texttt{DivisionRing extends RatCast}, forcing a map
+$\texttt{ratCast} : \mathbb{Q} \to \texttt{Qop}$.  Any such map reads mathlib
+$\mathbb{Q}$ (Tier-3), so it pulls \texttt{Classical.choice}.
+
+\begin{finding}[CONT-M5: content free, packaging not]
+\label{find:continuum_packaging}
+\lean{VRCycle.Continuum.Qop.ofRat}
+\leanok
+\uses{thm:continuum_qop}
+\texttt{Qop.ofRat} (the forced \texttt{ratCast}) is
+\axiomprofile{[propext, Classical.choice, Quot.sound]}, while
+\texttt{Qop.mul\_inv\_cancel} is \axiomprofile{[propext, Quot.sound]}.  The field's
+\emph{doing} (its operations) is operational; the \texttt{Field} \emph{label} (its
+packaging) is not.  This is the doing/being asymmetry at the typeclass level.
+\end{finding}
+
+\textbf{The boundary is a build invariant.}  The exhibit
+\texttt{VRCycle/Continuum/Spectrum.lean} certifies it at build time over the generic
+checker \texttt{Meta/DependsOn.lean}:
+
+\begin{center}
+\begin{tabular}{lc}
+\textbf{declaration} & \texttt{Classical.choice} \\
+\hline
+\texttt{Qop.mul\_inv\_cancel} (field content)    & free \\
+\texttt{GaussQ.mul\_inv\_cancel} (field content) & free \\
+\texttt{Qop.lt\_trichotomy} (decidable order)    & free \\
+\texttt{Qop.ofRat} (\texttt{ratCast} packaging)  & \textbf{depends} \\
+\end{tabular}
+\end{center}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Two rationals, by necessity}
+\label{sec:continuum_two_q}
+
+The repository now contains \emph{two} constructions of the rationals, and this is not
+redundancy --- they are the two horns of the floor:
+\begin{itemize}
+  \item $\mathbb{Q}_{\mathrm{VR}}$ (Chapter~\ref{chap:numbers}, published): built to
+  prove an \emph{isomorphism} to mathlib $\mathbb{Q}$; the isomorphism forces the path
+  through mathlib and is Tier-3 by necessity.
+  \item \texttt{Qop} (this chapter): built to be choice-free below the floor; it makes
+  \emph{no} isomorphism claim, which choice-freeness forbids.
+\end{itemize}
+A single $\mathbb{Q}$ that is \emph{both} choice-free \emph{and} proven isomorphic to
+mathlib $\mathbb{Q}$ is impossible: the isomorphism is a \texttt{ratCast}, which pulls
+\texttt{Classical.choice} (Finding~\ref{find:continuum_packaging}).  The same object,
+two constructions, one above and one below the floor --- the construction-relativity of
+the floor, exhibited concretely.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Doing, not being (meta)}
+\label{sec:continuum_doing}
+
+The same asymmetry appears at the predicate level.  Across the published algebra cycle
+the element predicate \texttt{IsOperational} is \texttt{fun \_ => True} in every
+instance, and \texttt{Forms.operational\_total} is a \emph{theorem} that operationality
+is total: as a property of \emph{being} (the object), operationality does not
+discriminate.  What discriminates is the axiom tier of a \emph{construction}, decidable
+and universal via \texttt{Meta/DependsOn}.
+
+\begin{theorem}[Operationality: total on being, split on doing]
+\label{thm:continuum_doingbeing}
+\lean{VR.DoingNotBeing.being_total_int, VR.DoingNotBeing.trans_doing,
+      VR.DoingNotBeing.trans_being_via_choice}
+\leanok
+On one domain $\mathbb{Z}$: \texttt{being\_total\_int} ($\forall a,\ \texttt{IsOperational}\,a$)
+is total and choice-free (being does not discriminate), while one $\le$-transitivity
+statement has two proofs --- \texttt{trans\_doing} (\texttt{omega})
+\axiomprofile{[propext, Quot.sound]} and \texttt{trans\_being\_via\_choice}
+(\texttt{le\_trans}) \axiomprofile{[propext, Classical.choice, Quot.sound]} --- so doing
+discriminates.  The operational boundary lives on the act, not the object: ``nothing
+is, all is doing'' at the meta level.
+\end{theorem}
+
+The becoming/Brouwerian core (\texttt{Spread}\,\dots\,\texttt{Model}) realises a
+non-enumerable operational continuum via choice sequences
+(\texttt{branches\_not\_enumerable}, an unconditional Cantor diagonal,
+\axiomprofile{[propext]}), with Brouwerian continuity tracked as a hypothesis or earned
+in a finite-information model --- never adopted over classical mathlib, where it is
+inconsistent.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Honest scope}
+\label{sec:continuum_scope}
+
+\textbf{No new mathematics.}  \texttt{Qop} and \texttt{GaussQ} are textbook
+constructions; the value is the choice-free axiom tracking and the two boundaries it
+makes precise.  \textbf{$\mathbb{C}$ inherits.}  The Gaussian rationals add a
+completeness node, not an operational insight.  \textbf{Choice did not vanish from VR.}
+The published works (Numbers, Sets, Audit, Algebra's $\mathbb{Q}$-field) remain Tier-3,
+unchanged; this chapter adds a \emph{parallel} choice-free $\mathbb{Q}/\mathbb{C}$
+alongside the classical one, not a replacement.  \textbf{The witness is meta-trusted}
+--- the dependency checker certifies the relation but is not itself kernel-verified, the
+same tier as \texttt{\#print axioms}.
+
+The Lean~4 formalisation lives under \texttt{VRCycle/Continuum/} (\texttt{Rational},
+\texttt{GaussianRational}, \texttt{Real}, \texttt{UnitInterval}, the becoming core
+\texttt{Spread}\,\dots\,\texttt{Model}, and the consolidated exhibit \texttt{Spectrum}),
+with the meta-thesis in \texttt{VRCycle/Meta/DoingNotBeing.lean}.
