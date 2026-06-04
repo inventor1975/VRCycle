@@ -243,6 +243,79 @@ instance : CommRing Qop where
   zsmul := zsmulRec
   npow := npowRec
 
+-- ## M3 — the TOTAL inverse via decidable zero (where the Markov wall dissolves)
+--
+-- `1/(num/den) = den/num`.  To keep the denominator positive WITHOUT a sign case-split (which would
+-- drag choice-laden order lemmas), use the SQUARE denominator: `inv (num/den) = (den·num)/(num²)`,
+-- value `den/num`, denominator `num² > 0 ⟺ num ≠ 0`.  Zero is DECIDABLE on ℤ, so the only split is
+-- `num = 0` (→ 0) vs `num ≠ 0` — total, and `respects` reduces to the single cross-mult identity.
+-- This is exactly what operational `Real` CANNOT do (¬(x≈0) gives no modulus — Markov).
+
+/-- Total reciprocal `(num/den)⁻¹ = (den·num)/num²` (and `0⁻¹ = 0`); choice-free. -/
+def PreQ.inv (a : PreQ) : PreQ :=
+  if h : a.num = 0 then ⟨0, 1, by omega⟩
+  else ⟨a.den * a.num, a.num * a.num, by
+    -- 0 < num²  (choice-free: sign split via `Int.lt_or_le`, then `Int.mul_pos`)
+    rcases Int.lt_or_le a.num 0 with hn | hp
+    · have hpos : 0 < -a.num := by omega
+      have hp2 : 0 < (-a.num) * (-a.num) := Int.mul_pos hpos hpos
+      have e : (-a.num) * (-a.num) = a.num * a.num := by ring
+      rwa [e] at hp2
+    · exact Int.mul_pos (by omega) (by omega)⟩
+
+theorem PreQ.inv_respects {a a' : PreQ} (hh : PreQ.equiv a a') :
+    PreQ.equiv (PreQ.inv a) (PreQ.inv a') := by
+  have he : a.num * a'.den = a'.num * a.den := hh
+  unfold PreQ.inv
+  by_cases h0 : a.num = 0
+  · have h0' : a'.num = 0 := by
+      have hd : a.den ≠ 0 := by have := a.den_pos; omega
+      have hz : a'.num * a.den = 0 := by rw [← he, h0]; ring
+      have hc : a'.num * a.den / a.den = a'.num := Int.mul_ediv_cancel _ hd
+      rw [hz, Int.zero_ediv] at hc; omega
+    simp only [dif_pos h0, dif_pos h0', PreQ.equiv]
+  · have h0' : a'.num ≠ 0 := by
+      intro hc
+      apply h0
+      have hd : a'.den ≠ 0 := by have := a'.den_pos; omega
+      have hz : a.num * a'.den = 0 := by rw [he, hc]; ring
+      have hcc : a.num * a'.den / a'.den = a.num := Int.mul_ediv_cancel _ hd
+      rw [hz, Int.zero_ediv] at hcc; omega
+    rw [dif_neg h0, dif_neg h0']
+    change (a.den * a.num) * (a'.num * a'.num) = (a'.den * a'.num) * (a.num * a.num)
+    apply sub_eq_zero.mp
+    have key : (a.den * a.num) * (a'.num * a'.num) - (a'.den * a'.num) * (a.num * a.num)
+        = (a'.num * a.den - a.num * a'.den) * (a.num * a'.num) := by ring
+    rw [key, sub_eq_zero.mpr he.symm]; ring
+
+/-- The reciprocal cancels for a nonzero representative: `(num/den)·(num/den)⁻¹ ≈ 1`. -/
+theorem PreQ.mul_inv_cancel {x : PreQ} (h : x.num ≠ 0) :
+    PreQ.equiv (PreQ.mul x (PreQ.inv x)) (PreQ.ofInt 1) := by
+  unfold PreQ.inv; rw [dif_neg h]
+  change (x.num * (x.den * x.num)) * 1 = 1 * (x.den * (x.num * x.num))
+  ring
+
+/-- `⁻¹` on `Qop`, lifted from `PreQ.inv`. -/
+def Qop.inv : Qop → Qop :=
+  Quotient.lift (fun x => (⟦PreQ.inv x⟧ : Qop)) (fun _ _ h => Quotient.sound (PreQ.inv_respects h))
+
+instance : Inv Qop := ⟨Qop.inv⟩
+
+/-- **The reciprocal is a genuine inverse on `Qop`** — total, and `a · a⁻¹ = 1` for every `a ≠ 0`,
+choice-free `[propext, Quot.sound]`.  This is the payoff: where operational `Real` has only an
+apartness-witnessed inverse (Markov), `Qop` has a total one, because zero is decidable. -/
+theorem Qop.mul_inv_cancel : ∀ a : Qop, a ≠ 0 → a * a⁻¹ = 1 := by
+  refine Quotient.ind ?_
+  intro x h
+  have hx : x.num ≠ 0 := by
+    intro hc
+    exact h (Quotient.sound (show PreQ.equiv x (PreQ.ofInt 0) by
+      change x.num * 1 = 0 * x.den; rw [hc]; ring))
+  exact Quotient.sound (PreQ.mul_inv_cancel hx)
+
+/-- `0⁻¹ = 0` on `Qop` (the convention, here a theorem). -/
+theorem Qop.inv_zero : (0 : Qop)⁻¹ = 0 := rfl
+
 end VRCycle.Continuum
 
 -- Axiom check (expected: [propext, Quot.sound], choice-free — below the floor)
@@ -250,3 +323,7 @@ end VRCycle.Continuum
 #print axioms VRCycle.Continuum.Qop.ofInt
 #print axioms VRCycle.Continuum.Qop.mul_assoc
 #print axioms VRCycle.Continuum.Qop.left_distrib
+#print axioms VRCycle.Continuum.PreQ.inv
+#print axioms VRCycle.Continuum.PreQ.inv_respects
+#print axioms VRCycle.Continuum.Qop.mul_inv_cancel
+#print axioms VRCycle.Continuum.Qop.inv_zero
