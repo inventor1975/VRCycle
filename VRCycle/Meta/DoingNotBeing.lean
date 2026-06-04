@@ -91,3 +91,27 @@ build if violated — the `depends` row certifies the split is genuine, not vacu
 
 Same domain ℤ.  Operationality is invisible to *being* (total) and sharp on *doing* (split): the
 boundary lives on the act, not the object — "nothing is, all is doing," machine-checked. -/
+
+/-! ### M3 — the split is already latent in the cycle's own instances
+
+The contrived ℤ pair above is not needed to see the asymmetry: the published algebra instances
+exhibit it directly.  Over BOTH ℤ and ℚ the operational predicate is the same total
+`IsOperational := fun _ => True` (being is flat for both).  But CONSTRUCTING the operational
+structure splits:
+
+  - `instOperationalRingInt`  (ℤ-ring)  — free    — `[propext]`
+  - `instOperationalFieldRat` (ℚ-field) — depends — `[propext, Classical.choice, Quot.sound]`
+
+HONEST CAUSE — and it is NOT the inverse.  This split is the SUBSTRATE FLOOR: mathlib's ℚ is Tier-3,
+`toField := inferInstance` drags in the ordered-field substrate, every operation over which pulls
+`Classical.choice` (Finding CONT-7); ℤ sits below that floor.  The operational closure axioms
+(`inv_isOperational` etc.) are all trivially `True` and contribute nothing.  So the doing splits on
+HOW THE SUBSTRATE IS BUILT — a property of construction — while being stays total over both.
+
+(The distinct Markov inverse wall — total field inverse impossible choice-free because `¬(x ≈ 0)`
+gives no modulus — lives one level deeper, in the operational `Real` below the floor, not here.) -/
+
+#assert_not_depends_on instOperationalRingInt on Classical.choice
+#assert_depends_on instOperationalFieldRat on Classical.choice
+
+#dependency_matrix [instOperationalRingInt, instOperationalFieldRat] vs [Classical.choice]
