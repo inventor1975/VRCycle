@@ -425,7 +425,35 @@ theorem Qop.lt_trichotomy (a b : Qop) : a < b ∨ a = b ∨ b < a := by
   · exact Or.inr (Or.inl (Quotient.sound h))
   · exact Or.inr (Or.inr h)
 
+-- ### M5 — the Field typeclass test: CONTENT below the floor, PACKAGING above it
+--
+-- Qop IS a field in CONTENT: total inverse + `mul_inv_cancel` + `inv_zero` + `0 ≠ 1`, all
+-- `[propext, Quot.sound]`, choice-free (M3).  But registering it as a mathlib `Field` is BLOCKED
+-- below the floor: `Field` extends `DivisionRing extends RatCast`, forcing `ratCast : ℚ → Qop`.
+-- Any such map reads mathlib `ℚ` (`q.num`/`q.den`), entirely Tier-3 (CONT-7), so it pulls
+-- `Classical.choice`.  Witnessed below: `Qop.mul_inv_cancel` is choice-free; `Qop.ofRat` (= the
+-- forced `ratCast`) is not.  The doing/being thesis at the TYPECLASS level: the field's DOING (its
+-- operations) is choice-free; the `Field` LABEL (its packaging/being) drags in choice.  See
+-- [[project_vr_no_ontology_reframe]].
+
+/-- `0 ≠ 1` in `Qop`. -/
+theorem Qop.zero_ne_one : (0 : Qop) ≠ 1 := by
+  intro h
+  have he : PreQ.equiv (PreQ.ofInt 0) (PreQ.ofInt 1) := Quotient.exact h
+  have : (0 : ℤ) * 1 = 1 * 1 := he
+  omega
+
+instance : Nontrivial Qop := ⟨⟨0, 1, Qop.zero_ne_one⟩⟩
+
+/-- Embedding mathlib `ℚ` into `Qop` — this is exactly the `ratCast` any `Field Qop` instance is
+forced to carry.  Reads `q.num`/`q.den` from mathlib `ℚ` (Tier-3, CONT-7). -/
+def Qop.ofRat (q : ℚ) : Qop := ⟦⟨q.num, (q.den : ℤ), by exact_mod_cast q.den_pos⟩⟧
+
 end VRCycle.Continuum
+
+-- M5 finding: the field CONTENT is choice-free, but the mathlib packaging's `ratCast` is not.
+#print axioms VRCycle.Continuum.Qop.mul_inv_cancel  -- field content: choice-free
+#print axioms VRCycle.Continuum.Qop.ofRat           -- ratCast (forced by Field): pulls choice?
 
 -- Axiom check (expected: [propext, Quot.sound], choice-free — below the floor)
 #print axioms VRCycle.Continuum.PreQ.equiv_trans
