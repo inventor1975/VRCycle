@@ -11,3 +11,4 @@ import VRCycle.Algebra
 import VRCycle.Topology
 import VRCycle.Transit
 import VRCycle.Brouwer
+import VRCycle.Continuum
