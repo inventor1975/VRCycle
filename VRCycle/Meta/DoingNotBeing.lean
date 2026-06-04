@@ -23,6 +23,9 @@
 
 import Mathlib
 import VRCycle.Meta.DependsOn
+import VRCycle.Algebra.Instances
+
+open VR.Algebra  -- the `OperationalRing` class + the ℤ instance (`IsOperational := fun _ => True`)
 
 namespace VR.DoingNotBeing
 
@@ -42,6 +45,18 @@ theorem trans_doing : ∀ a b c : ℤ, a ≤ b → b ≤ c → a ≤ c := by
 theorem trans_being_via_choice : ∀ a b c : ℤ, a ≤ b → b ≤ c → a ≤ c :=
   fun _ _ _ h₁ h₂ => le_trans h₁ h₂
 
+/-! ### The other axis — being, on the same domain ℤ
+
+`OperationalRing ℤ` carries `IsOperational := fun _ => True`: on ℤ, operationality-as-*being* is
+**total** — it holds of every element, so as a classifier of objects it is the constant `True` and
+discriminates nothing.  The same domain whose *constructions* split (above) has an object-predicate
+that is flat.  (Cycle-wide this is `Forms.operational_total : ∀ c, Operational c`.) -/
+
+/-- BEING is total on ℤ: every integer is operational, trivially.  The object-classifier does not
+discriminate — it is constant `True`. -/
+theorem being_total_int : ∀ a : ℤ, OperationalRing.IsOperational (R := ℤ) a :=
+  fun _ => trivial
+
 end VR.DoingNotBeing
 
 open VR.DoingNotBeing
@@ -56,11 +71,23 @@ open VR.DoingNotBeing
 Same proposition; the operational boundary is entirely on the *doing*.  Each assertion fails the
 build if violated — the `depends` row certifies the split is genuine, not vacuous. -/
 
+-- DOING axis — the split among constructions (the differential witness):
 #assert_not_depends_on trans_doing on Classical.choice
 #assert_depends_on trans_being_via_choice on Classical.choice
-
 #print axioms trans_doing
 #print axioms trans_being_via_choice
-
--- The contrast in one citable command — the differential witness for operationality-as-doing:
 #dependency_matrix [trans_doing, trans_being_via_choice] vs [Classical.choice]
+
+-- BEING axis — totality among objects (the predicate is constant `True` on ℤ):
+#print axioms being_total_int
+#assert_not_depends_on being_total_int on Classical.choice
+
+/-! ### The whole thesis on one domain ℤ, machine-checked
+
+| axis | classifier | on ℤ |
+|------|------------|------|
+| **BEING** (objects) | `being_total_int` | **total** — constant `True`, nothing discriminated |
+| **DOING** (proofs)  | `#dependency_matrix` above | **split** — one proof free, one depends |
+
+Same domain ℤ.  Operationality is invisible to *being* (total) and sharp on *doing* (split): the
+boundary lives on the act, not the object — "nothing is, all is doing," machine-checked. -/
