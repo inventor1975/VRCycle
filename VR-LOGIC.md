@@ -84,8 +84,19 @@ except (a) one intentional teaching skeleton, `Examples/E04_ModeBSkeleton` (a do
   machine-verified. Mostly `[propext, Classical.choice, Quot.sound]`; `CoPSet.mk`/`.corec`
   axiom-free.
 - **VR-Forms** — two registers (operational L₀ / formal L₁) and the transit pattern as a
-  shallow embedding. The central conservativity result (Theorem III.1) is **stated, not
-  formalised** (deep embedding out of scope) — see Open Questions. `[propext, Quot.sound]`.
+  shallow embedding. **The central conservativity result (Theorem III.1) is now FORMALISED**
+  (2026-06-06, `Forms/Conservativity.lean` + `Forms/ConservativityFOL.lean`): a deep embedding
+  via relative interpretation. Propositional floor, then FOL with terms (de Bruijn variables,
+  constants, n-ary function symbols) and n-ary operational predicates; classical Hilbert
+  `Provable` (K/S/Peirce/MP, ∀-elim, ∀-distribution, generalization); the π-translation, with
+  `piTr_subst` (π commutes with substitution — kept trivial by 0-ary formal atoms + closed `tr`,
+  avoiding de-Bruijn substitution-composition); and `conservativity`. A concrete VR instance
+  (∅, ∈, succ, `⌜∅⌝` ↦ `∀x ¬(x∈∅)`) with `conservativity_empty_concrete` discharging the
+  hypothesis end-to-end. All choice-free (`[propext]`, instances `[propext, Quot.sound]`),
+  self-contained, lint-clean. **Boundaries (documented, by choice):** `gen` is stated without
+  the eigenvariable side-condition (a refinement for matching standard FOL soundness; not needed
+  for the syntactic π-transport that conservativity is); the VR instance covers ∅ (richer ω etc.
+  marginal). `[propext, Quot.sound]` for the shallow predicates.
   **Extraction asymmetry, machine-checked.** `translate_implies_realisable : ∀ t, translate_pi
   t → isRealisable t` holds — from a specific operational fact (witness in hand) one obtains
   the formal term's realisability (**O→T**: operational ⟶ formal). The **converse fails**:
@@ -288,10 +299,12 @@ These are genuine questions, stated to be settled by logic, not asserted.
     no operational correlate → formal-register label, not a machine object; and AC+AD→⊥ is a
     T→T phenomenon (ADDENDUM, §2) — neither is coded. So DC/WC-N are machine; full AC and AC+AD
     are essay. This is the honest split, not an avoidance.
-- **Conservativity (VR-Forms Theorem III.1) is not formalised.** It has a metalogical proof
-  in the preprint; a Lean proof needs a deep embedding (`Formula L₁`, `Derivation T₁`,
-  induction over derivations) — out of scope so far. The two-register apparatus rests on a
-  result that is argued, not machine-checked.
+- **Conservativity (VR-Forms Theorem III.1) — NOW FORMALISED (2026-06-06).** Previously the
+  central open boundary (argued metalogically, not machine-checked); now a deep embedding proves
+  it (see §1 VR-Forms). The two-register apparatus no longer rests on an unverified result.
+  Remaining refinements (documented, not gaps in the result): `gen` without the eigenvariable
+  side-condition (would match standard-FOL soundness; not needed for the syntactic π-transport),
+  and a richer VR instance (ω). These are polish, not the theorem.
 - **Extracting the operational from the formal (T→O) — no mechanism yet.** O→T works
   (operational material yields a formal term, witness in hand; `translate_implies_realisable`).
   The reverse — given a formal term, produce its operational correlate — has **no general
