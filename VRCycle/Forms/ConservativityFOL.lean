@@ -28,24 +28,37 @@ namespace VR.Forms.ConservativityFOL
 -- §1. Terms (de Bruijn variables, constants, unary functions); lift and substitution
 -- ============================================================
 
-/-- Terms: a de Bruijn variable, a constant (0-ary, e.g. ∅), or a unary function applied to a
-term (e.g. `succ`/`t`). -/
+/-- Terms: a de Bruijn variable, a constant (0-ary, e.g. ∅), or an n-ary function applied to a
+list of terms (e.g. `succ` t(x), `vadd` x+y).  The argument list nests `Tm`, so `lift`/`subst`
+are defined by mutual recursion with their list versions (Lean sees the structural decrease). -/
 inductive Tm (F : Type x) (C : Type w) where
   | var   : Nat → Tm F C
   | const : C → Tm F C
-  | app1  : F → Tm F C → Tm F C
+  | app   : F → List (Tm F C) → Tm F C
 
-/-- Lift free variables `≥ c` by one in a term. -/
+-- Lift free variables `≥ c` by one in a term (mutual with the list version).
+mutual
 def Tm.lift {F : Type x} {C : Type w} (c : Nat) : Tm F C → Tm F C
-  | .var n   => .var (if n < c then n else n + 1)
-  | .const k => .const k
-  | .app1 f s => .app1 f (s.lift c)
+  | .var n    => .var (if n < c then n else n + 1)
+  | .const k  => .const k
+  | .app f ts => .app f (Tm.liftList c ts)
+def Tm.liftList {F : Type x} {C : Type w} (c : Nat) : List (Tm F C) → List (Tm F C)
+  | []        => []
+  | s :: rest => Tm.lift c s :: Tm.liftList c rest
+end
 
-/-- Substitute de Bruijn variable `j` by term `t`, decrementing free variables `> j`. -/
+-- Substitute de Bruijn variable `j` by term `t`, decrementing free variables `> j`
+-- (mutual with the list version).
+mutual
 def Tm.subst {F : Type x} {C : Type w} (j : Nat) (t : Tm F C) : Tm F C → Tm F C
-  | .var n   => if n = j then t else .var (if j < n then n - 1 else n)
-  | .const k => .const k
-  | .app1 f s => .app1 f (Tm.subst j t s)
+  | .var n    => if n = j then t else .var (if j < n then n - 1 else n)
+  | .const k  => .const k
+  | .app f ts => .app f (Tm.substList j t ts)
+def Tm.substList {F : Type x} {C : Type w} (j : Nat) (t : Tm F C) :
+    List (Tm F C) → List (Tm F C)
+  | []        => []
+  | s :: rest => Tm.subst j t s :: Tm.substList j t rest
+end
 
 -- ============================================================
 -- §2. FOL formulas; lift and term-substitution
