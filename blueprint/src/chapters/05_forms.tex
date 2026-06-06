@@ -22,13 +22,14 @@ operational correlate.
 \textbf{Architectural note.} The Lean formalisation is a \emph{shallow
 embedding} over mathlib.  Formal terms are Lean strings carrying a register
 tag; $\pi$ is a total Lean function; realisability is a Lean predicate.
-The apparatus has one explicit structural boundary: Theorem~III.1
-(conservativity) is proved in the preprint but not formalised in Lean.
-Full formalisation would require deep-embedded \texttt{Formula~L₀},
-\texttt{Derivation~T₀}, \texttt{Derivation~T₁} types and an induction proof
-over derivations --- a proof-theory project larger than the entire VR-Sets
-Lean cycle.  This boundary is not a defect; it is the premeditated
-stopping point of the shallow embedding.  See \S\,\ref{subsec:conservativity}.
+What was the apparatus's one explicit structural boundary --- Theorem~III.1
+(conservativity), proved in the preprint but previously not formalised --- has
+\textbf{now been formalised} (2026-06) by a separate deep embedding
+(\texttt{Forms/Conservativity.lean}, \texttt{Forms/ConservativityFOL.lean}):
+\texttt{Formula} over de Bruijn terms, a classical Hilbert \texttt{Provable}, the
+translation $\pi$, and the conservativity theorem by induction on derivations, with a
+concrete VR instance.  The shallow embedding above is unchanged; the deep embedding sits
+beside it.  See \S\,\ref{subsec:conservativity}.
 
 \noindent\axiomprofile{[]} for 3 Stage~1 objects; \axiomprofile{[propext,
 Quot.sound]} for all remaining; zero \texttt{Classical.choice} in the
@@ -172,7 +173,8 @@ exclusively in the forward direction.
 
 \begin{theorem}[Conservativity of $T_1$ over $T_0$]
 \label{thm:conservativity}
-\notready
+\lean{VR.Forms.ConservativityFOL.conservativity}
+\leanok
 \uses{def:translate_pi, def:isRealisable}
 \textbf{Theorem III.1} (preprint §\,III.2, verbatim): «The theory $T_1$
 (VR-Forms) is conservative over $T_0$ (VR-Sets) in the operational
@@ -180,22 +182,29 @@ register: any formula $\varphi \in L_0$ that is derivable in $T_1$ is
 already derivable in $T_0$.  Equivalently: formal terms do not produce
 new operational theorems.»
 
-The theorem is proved in the preprint via induction on derivations through
-the translation $\pi$.  It is \textbf{not formalised} in the Lean cycle.
+\textbf{Now formalised} (2026-06) by a deep embedding via relative interpretation, in
+\texttt{Forms/Conservativity.lean} (propositional floor) and
+\texttt{Forms/ConservativityFOL.lean} (full FOL).  The two-register language $L_1$ consists of
+operational atoms and $0$-ary formal atoms over de Bruijn terms (variables, constants such as
+$\emptyset$, and $n$-ary function symbols such as $t$); provability is classical Hilbert
+(K, S, Peirce, MP, $\forall$-elim, $\forall$-distribution, generalization); the translation
+$\pi$ sends each formal atom to its closed operational meaning.  The proof is by induction on
+derivations --- $\pi$ commutes with every rule, and \texttt{piTr\_subst} shows $\pi$ commutes
+with substitution (kept trivial by $0$-ary formal atoms and closed $\pi$-images, so no de-Bruijn
+substitution composition arises).  A concrete VR instance (\texttt{VRExample}: $\emptyset$,
+$\in$, $t$, the formal term $\ulcorner\emptyset\urcorner \mapsto \forall x\,\lnot(x\in\emptyset)$)
+discharges the hypothesis end-to-end (\texttt{conservativity\_empty\_concrete}).  All objects are
+choice-free (\axiomprofile{[propext]}; instances \axiomprofile{[propext, Quot.sound]}),
+self-contained.
 
-\begin{remark}[Why \notready]
+\begin{remark}[Scope and remaining polish]
 \label{rem:conservativity_boundary}
-Full formalisation requires deep-embedded types:
-$\texttt{Formula}\,L_0$, $\texttt{Formula}\,L_1$,
-$\texttt{Derivation}\,T_0$, $\texttt{Derivation}\,T_1$, and an
-induction proof over the structure of $\pi$.  This is a proof-theory
-project in its own right, not within the shallow-embedding depth chosen
-for the VR cycle.  The boundary is premeditated, documented in the
-Lean source of \texttt{Transit.lean}, and honest: conservativity is
-\emph{mathematically proved} (preprint §\,III.2) but
-\emph{Lean-unformalisable} at shallow depth.  It is not an open
-conjecture; it is a proved result whose Lean formalisation lies outside
-the scope of this cycle.  See Observation~3 (\S\,\ref{sec:forms_boundary}).
+What was the cycle's one premeditated boundary --- a proof-theory project beyond the shallow
+embedding --- is now a machine-checked result.  Two documented refinements remain, by choice,
+and are polish rather than gaps in the theorem: \texttt{gen} is stated without the eigenvariable
+side-condition (it would match standard first-order soundness, but is not needed for the
+syntactic $\pi$-transport that conservativity is), and the worked VR instance covers $\emptyset$
+(richer instances such as $\omega$ are marginal).
 \end{remark}
 \end{theorem}
 
@@ -351,24 +360,27 @@ zero \texttt{Classical.choice}.
 \end{theorem}
 
 %──────────────────────────────────────────────────────────────────────
-\section{Conservativity boundary as structural feature (\S\,IX.2)}
+\section{Conservativity: from boundary to formalised result (\S\,IX.2)}
 \label{sec:forms_boundary}
 
-VR-Forms Lean has \emph{one} explicit structural boundary (at conservativity),
-in contrast to VR-Sets Lean's five mathematical-content boundaries.  The
-single boundary has four substructural manifestations in the formalisation.
+VR-Forms Lean originally had \emph{one} explicit structural boundary (at conservativity),
+in contrast to VR-Sets Lean's five mathematical-content boundaries.  That boundary has
+since been \textbf{closed}: conservativity is now formalised by a deep embedding
+(\S\,\ref{subsec:conservativity}).
 
-\begin{remark}[Observation~3 --- Conservativity is the explicit boundary]
+\begin{remark}[Observation~3 --- Conservativity, formalised]
 \label{rem:obs3_boundary}
-\lean{VR.Forms.translate_pi}
+\lean{VR.Forms.ConservativityFOL.conservativity}
 \leanok
-\uses{thm:translate_implies_realisable}
-Theorem~III.1 is mathematically proved in the preprint (full inductive
-proof via $\pi$) but is Lean-unformalisable at shallow-embedding depth.
-The Lean cycle documents this by verbatim citation in the doc-comment of
-\texttt{Transit.lean} and does not introduce
-\texttt{def Conjecture\_Conservativity : Prop} --- which would misrepresent
-a proved result as an open conjecture.
+\uses{thm:conservativity}
+Theorem~III.1 was mathematically proved in the preprint (full inductive proof via $\pi$);
+the shallow embedding deliberately did not formalise it, documenting the boundary in
+\texttt{Transit.lean} and declining a \texttt{def Conjecture\_Conservativity} (which would
+misrepresent a proved result as open).  It is now machine-checked by a separate deep
+embedding (\texttt{Forms/ConservativityFOL.lean}): a classical Hilbert calculus over de
+Bruijn terms with $n$-ary functions and predicates, the $\pi$-translation, and conservativity
+by induction on derivations --- choice-free, with a concrete VR $\emptyset$ instance.  The
+shallow embedding remains the working layer; the deep embedding stands beside it as the proof.
 \end{remark}
 
 \begin{remark}[Observation~4 --- Equation-compiler catch-all does not reduce]
