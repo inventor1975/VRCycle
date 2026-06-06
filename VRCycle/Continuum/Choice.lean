@@ -1,0 +1,89 @@
+-- VRCycle/Continuum/Choice.lean
+-- Operational Continuum (Path 1) — choice, read operationally (the AC package).
+--
+-- STAGE: B (consolidation). SOURCE: VR-LOGIC.md §3 (AC), ADDENDUM (AC/AD as T→T).
+--
+-- ## The operational reading of choice, in four parts
+--   (1) DC — process-based dependent choice — is OPERATIONALLY AVAILABLE: a history-dependent
+--       rule `f : List Bool → Bool` determines a branch step by step, CHOICE-FREE (recursion).
+--       `operational_dependent_choice`.  Choice here is available because there is a RULE.
+--   (2) WC-N / Continuity — choice decided by finite information — is the two-register split,
+--       already proved: FALSE formally (`ClassicalBoundary.not_continuity`), TRUE operationally
+--       (`Model.continuity_of_nbhd`).
+--   (3) full AC — simultaneous selection over an uncountable family WITHOUT a rule — has no
+--       operational correlate: no rule, no step-by-step construction.  It is a FORMAL-REGISTER
+--       LABEL (essay-level, VR-LOGIC §2/§3) — NOT formalised as an operational object here.
+--   (4) AC + AD → ⊥ is a T→T phenomenon (ADDENDUM): the contradiction needs both formal
+--       contexts co-asserted in one deduction, with no operational material between; it never
+--       returns through the operational floor.  Essay-level, not a Lean claim.
+--
+-- This file formalises (1) and bundles (1)+(2, operational side) choice-free; (2-formal), (3),
+-- (4) are cited / essay, by design.
+--
+-- ## Axiom profile: choice-free for the operational side (verified below).
+
+import VRCycle.Continuum.Model              -- NbhdFun, continuity_of_nbhd  (operational Continuity TRUE)
+import VRCycle.Continuum.ClassicalBoundary  -- not_continuity               (formal Continuity FALSE)
+import Mathlib.Data.List.Range
+
+namespace VRCycle.Continuum
+
+-- ============================================================
+-- §DC.  Process-based dependent choice — operationally available, choice-free
+-- ============================================================
+
+/-- The finite performed segment built by a history-dependent rule `f`: at each step the next
+bit is `f` applied to the segment so far.  Pure recursion — no choice. -/
+def dcPrefix (f : List Bool → Bool) : ℕ → List Bool
+  | 0     => []
+  | n + 1 => dcPrefix f n ++ [f (dcPrefix f n)]
+
+/-- The branch determined by the rule `f`: its `n`-th bit is `f` of the length-`n` segment. -/
+def dcSeq (f : List Bool → Bool) (n : ℕ) : Bool := f (dcPrefix f n)
+
+/-- The branch's length-`n` performed segment is exactly `dcPrefix f n`. -/
+theorem take_dcSeq (f : List Bool → Bool) (n : ℕ) :
+    Branch.take (dcSeq f) n = dcPrefix f n := by
+  induction n with
+  | zero => rfl
+  | succ k ih =>
+    change (List.range (k + 1)).map (dcSeq f) = dcPrefix f (k + 1)
+    rw [List.range_succ, List.map_append]
+    have ihm : (List.range k).map (dcSeq f) = dcPrefix f k := ih
+    rw [ihm]; rfl
+
+/-- **Process-based dependent choice is operationally available (choice-free).**  Every
+history-dependent rule `f : List Bool → Bool` determines a branch `α` with `α n = f (α.take n)`
+— the choice at each step is delivered by the rule, and the whole sequence is built by
+recursion, with no appeal to `Classical.choice`.  This is DC as an operational act: choice is
+available because there is a rule. -/
+theorem operational_dependent_choice (f : List Bool → Bool) :
+    ∃ α : Branch, ∀ n, α n = f (Branch.take α n) := by
+  refine ⟨dcSeq f, fun n => ?_⟩
+  rw [take_dcSeq]
+  rfl
+
+-- ============================================================
+-- §AC-package.  The operational side, bundled (choice-free)
+-- ============================================================
+
+/-- **Operational choice, the choice-free side.**  (1) DC is available — a rule determines a
+branch (`operational_dependent_choice`); (2) every operationally-presented functional is
+continuous — choice decided by finite information (`continuity_of_nbhd`).  Both choice-free.
+The formal-register contrast — `Continuity` is classically FALSE (`not_continuity`) — and full
+AC as a label with no operational correlate, and AC+AD as a T→T phenomenon, are cited/essay
+(see the file header), not bundled here (they are not operational objects). -/
+theorem operational_choice_available :
+    (∀ f : List Bool → Bool, ∃ α : Branch, ∀ n, α n = f (Branch.take α n)) ∧
+    (∀ (F : NbhdFun) (α : Branch), ∃ n, ∀ β : Branch,
+        Branch.take α n = Branch.take β n → F.eval α = F.eval β) :=
+  ⟨operational_dependent_choice, NbhdFun.continuity_of_nbhd⟩
+
+-- ============================================================
+-- Axiom audit
+-- ============================================================
+#print axioms operational_dependent_choice
+#print axioms operational_choice_available
+#print axioms not_continuity   -- the formal-register contrast: classical by design
+
+end VRCycle.Continuum
