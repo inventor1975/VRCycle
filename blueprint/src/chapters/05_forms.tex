@@ -197,6 +197,25 @@ discharges the hypothesis end-to-end (\texttt{conservativity\_empty\_concrete}).
 choice-free (\axiomprofile{[propext]}; instances \axiomprofile{[propext, Quot.sound]}),
 self-contained.
 
+\textbf{Comprehension storey (full fidelity to the preprint's $\pi$, 2026-06).}  The FOL floor
+models formal atoms as $0$-ary; the preprint's $\pi$ (\S\,III.2, rule for $\ulcorner x\in\tau\urcorner$
+with $\tau=\{y:\psi(y)\}$) is the genuine comprehension translation $\pi(\ulcorner x\in\tau\urcorner)=\psi(x)$,
+which substitutes the argument.  This is now machine-checked in
+\texttt{Forms/ConservativityComprehension.lean}: terms and formulas are \emph{mutually} recursive
+($\mathtt{Tm}$ carries set-builders $\{y:\psi\}$), so $\pi$ substituting $\psi(x)$ forces the full
+de-Bruijn substitution calculus --- $\mathtt{subst\_lift}$, $\mathtt{lift\_lift}$,
+$\mathtt{lift\_subst}$, and the substitution lemma $\mathtt{subst\_subst}$ --- all proved choice-free.
+The keystone $\mathtt{piFml\_subst}$ ($\pi$ commutes with substituting a variable) closes precisely
+via $\mathtt{subst\_subst}$ on the comprehension case; conservativity then follows as before, with a
+non-vacuous instance whose hypothesis is proved ($\pi$ of a comprehension axiom is the Hilbert theorem
+$X\to X$).  This is \emph{course A}: set-builders occur only as the right member of $\in$, so the left
+member of every membership is operational (a variable).  A \emph{total} $\pi$ unfolding set-builders in
+every position (course B) is provably ill-defined --- it diverges on self-membered formal terms (the
+Russell term $\ulcorner\{x:x\notin x\}\urcorner$ gives $\pi(\ulcorner R\in R\urcorner)=\lnot\pi(\ulcorner R\in R\urcorner)$,
+no fixpoint).  This is the formal-register counterpart of why VR holds paradoxes safely: they cannot be
+unfolded into operational theorems --- $\pi$ is simply undefined on them, not defined-and-false.  All
+objects \axiomprofile{[propext, Quot.sound]}, choice-free.
+
 \begin{remark}[Scope and remaining polish]
 \label{rem:conservativity_boundary}
 What was the cycle's one premeditated boundary --- a proof-theory project beyond the shallow

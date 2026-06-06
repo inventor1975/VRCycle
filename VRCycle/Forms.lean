@@ -25,3 +25,4 @@ import VRCycle.Forms.Examples
 import VRCycle.Forms.Substrate
 import VRCycle.Forms.Conservativity
 import VRCycle.Forms.ConservativityFOL
+import VRCycle.Forms.ConservativityComprehension
