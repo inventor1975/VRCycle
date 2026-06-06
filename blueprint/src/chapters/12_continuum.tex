@@ -161,6 +161,65 @@ in a finite-information model --- never adopted over classical mathlib, where it
 inconsistent.
 
 %──────────────────────────────────────────────────────────────────────
+\section{The three classical pillars, operationally}
+\label{sec:continuum_pillars}
+
+The done/becoming cut gives Cantor's diagonal, the Continuum Hypothesis and the Axiom of
+Choice a single operational reading.  The machine-checked core is collected here; the
+philosophical reading, and the meta-boundaries it cannot cross, are essay-level and marked as
+such.  VR does not \emph{solve} these; it \emph{reformulates} them --- operationally they
+dissolve or are reinterpreted, formally they remain meaningful.
+
+\begin{theorem}[Operational Cantor]
+\label{thm:continuum_cantor}
+\lean{VRCycle.Continuum.operational_cantor, VRCycle.Continuum.powerset_diagonal}
+\leanok
+\uses{thm:continuum_doingbeing}
+\texttt{operational\_cantor} \axiomprofile{[propext, Quot.sound]}: the performed (node)
+register is countable (\texttt{operational\_register\_countable}, witness \texttt{decodeNode}),
+the becoming register is non-enumerable (\texttt{branches\_not\_enumerable}), and the countable
+performed cannot exhaust the becoming (\texttt{no\_node\_surjection}).  The $\wp(\mathbb{N})$
+bridge \texttt{powerset\_diagonal} \axiomprofile{[propext]}: the full powerset (characteristic
+functions $\mathbb{N}\to\mathrm{Bool}$) is non-enumerable, and every enumerable (describable)
+family of subsets misses its own diagonal.  So the diagonal \emph{works}, but it cuts
+done/becoming --- it does not select an element from a completed uncountable totality (there
+is none operationally).  Reinterpreted, not removed.
+\end{theorem}
+
+\textbf{CH --- dissolved operationally, retained formally (essay).}  The machine fact under CH
+is exactly the $\aleph_0$/non-enumerable gap of \texttt{powerset\_diagonal}.  Beyond it CH adds
+no machine content: ``no intermediate cardinal'' is a non-existence claim (classically an
+independence result), not provable inside; and the operational layer is not even uniformly
+countable (\texttt{Real} is not a countable type --- only \emph{describable} reals would be).
+CH is therefore a formal-register label, read philosophically; its honest machine anchor is
+\texttt{powerset\_diagonal}.
+
+\begin{theorem}[Operational dependent choice]
+\label{thm:continuum_dc}
+\lean{VRCycle.Continuum.operational_dependent_choice, VRCycle.Continuum.operational_choice_available}
+\leanok
+\texttt{operational\_dependent\_choice} \axiomprofile{[propext]}: a history-dependent rule
+$f:\mathrm{List\ Bool}\to\mathrm{Bool}$ determines a branch $\alpha\,n = f(\alpha.\mathrm{take}\,n)$
+by recursion --- DC is operationally available, choice-free, \emph{because there is a rule}.
+Bundled with operational continuity as \texttt{operational\_choice\_available}
+\axiomprofile{[propext, Quot.sound]}.  Full AC (selection over an uncountable family with no
+rule) has no operational correlate --- a formal-register label; and
+$\mathrm{AC}+\mathrm{AD}\to\bot$ is a $T\!\to\!T$ phenomenon that never returns through the
+operational floor.  Only DC and WC-N (the \texttt{Continuity} two-register,
+\texttt{not\_continuity}\,/\,\texttt{continuity\_of\_nbhd}) are machine objects; full AC and
+AC+AD are essay.
+\end{theorem}
+
+\textbf{The register asymmetry: $O\to T$ holds, $T\to O$ does not.}  A single machine-checked
+asymmetry underlies all three pillars.  In VR-Forms, \texttt{translate\_implies\_realisable}
+gives $O\to T$ (an operational fact yields the formal term's realisability); its converse
+\emph{fails} --- from $\exists s,\dots$ one cannot recover the specific operational object (no
+Skolemisation across the existential).  One passes from operational to formal, but never
+\emph{extracts} the operational from the formal: crossing $T\to O$ requires explicit
+construction, never derivation.  This is the logical core of register inheritance, and of why
+the three pillars dissolve operationally while remaining formally meaningful.
+
+%──────────────────────────────────────────────────────────────────────
 \section{Honest scope}
 \label{sec:continuum_scope}
 
