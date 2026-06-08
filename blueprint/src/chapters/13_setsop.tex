@@ -1,0 +1,240 @@
+\chapter{Operational set universe (Brouwer path)}
+\label{chap:setsop}
+\uses{chap:overview, chap:sets, chap:setszfa, chap:forms, chap:continuum}
+
+\section{Position}
+\label{sec:setsop_position}
+
+This chapter is the \textbf{Brouwer rebuild of VR-Sets} (preprint v1.0.3): the
+operational universe of sets, built \emph{from scratch} below the
+\texttt{Classical.choice} floor, and the correction of the earlier \S VI.
+Versions through 1.0.2 realised the ZFC axioms over mathlib's classical
+\texttt{ZFSet} (Chapter~\ref{chap:sets}) and argued that the operational
+universe is \emph{countable}, whence the Axiom of Choice is free and
+Banach--Tarski cannot arise.  That reading is Bishop's, and it contradicts the
+operational continuum (Chapter~\ref{chap:continuum}), which took the
+\emph{Brouwer} path.  Here the universe of sets is rebuilt on that same path and
+the cardinality core is corrected: the universe \emph{as becoming} is
+\emph{non-enumerable} (choice-free), while only the \emph{describable} register
+is countable.
+
+The carrier deliberately avoids mathlib's coinductive machinery
+(\texttt{PFunctor.M} of Chapter~\ref{chap:setszfa}), which is irreducibly
+Tier-3 even at its destructor.  The Lean~4 formalisation lives self-contained
+under \texttt{VRCycle/SetsOp/} (\texttt{Pointed}, \texttt{Builder},
+\texttt{Closure}, \texttt{Omega}, \texttt{Extensionality}, \texttt{Congruence},
+\texttt{Becoming}, \texttt{Describable}, \texttt{Schemas}, \texttt{Grounded}).
+Almost every object is \axiomprofile{[]} or \axiomprofile{[propext]}; the one
+exception is flagged in \S\ref{sec:setsop_cardinality}.
+
+%──────────────────────────────────────────────────────────────────────
+\section{The carrier: sets as revealing functionalities}
+\label{sec:setsop_carrier}
+
+An \textbf{operational set} is a pointed graph $(V, E, \mathit{pt})$: $E\,a\,b$
+reads ``querying the functionality at $b$ reveals $a$ as a member'';
+$\mathit{pt}$ is the set itself; $x.\mathrm{child}\,a := (V,E,a)$ is the member
+sitting at $a$.  Identity is supplied operationally and \textbf{no quotient is
+taken}.
+
+\begin{definition}[Operational set and witnessed identity]
+\label{def:setsop_opset}
+\lean{VRCycle.SetsOp.OpSet, VRCycle.SetsOp.OpSet.Equiv, VRCycle.SetsOp.OpSet.Mem}
+\leanok
+\texttt{OpSet} is the pointed graph; $x \approx y$ (\texttt{OpSet.Equiv}) holds
+when a \emph{bisimulation} relates their points; $z \in x$ (\texttt{OpSet.Mem})
+when some member-vertex of $x$ is $\approx$ to $z$.
+\end{definition}
+
+\begin{theorem}[$\approx$ is an equivalence]
+\label{thm:setsop_equiv}
+\lean{VRCycle.SetsOp.OpSet.Equiv.refl, VRCycle.SetsOp.OpSet.Equiv.symm, VRCycle.SetsOp.OpSet.Equiv.trans}
+\leanok
+\texttt{Equiv.refl/symm/trans} --- each \axiomprofile{[]} (axiom-free).
+\end{theorem}
+
+Turning ``bisimilar'' into a type-level equality (forming the quotient) requires
+Skolemising the existential matches of the bisimulation into functions; that is
+exactly VR's $T\!\to\!O$ asymmetry (Chapter~\ref{chap:forms}), and it is where
+mathlib's coinductive layer invokes \texttt{Classical.choice}.  We therefore keep
+identity as a relation carried with its witness --- a \emph{performed}
+bisimulation, ``doing not being'' made into the construction --- which is why the
+development stays below the floor.
+
+\begin{theorem}[Strong extensionality]
+\label{thm:setsop_ext}
+\lean{VRCycle.SetsOp.OpSet.ext, VRCycle.SetsOp.OpSet.equiv_iff_same_mem, VRCycle.SetsOp.OpSet.mem_congr}
+\leanok
+\uses{thm:setsop_equiv}
+Membership respects identity (\texttt{mem\_congr}, \axiomprofile{[]}), and
+$x \approx y \iff \forall z,\ (z\in x \leftrightarrow z\in y)$
+(\texttt{equiv\_iff\_same\_mem}; backward direction \texttt{ext}).  Both
+\axiomprofile{[]}.  The backward direction is the coinductive content (a
+bisimulation is \emph{built} from the member-matching); it is AFA-style strong
+extensionality, kept choice-free precisely because identity was never
+quotiented.  This licenses $\approx$ as a faithful equality of sets.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Operations}
+\label{sec:setsop_ops}
+
+All operations instantiate one constructor: $\mathrm{sup}\,c$, the set whose
+members are exactly the family $c$.
+
+\begin{theorem}[Family supremum and its membership law]
+\label{thm:setsop_sup}
+\lean{VRCycle.SetsOp.OpSet.sup, VRCycle.SetsOp.OpSet.mem_sup}
+\leanok
+\uses{thm:setsop_ext}
+$z \in \mathrm{sup}\,c \iff \exists i,\ z \approx c\,i$ (\texttt{mem\_sup},
+\axiomprofile{[]}).
+\end{theorem}
+
+\begin{theorem}[Empty, singleton, pair, union, successor]
+\label{thm:setsop_basic}
+\lean{VRCycle.SetsOp.OpSet.not_mem_emptySup, VRCycle.SetsOp.OpSet.mem_pair, VRCycle.SetsOp.OpSet.mem_union, VRCycle.SetsOp.OpSet.mem_succ}
+\leanok
+\uses{thm:setsop_sup}
+From \texttt{mem\_sup}: $\varnothing$ (\texttt{emptySup}, $z\notin\varnothing$),
+singleton ($z\in\{a\}\iff z\approx a$), pair
+($z\in\{a,b\}\iff z\approx a\vee z\approx b$), union
+($z\in\bigcup x\iff\exists y,\ y\in x\wedge z\in y$), and successor
+$\mathrm{succ}\,a := a\cup\{a\}$ ($z\in\mathrm{succ}\,a\iff z\in a\vee z\approx a$).
+Each \axiomprofile{[]} or \axiomprofile{[propext]}.  The operations respect
+$\approx$ (\texttt{*\_congr}, via Theorem~\ref{thm:setsop_ext}).
+\end{theorem}
+
+\begin{theorem}[Infinity]
+\label{thm:setsop_omega}
+\lean{VRCycle.SetsOp.OpSet.mem_omega, VRCycle.SetsOp.OpSet.omega_succ_closed}
+\leanok
+\uses{thm:setsop_basic}
+The von Neumann naturals $\mathrm{vn}$ and $\omega := \mathrm{sup}\,\mathrm{vn}$:
+the members of $\omega$ are exactly the $\mathrm{vn}\,n$ up to $\approx$;
+$\varnothing\in\omega$; and $\omega$ is closed under successor for any member
+(\texttt{omega\_succ\_closed}).  \axiomprofile{[]}/\axiomprofile{[propext]}.
+\end{theorem}
+
+\begin{theorem}[Separation and Replacement]
+\label{thm:setsop_schemas}
+\lean{VRCycle.SetsOp.OpSet.mem_sep, VRCycle.SetsOp.OpSet.mem_repl}
+\leanok
+\uses{thm:setsop_sup}
+For a species $p$ respecting $\approx$,
+$z\in\{z\in x\mid p\,z\}\iff z\in x\wedge p\,z$ (\texttt{mem\_sep}).  For a rule
+$F$ respecting $\approx$, $w\in\{F\,z\mid z\in x\}\iff\exists z,\ z\in x\wedge
+w\approx F\,z$ (\texttt{mem\_repl}).  No decidability is needed; both
+\axiomprofile{[propext]}.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Foundation is a predicate, not a choice}
+\label{sec:setsop_grounded}
+
+Classical set theory must decide, at the axiom level, whether $\in$-descent
+always terminates (Foundation) or may cycle (Aczel's AFA,
+Chapter~\ref{chap:setszfa}).  VR is not forced to: well-foundedness is a
+\emph{property of a set's graph}, observed not postulated.
+
+\begin{theorem}[Groundedness is $\approx$-invariant and hereditary]
+\label{thm:setsop_grounded}
+\lean{VRCycle.SetsOp.OpSet.isGrounded_iff, VRCycle.SetsOp.OpSet.mem_grounded, VRCycle.SetsOp.acc_bisim}
+\leanok
+\uses{thm:setsop_ext}
+\texttt{IsGrounded}\,$x := \mathrm{Acc}\,(E)\,x.\mathit{pt}$.  Accessibility
+transports along a bisimulation (\texttt{acc\_bisim}), so
+$x\approx y\Rightarrow(\,x$ grounded $\iff y$ grounded$)$
+(\texttt{isGrounded\_iff}); and a member of a grounded set is grounded
+(\texttt{mem\_grounded}).  All \axiomprofile{[]}.  Hence ``well-founded /
+ZFC-mode'' is a well-defined hereditary property of \emph{sets}, not of graphs.
+\end{theorem}
+
+\begin{theorem}[ZFC and ZFA as fragments, not a choice]
+\label{thm:setsop_fragments}
+\lean{VRCycle.SetsOp.OpSet.quine_self_mem, VRCycle.SetsOp.OpSet.quine_not_grounded, VRCycle.SetsOp.OpSet.vn_not_self_mem}
+\leanok
+\uses{thm:setsop_grounded}
+The ZFC fragment is the grounded sets ($\varnothing$ grounded; the von Neumann
+naturals are $\in$-acyclic, \texttt{vn\_not\_self\_mem}, by strong induction).
+The Quine atom $A=\{A\}$ (\texttt{quine}) is a genuine operational set with
+$A\in A$ (\texttt{quine\_self\_mem}) and is \emph{not} grounded
+(\texttt{quine\_not\_grounded}) --- no anti-foundation axiom invoked, the graph
+simply has a cycle.  VR thus holds ZFC and ZFA natively, as fragments of one
+universe under a uniform (bisimulation) identity, and faces neither Foundation
+nor AFA as a postulate.  \axiomprofile{[]}/\axiomprofile{[propext]}.
+\end{theorem}
+
+%──────────────────────────────────────────────────────────────────────
+\section{Cardinality, the diagonal, and choice --- the corrected core}
+\label{sec:setsop_cardinality}
+
+\begin{theorem}[The operational universe is non-enumerable]
+\label{thm:setsop_nonenum}
+\lean{VRCycle.SetsOp.OpSet.universe_not_enumerable, VRCycle.SetsOp.OpSet.vn_inj}
+\leanok
+\uses{thm:setsop_fragments, thm:setsop_ext}
+No $\mathbb{N}$-indexed enumeration is surjective up to $\approx$:
+$\lnot\,\exists e:\mathbb{N}\to\texttt{OpSet},\ \forall x,\ \exists n,\ e\,n\approx x$
+(\texttt{universe\_not\_enumerable}, \axiomprofile{[propext]}).  The proof is a
+self-contained Cantor diagonal \emph{inside} the universe: the diagonal set
+$D := \{\mathrm{vn}\,n \mid \mathrm{vn}\,n\notin e\,n\}$ (a \texttt{sup} over a
+subtype, no decidability) satisfies, by the distinctness of the naturals
+(\texttt{vn\_inj}, \axiomprofile{[propext]}),
+$\mathrm{vn}\,k\in D\iff\mathrm{vn}\,k\notin e\,k$; were $e$ surjective, some
+$e\,m\approx D$ forces $\mathrm{vn}\,m\in e\,m\iff\mathrm{vn}\,m\notin e\,m$.
+This is the Brouwerian content: the diagonal \emph{works}, cutting done from
+becoming; the universe is genuinely uncountable, choice-free.
+\end{theorem}
+
+\begin{theorem}[The describable register is countable]
+\label{thm:setsop_describable}
+\lean{VRCycle.SetsOp.OpSet.describable_countable}
+\leanok
+A finite description syntax \texttt{Desc} ($\varnothing$, pair, union, $\omega$)
+with interpretation \texttt{eval} gives ``describable'' sets; an \emph{exhibited}
+$\mathbb{N}$-enumeration (\texttt{descEnum}) reaches every describable set up to
+$\approx$ (\texttt{describable\_countable}).
+\end{theorem}
+
+\begin{finding}[The one borrowed \texttt{Classical.choice}]
+\label{find:setsop_choice}
+\lean{VRCycle.SetsOp.OpSet.describable_countable}
+\leanok
+\uses{thm:setsop_describable}
+Theorem~\ref{thm:setsop_describable} is the only Tier-3 object, depending on
+\texttt{Classical.choice}, and the dependence is \emph{borrowed}: it enters
+solely through mathlib's pairing inversion (\texttt{Nat.unpair\_pair} /
+\texttt{Nat.pair\_eq\_pair} are both \axiomprofile{[propext, Classical.choice,
+Quot.sound]}; \texttt{Nat.pair} itself is \axiomprofile{[]}).  The fact is
+constructively true; mathlib proves it with incidental choice.  The countability
+of a register of \emph{descriptions} is in any case formal-register
+meta-accounting, where classical reasoning is admitted with its cost made
+visible.  Kept and documented (decision A).
+\end{finding}
+
+Theorems~\ref{thm:setsop_nonenum} and~\ref{thm:setsop_describable} together are
+the corrected \S VI: \textbf{the describable (done) register is countable, the
+universe (becoming) is not.}  Consequently the Axiom of Choice is \emph{not} an
+operational theorem.  Dependent choice is operational
+(Theorem~\ref{thm:continuum_dc}); full AC is a formal-register label with no
+operational correlate.  Banach--Tarski is a $T\!\to\!T$ phenomenon of the
+full-AC context --- a completed uncountable totality plus selection by full AC,
+neither with an operational correlate --- which by conservativity
+(Chapter~\ref{chap:forms}) never transits to the operational register: its
+absence operationally is a conservativity phenomenon, not a cardinality accident.
+
+%──────────────────────────────────────────────────────────────────────
+\section{Honest scope}
+\label{sec:setsop_scope}
+
+\textbf{Below the floor by construction.}  ``Choice-free'' is a statement about
+audited axiom dependencies, exhibited build-time; Lean's ambient logic remains
+classical.  \textbf{Two reals.}  The operational reals (becoming,
+Chapter~\ref{chap:continuum}) and $\mathbb{R}_{\mathrm{VR}}\cong\mathbb{R}$
+(uncountable, Chapter~\ref{chap:numbers}) are distinct objects; this chapter
+commits the set universe to the Brouwer reading.  \textbf{No power-set
+operation.}  There is no operational completed power set; $\wp(\omega)$ \emph{is}
+the becoming, and Theorem~\ref{thm:setsop_nonenum} is its operational content.
+\textbf{The earlier version stands} as the classical-surrogate presentation
+(Chapter~\ref{chap:sets}); only its \S VI cardinality reading is superseded here.
