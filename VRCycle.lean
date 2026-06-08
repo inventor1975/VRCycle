@@ -12,3 +12,4 @@ import VRCycle.Topology
 import VRCycle.Transit
 import VRCycle.Brouwer
 import VRCycle.Continuum
+import VRCycle.SetsOp
