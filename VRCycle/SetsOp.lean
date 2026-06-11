@@ -14,3 +14,4 @@ import VRCycle.SetsOp.Becoming
 import VRCycle.SetsOp.Describable
 import VRCycle.SetsOp.Schemas
 import VRCycle.SetsOp.Grounded
+import VRCycle.SetsOp.Power
