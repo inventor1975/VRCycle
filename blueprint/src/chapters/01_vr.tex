@@ -3,10 +3,17 @@
 
 \section{Position}
 
-The VR formal system constructs arithmetic from three primitives---the
-empty object~$\emptyset$, the succession operator~$t$, and the
-implication operator~$\to$---governed by four axioms~A1--A4.  The main
-result of Part~I is Theorem~11: there is a structural isomorphism
+The VR formal system constructs arithmetic from three primitive
+\emph{operations}---the nullary base~$\emptyset$, the succession
+operator~$t$, and the implication operator~$\to$.  It posits \emph{no
+axioms of its own}: the four named principles A1--A4, stated as axioms in
+earlier versions, are here definitions or theorems over the freely
+generated term-algebra---A2 \emph{defines} implication, A1 and A3 are
+\emph{theorems}, and A4 is the \emph{recursor} of the inductive term
+structure.  ``Axiom-free'' is meant relative to the type-theoretic
+framework: VR adds no postulate beyond the free term-algebra and its
+recursor, matching the $[\,]$ axiom profile of the Lean~4 companion.  The
+main result of Part~I is Theorem~11: there is a structural isomorphism
 $\mathbb{N} \simeq \mathrm{VRObj}$ preserving zero, successor, addition,
 multiplication, and exponentiation, establishing that VR and Peano
 arithmetic are arithmetically equivalent.  The Lean~4 formalisation
@@ -121,8 +128,13 @@ The binary operator $\texttt{impl} : \mathrm{VRBool} \to \mathrm{VRBool} \to
 \end{definition}
 
 %──────────────────────────────────────────────────────────────────────
-\section{Axioms}
+\section{The four named principles (definitions and theorems)}
 \label{sec:vr_axioms}
+
+Earlier versions stated A1--A4 as axioms.  Under the operational reading
+each is a \emph{definition} or a \emph{theorem} over the freely generated
+objects; VR posits no axioms of its own.  The names A1--A4 are kept for
+reference, with the true status of each marked below.
 
 \begin{theorem}[A1 --- Generativity]
 \label{thm:A1}
@@ -529,8 +541,10 @@ library contribution is \texttt{Init.Data.Nat} at the definitional level
 \label{sec:vr_refs}
 
 The preprint for this chapter is
-\zenodo{10.5281/zenodo.20324391}{VR.\ A Formal System, v1.0.1} (21 May
-2026).
+\zenodo{10.5281/zenodo.20633314}{VR.\ A Formal System: An Axiom-Free
+Reconstruction of Arithmetic from Operations Alone, v1.1.0} (10 June
+2026); earlier edition v1.0.1 at \zenodo{10.5281/zenodo.20324391}{Zenodo}
+(21 May 2026).
 
 The Lean~4 formalisation is archived at
 \zenodo{10.5281/zenodo.20324240}{VR Part~I Lean, v1.0} (21 May 2026),
