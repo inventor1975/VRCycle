@@ -356,6 +356,86 @@ $\texttt{quineAtom} = \texttt{OSetZFA.singleton}(\texttt{quineAtom})$
 \end{definition}
 
 %──────────────────────────────────────────────────────────────────────
+\section{ZF$^-$ axioms on $\mathrm{OSetZFA}$ (Part VI)}
+\label{sec:setszfa_zf}
+
+The previous parts prove AFA and a strict $\in$-preserving embedding of the
+well-founded universe, but do not by themselves verify the ZF axioms on
+$\mathrm{OSetZFA}$.  This part does: Pairing, Union, Power, Separation,
+Replacement and Infinity hold on $\mathrm{OSetZFA}$ as machine-checked theorems,
+so that --- with Extensionality (Definition~\ref{def:OSetZFA_mem}), the empty set
+(Definition~\ref{def:OSetZFA_infra}), and Foundation supplied by AFA
+(Theorem~\ref{thm:AFA_in_OSetZFA}) --- $\mathrm{OSetZFA}$ is a model of ZF$^-$.
+
+\begin{theorem}[Pairing, Union, Power]
+\label{thm:setszfa_zf1}
+\lean{VR.SetsZFA.OSetZFA.mem_pair, VR.SetsZFA.OSetZFA.mem_sUnion, VR.SetsZFA.OSetZFA.mem_powerset}
+\leanok
+\uses{def:OSetZFA_mem, def:OSetZFA_infra}
+$z \in \{a,b\} \leftrightarrow z = a \vee z = b$ (\texttt{mem\_pair});
+$z \in \bigcup x \leftrightarrow \exists y,\ y \in x \wedge z \in y$
+(\texttt{mem\_sUnion}); $z \in \wp\,x \leftrightarrow z \subseteq x$
+(\texttt{mem\_powerset}).  Each is built at the \texttt{CoPSet} level as a single
+$\texttt{mk}\,\alpha\,A$ touching only the top branching levels (the coinductive
+structure affects only equality, supplied by \texttt{isBisim\_Equiv} /
+\texttt{bisim\_imp\_Equiv}); the workhorse
+\texttt{CoPSet.mk\_equiv\_of\_coverage} reduces each well-definedness obligation
+to a child-coverage check.  In particular Power set is a verbatim
+\texttt{PSet.powerset} calque --- no special difficulty from the coinductive
+quotient.
+\end{theorem}
+
+\begin{theorem}[Separation and Replacement --- operational]
+\label{thm:setszfa_zf2}
+\lean{VR.SetsZFA.OSetZFA.mem_sep, VR.SetsZFA.OSetZFA.mem_image}
+\leanok
+\uses{def:OSetZFA_mem}
+For a predicate $p : \mathrm{OSetZFA} \to \mathrm{Prop}$,
+$z \in \{w \in x \mid p\,w\} \leftrightarrow z \in x \wedge p\,z$
+(\texttt{mem\_sep}).  For a function $F : \mathrm{OSetZFA} \to \mathrm{OSetZFA}$,
+$z \in \{F\,y \mid y \in x\} \leftrightarrow \exists y,\ y \in x \wedge F\,y = z$
+(\texttt{mem\_image}).  Because $p$ and $F$ are first-class objects \emph{over
+the quotient}, they are automatically $\approx$-invariant: the collapse of the
+first-order Separation / Replacement \emph{schemas} into single
+quantified-over-an-object statements is here the \emph{operational reification of
+describability}, not a generic type-theoretic accident.
+\end{theorem}
+
+\begin{theorem}[Infinity]
+\label{thm:setszfa_zf3}
+\lean{VR.SetsZFA.OSetZFA.infinity, VR.SetsZFA.OSetZFA.mem_omega}
+\leanok
+\uses{thm:setszfa_zf1}
+With the von Neumann successor $\mathrm{succ}\,x := \texttt{insert}\,x\,x =
+x\cup\{x\}$ and $\omega$ the set of von Neumann naturals:
+$\varnothing \in \omega$ and $\forall x,\ x \in \omega \to \mathrm{succ}\,x \in
+\omega$ (\texttt{infinity}); $z \in \omega \leftrightarrow \exists n,\ z =
+\llbracket\texttt{ofNat}\,n\rrbracket$ (\texttt{mem\_omega}).  The naturals match
+VR's $O_n$ (Chapter~\ref{chap:vr}) and mathlib's \texttt{ZFSet.omega}.
+\end{theorem}
+
+\begin{finding}[$\mathrm{OSetZFA}$ models ZF$^-$, at the M-type ceiling]
+\label{find:setszfa_zf}
+\lean{VR.SetsZFA.OSetZFA.mem_powerset}
+\leanok
+\uses{thm:setszfa_zf1, thm:setszfa_zf2, thm:setszfa_zf3, thm:AFA_in_OSetZFA}
+With Extensionality, $\varnothing$, Pairing, Union, Power, Separation,
+Replacement and Infinity verified, and Foundation supplied as AFA, every member
+of $\mathrm{OSetZFA}$ obeys the ZF$^-$ axioms as machine-checked theorems.  This
+\emph{earns} the reading of $\mathrm{OSetZFA}$ as a ZFA \emph{universe}: the
+strict embedding $(\mathrm{OSet},\in)\subsetneq(\mathrm{OSetZFA},\in)$
+(Remark~\ref{rem:M6_strict_inclusion}) is the inclusion of the grounded fragment.
+All witnesses sit at \axiomprofile{[propext, Classical.choice, Quot.sound]} ---
+the M-type ceiling, inherited from \texttt{PFunctor.M.dest} (the destructor pulls
+\texttt{Classical.choice}), \emph{not} from the set theory; the choice-free
+counterparts live on the pointed-graph carrier
+(Chapter~\ref{chap:setsop}, Theorem~\ref{thm:setsop_power}).  Honest boundary:
+each axiom holds in $\mathrm{OSetZFA}$ as a theorem; $\mathrm{OSetZFA}$ is not
+itself given a first-order satisfaction relation --- that ``$\models$ ZF$^-$''
+reading stays metatheory, as elsewhere in the cycle.
+\end{finding}
+
+%──────────────────────────────────────────────────────────────────────
 \section{Conjecture~IV.2 closed}
 \label{sec:setszfa_conjecture}
 
@@ -516,11 +596,17 @@ route and the ambient type theory differ.
 \texttt{graphCoalg}, \texttt{CoPSet.isBisim}, and analogues) that do not
 invoke quotients, ordinals, or classical selection.
 
-\axiomprofile{[propext, Classical.choice, Quot.sound]} for 62 objects,
+\axiomprofile{[propext, Classical.choice, Quot.sound]} for the remaining objects,
 including all principal theorems: \texttt{AFA\_in\_OSetZFA},
 \texttt{quineAtom\_self\_mem}, \texttt{OSetZFA\_mem\_not\_wf},
 \texttt{quineAtom\_not\_in\_range\_embedOSet},
-\texttt{embedOSet\_injective}, and all construction theorems.
+\texttt{embedOSet\_injective}, the ZF$^-$ axiom-witnesses of
+\S\ref{sec:setszfa_zf} (\texttt{mem\_pair}, \texttt{mem\_sUnion},
+\texttt{mem\_powerset}, \texttt{mem\_sep}, \texttt{mem\_image},
+\texttt{infinity}), and all construction theorems.  The ceiling is the M-type
+substrate's, not the set theory's: every observation routes through
+\texttt{PFunctor.M.dest}, which is itself Tier-3 (the choice-free register is
+Chapter~\ref{chap:setsop}).
 
 Zero \texttt{sorry}, zero \texttt{admit}, zero axioms beyond the standard
 mathlib ceiling.  VR-Sets-ZFA is the largest module in the VR Cycle

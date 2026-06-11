@@ -23,7 +23,8 @@ The carrier deliberately avoids mathlib's coinductive machinery
 Tier-3 even at its destructor.  The Lean~4 formalisation lives self-contained
 under \texttt{VRCycle/SetsOp/} (\texttt{Pointed}, \texttt{Builder},
 \texttt{Closure}, \texttt{Omega}, \texttt{Extensionality}, \texttt{Congruence},
-\texttt{Becoming}, \texttt{Describable}, \texttt{Schemas}, \texttt{Grounded}).
+\texttt{Becoming}, \texttt{Describable}, \texttt{Schemas}, \texttt{Grounded},
+\texttt{Power}).
 Almost every object is \axiomprofile{[]} or \axiomprofile{[propext]}; the one
 exception is flagged in \S\ref{sec:setsop_cardinality}.
 
@@ -128,6 +129,44 @@ w\approx F\,z$ (\texttt{mem\_repl}).  No decidability is needed; both
 \axiomprofile{[propext]}.
 \end{theorem}
 
+\begin{theorem}[Power set --- choice-free but impredicative]
+\label{thm:setsop_power}
+\lean{VRCycle.SetsOp.OpSet.powerset, VRCycle.SetsOp.OpSet.mem_powerset}
+\leanok
+\uses{thm:setsop_ext, thm:setsop_sup}
+$\wp\,x := \mathrm{sup}$ over the vertex-predicates $s : x.V \to \mathrm{Prop}$
+(\texttt{subsetOf}\,$x\,s$ keeps the member-vertices in $s$), with
+$z \in \wp\,x \iff z \subseteq x$ (\texttt{mem\_powerset}); the backward
+direction selects $s\,a :=$ ``$a$ is a member-vertex whose member lies in $z$''
+and closes by strong extensionality (Theorem~\ref{thm:setsop_ext}).
+\axiomprofile{[propext]} --- \emph{choice-free}.  But see
+Finding~\ref{find:setsop_impredicative}: the construction is below the choice
+floor yet \emph{impredicative}.  With it, \texttt{OpSet} verifies every ZF$^-$
+axiom (Extensionality, $\varnothing$, Pairing, Union, Power, Separation,
+Replacement, Infinity) choice-free; Foundation is the predicate
+\texttt{IsGrounded} (\S\ref{sec:setsop_grounded}).
+\end{theorem}
+
+\begin{finding}[The obstruction to power set is impredicativity, not choice]
+\label{find:setsop_impredicative}
+\lean{VRCycle.SetsOp.OpSet.mem_powerset}
+\leanok
+\uses{thm:setsop_power, thm:setsop_nonenum}
+A \emph{completed} power set $\wp\,x$ is constructible \emph{choice-free}
+(Theorem~\ref{thm:setsop_power}); in particular $\wp\,\omega$ exists as a set with
+$z\in\wp\,\omega\iff z\subseteq\omega$.  What this costs is not
+\texttt{Classical.choice} --- the axiom audit reports \axiomprofile{[propext]},
+none --- but \emph{impredicativity}: the index $x.V\to\mathrm{Prop}$ is the full
+power of the representative's vertex type, a move legitimate in Lean's
+impredicative \texttt{Prop} but outside a predicative (Brouwer / Martin-L\"of)
+discipline, and one that \texttt{\#print axioms} cannot detect.  The operational
+register's relation to power set is therefore sharper than ``absent'': the
+\emph{predicative} content of $\wp\,\omega$ is the becoming
+(Theorem~\ref{thm:setsop_nonenum}, the diagonal), while the \emph{impredicative
+completed} $\wp\,\omega$ also exists, choice-free, at the cost named here ---
+isolating the obstruction as impredicativity, not choice.
+\end{finding}
+
 %──────────────────────────────────────────────────────────────────────
 \section{Foundation is a predicate, not a choice}
 \label{sec:setsop_grounded}
@@ -163,6 +202,35 @@ $A\in A$ (\texttt{quine\_self\_mem}) and is \emph{not} grounded
 simply has a cycle.  VR thus holds ZFC and ZFA natively, as fragments of one
 universe under a uniform (bisimulation) identity, and faces neither Foundation
 nor AFA as a postulate.  \axiomprofile{[]}/\axiomprofile{[propext]}.
+\end{theorem}
+
+\begin{theorem}[Anti-Foundation as an axiom-free theorem]
+\label{thm:setsop_afa}
+\lean{VRCycle.SetsOp.OpSet.afa, VRCycle.SetsOp.OpSet.decorate_isDecoration, VRCycle.SetsOp.OpSet.decoration_unique}
+\leanok
+\uses{thm:setsop_fragments, thm:setsop_ext}
+Because membership is the edge relation and a member is the same graph re-pointed
+(\texttt{child}), nesting --- including self-membership --- is native, and Aczel's
+decoration is almost definitional.  Every graph $(V,E)$ has a decoration
+$\texttt{decorate}\,E\,v:=(V,E,v)$ (\texttt{decorate\_isDecoration}, by
+\texttt{rfl} --- membership \emph{is} the decoration condition), unique up to
+$\approx$ (\texttt{decoration\_unique}; for each $v$ the choice-free
+\emph{exhibited} bisimulation $R_v\,a\,w := (d\,v).\texttt{child}\,a \approx
+d\,w$).  \axiomprofile{[]} --- \textbf{fully axiom-free}.
+
+\emph{Cost of the quotient (bridge to Chapter~\ref{chap:setszfa}).}  VR-Sets-ZFA
+obtains the same content on mathlib's M-types by \emph{quotienting}; there AFA is
+\axiomprofile{[propext, Classical.choice, Quot.sound]} --- forming the quotient
+Skolemises the bisimulation's witnesses (transit asymmetry,
+Theorem~\ref{thm:setsop_ext} ff.) and uniqueness selects representatives by
+\texttt{Classical.choice} through the choice-pulling \texttt{PFunctor.M.dest}.
+The relational identity is axiom-free precisely where its quotient sits at the
+full ceiling.  We read the two works together as
+$\mathrm{OSetZFA}\simeq\texttt{OpSet}/\!\approx$ (this version the choice-free
+floor of which VR-Sets-ZFA is the quotient) --- a \emph{prose-level reading, not
+yet machine-checked} (in the modality of Conjecture~IV.2); its formalisation (a
+\texttt{Bridge} file: \texttt{M.corec} unfolding, descent through the quotient,
+bijectivity on $\approx$-classes) is a candidate for VR-Sets-ZFA~v1.1.
 \end{theorem}
 
 %──────────────────────────────────────────────────────────────────────
@@ -233,8 +301,10 @@ audited axiom dependencies, exhibited build-time; Lean's ambient logic remains
 classical.  \textbf{Two reals.}  The operational reals (becoming,
 Chapter~\ref{chap:continuum}) and $\mathbb{R}_{\mathrm{VR}}\cong\mathbb{R}$
 (uncountable, Chapter~\ref{chap:numbers}) are distinct objects; this chapter
-commits the set universe to the Brouwer reading.  \textbf{No power-set
-operation.}  There is no operational completed power set; $\wp(\omega)$ \emph{is}
-the becoming, and Theorem~\ref{thm:setsop_nonenum} is its operational content.
+commits the set universe to the Brouwer reading.  \textbf{Power set is
+impredicative, not choice-laden.}  A completed power set $\wp\,x$ \emph{is}
+constructible choice-free (Theorem~\ref{thm:setsop_power}), but only
+impredicatively (Finding~\ref{find:setsop_impredicative}); the \emph{predicative}
+content of $\wp(\omega)$ is the becoming, Theorem~\ref{thm:setsop_nonenum}.
 \textbf{The earlier version stands} as the classical-surrogate presentation
 (Chapter~\ref{chap:sets}); only its \S VI cardinality reading is superseded here.
