@@ -351,29 +351,9 @@ reading of the same structure.
 \leanok
 \uses{def:RealVR}
 $\texttt{ComplexVR}$ is a structure with two fields
-$\texttt{fst} : \mathbb{R}_{\mathrm{VR}}$ (the F$\to$F axis, real component) and
-$\texttt{snd} : \mathbb{R}_{\mathrm{VR}}$ (the F$\to$T axis, imaginary component).
-See Remark~\ref{rem:A1_duality} for the structural grounding.
+$\texttt{fst} : \mathbb{R}_{\mathrm{VR}}$ (the real component) and
+$\texttt{snd} : \mathbb{R}_{\mathrm{VR}}$ (the imaginary component).
 \end{definition}
-
-\begin{remark}[Two-dimensionality from A1 duality]
-\label{rem:A1_duality}
-\lean{VR.Numbers.ComplexVR, VR.A1_F_reaches_both, VR.A1_T_reaches_only_T}
-\leanok
-\uses{def:ComplexVR, thm:A1}
-Axiom~A1 has exactly two generating facts:
-\texttt{A1\_F\_reaches\_both} (from F, via $\to$, both values are reachable)
-and \texttt{A1\_T\_reaches\_only\_T} (from T, only T is reachable).
-These two facts motivate two independent axes of numerical extension: the
-F$\to$F axis unfolds the chain $\mathbb{N} \to \mathbb{Z} \to \mathbb{Q} \to
-\mathbb{R}_{\mathrm{VR}}$; the F$\to$T axis supports imaginary components.
-Two-dimensionality of $\mathbb{C}_{\mathrm{VR}}$ is structurally grounded
-in this duality, not postulated by ordered pairs.
-
-The algebraic coupling between the axes (the joining rule $i \otimes i := \ominus 1$)
-is a separate postulate encoded in the multiplication formula of \texttt{cmul};
-it is not derivable from A1 alone.
-\end{remark}
 
 \begin{definition}[Operations on $\mathbb{C}_{\mathrm{VR}}$]
 \label{def:complex_ops}
@@ -613,8 +593,8 @@ interpretation of the isomorphism, verified at the metatheoretic level.
 \lean{VR.Numbers.ComplexVR, VR.Numbers.cmul}
 \leanok
 \uses{def:ComplexVR, def:complex_ops}
-The two-dimensionality of $\mathbb{C}_{\mathrm{VR}}$ (two real components)
-is grounded in the A1 duality (Remark~\ref{rem:A1_duality}).
+The two-dimensionality of $\mathbb{C}_{\mathrm{VR}}$ is carried by its two
+real components \texttt{fst}, \texttt{snd}, not by posited ordered pairs.
 The algebraic coupling between the components---the joining rule
 $i \otimes i := \ominus 1$---is an independent postulate encoded in
 \texttt{cmul} via the term $\ominus(b \times d)$ in the real part.
