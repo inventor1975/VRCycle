@@ -1,5 +1,5 @@
 -- VR-Numbers: Complex ℂ_VR (DOI 10.5281/zenodo.20272743)
--- Part V. Complex Numbers ℂ via the Duality of A1.
+-- Part V. Complex Numbers ℂ.
 
 import VRCycle.Numbers.Reals
 import Mathlib.Data.Complex.Basic
@@ -11,46 +11,29 @@ open VR
 -- §V.4. Type ComplexVR
 -- ============================================================
 
--- §V.1–§V.4. A complex number ℂ_VR is a formal expression a ⊕ b·i (a, b ∈ ℝ_VR).
+-- A complex number ℂ_VR is a formal expression a ⊕ b·i (a, b ∈ ℝ_VR) — a
+-- two-component structure over ℝ_VR (a real and an imaginary part), built without
+-- posited ordered pairs.
 --
--- STRUCTURAL GROUNDING OF TWO-DIMENSIONALITY (§V.1–§V.2, §V.9).
--- In standard mathematics, two-dimensionality of ℂ is a postulate: ℂ is defined
--- as ℝ × ℝ with a special multiplication, and there is no deep justification for
--- the choice of exactly two dimensions.
--- VR-Numbers §V.1 offers a different account: the two-dimensionality of ℂ_VR
--- structurally reflects the duality of axiom A1 of the VR system
--- (VR. A Formal System, §I.5; file VRCycle/VR.lean).
+-- TWO-DIMENSIONALITY. ℂ_VR carries two real components: a real part (along which
+-- ℕ → ℤ → ℚ → ℝ_VR unfolds) and an imaginary part, where expressions b·i live (i is
+-- a syntactic marker of which component a value belongs to, not a number and not an
+-- object). The two-dimensionality is simply the construction's two components; it is
+-- not derived from anything more primitive.
 --
--- A1 consists of two generating facts (both proved without axioms in VR.lean):
---   A1_F_reaches_both     : F → F = ⊤  (F reaches itself — self-reference)
---   A1_T_reaches_only_T   : F → ⊤ = ⊤  (F reaches ⊤ — change of value)
+-- (Versions through v1.1.0 ascribed the two components to a "duality of A1" — the
+-- propositional implications F→F / F→⊤ of the VR formal system. VR v1.1.1 removed the
+-- propositional layer entirely, so that grounding is withdrawn: it was an over-claim,
+-- and even then i²=⊖1 was a separate postulate, so A1 gave a coincidence of count, not
+-- a derivation. ℂ is the standard two-component construction.)
 --
--- §V.2 interprets these two implications as two independent axes of numerical
--- extension:
---   axis F→F — real: on it unfolds ℕ → ℤ → ℚ → ℝ_VR (§II–IV).
---   axis F→⊤ — imaginary: on it live expressions of the form b·i, where i is
---               a syntactic marker of the axis (not a number and not an object).
---
--- Field fst stores the component of the real axis (F→F),
--- field snd stores the component of the imaginary axis (F→⊤).
--- Theorems A1_F_reaches_both and A1_T_reaches_only_T do not participate in
--- computation: they provide the motivating choice of two-dimensional structure,
--- not a computational dependency.
---
--- SEPARATION OF TWO-DIMENSIONALITY AND ALGEBRA (§V.3, §V.9).
--- A1 grounds the existence of two axes but not the algebraic coupling between
--- them. The field algebra of ℂ_VR requires the joining axiom (§V.3):
+-- ALGEBRA. The two components are coupled by the joining postulate
 --   i ⊗ i := ⊖1
--- This rule is postulated separately and encoded in the definition of cmul via
--- the term ⊖(b⊗d) in the fst-component of the product. Without it ℂ_VR is
--- simply two independent copies of ℝ_VR; with it — an algebraic field.
---
--- §V.9 distinguishes explicitly: A1 motivates two-dimensionality; the joining
--- rule postulates the algebra. This is the combined result of structural
--- grounding and an algebraic postulate.
+-- encoded in cmul via the term ⊖(b⊗d) in the fst-component of the product. Without it
+-- ℂ_VR is two independent copies of ℝ_VR; with it — an algebraic field.
 structure ComplexVR where
-  fst : ℝ_VR  -- axis F→F (real component)
-  snd : ℝ_VR  -- axis F→⊤ (imaginary component)
+  fst : ℝ_VR  -- real component
+  snd : ℝ_VR  -- imaginary component
 
 notation "ℂ_VR" => ComplexVR
 
@@ -73,7 +56,7 @@ def czero : ℂ_VR := ⟨zero_R, zero_R⟩
 def cone : ℂ_VR := ⟨embedQ (embedZ one_Z), zero_R⟩
 
 -- §V.7. Embedding ℝ_VR → ℂ_VR: a ↦ a ⊕ 0·i.
--- Every real a ∈ ℝ_VR embeds as an expression on the F→F axis.
+-- Every real a ∈ ℝ_VR embeds with zero imaginary part.
 def embedR (a : ℝ_VR) : ℂ_VR := ⟨a, zero_R⟩
 
 -- ============================================================
