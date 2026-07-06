@@ -1,0 +1,73 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\title{\textbf{VR-Forms --- v1.0.3 (revision note)}\\[2pt]
+\large Two editorial corrections: synchronisation with VR v1.1.1, and scoping of the ``no ontology'' language}
+\author{Vitaly Reznik}
+\date{2026 --- Version 1.0.3 (revision note)}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{Scope.} This is the revision delta for VR-Forms v1.0.3. \emph{No construction,
+definition, theorem, register, or axiom-profile of VR-Forms is altered.} Two editorial changes:
+(1) the recall of the parent work VR is brought up to date with VR v1.1.1; (2) the ``no ontology''
+language is scoped to ``no ontology of substance''.
+
+\section*{(1) Correction: the parent-VR recall}
+
+The introduction described VR as
+
+\begin{quote}
+``a minimal axiomatisation of arithmetic on \textbf{three primitives} $\{\emptyset,\to,t\}$ and
+\textbf{four axioms}; equivalent to Peano arithmetic.''
+\end{quote}
+
+This is superseded. In VR v1.1.1 the propositional implication $\to$ (and the principles A1, A2 and
+the two-valued logical register) are \textbf{removed}: $\to$ generated only a finite truth-function
+algebra used by no VR theorem --- arithmetic, not logic --- and VR generates no logic of its own
+(the logic it reasons with is metatheoretic, borrowed). The corrected recall reads
+
+\begin{quote}
+``a minimal \emph{axiom-free} reconstruction of arithmetic on \textbf{two primitives}
+$\{\emptyset, t\}$ --- the nullary base $\emptyset$ and the unary succession $t$ --- with no axioms
+of its own (membership is defined; the succession principle A3 is a theorem; induction A4 is the
+recursor); equivalent to first-order Peano arithmetic
+(Zenodo DOI 10.5281/zenodo.20688164, v1.1.1; concept 10.5281/zenodo.20212091).''
+\end{quote}
+
+\section*{(2) Correction: scoping the ``no ontology'' language}
+
+Several places in VR-Forms state, without qualification, that ``the cycle ascribes no ontology''
+(and the ``ontological register'' label is dropped on that basis). Read at face value this is a
+\emph{blanket} denial of ontology, and it collides with the global membership relation $\in$ that
+VR-Sets does carry. The intended and accurate claim is narrower: VR ascribes no ontology \emph{of
+substance} --- no object that \emph{is} prior to operations; being is relocated into doing. It is not
+the claim that the cycle ascribes no ontology \emph{at all}: the operational/set layer carries genuine
+relational and structural commitments (global $\in$, potentialist infinity, relational identity),
+which are \emph{tracked} (the two registers and the axiom tiers), not denied. Accordingly every
+unqualified ``ascribes no ontology'' should read ``ascribes no ontology \emph{of substance}''; the
+disclaimer, where it belongs, localises to the \emph{formal} register (``syntactic descriptions
+without ontological commitment''), not to the cycle as a whole.
+
+\section*{Why VR-Forms is otherwise unaffected}
+
+VR-Forms (the operational two-register apparatus over VR-Sets, with the conservativity and transit
+results) does not depend on the removed layer: its content references VR only through the operational
+reading and the nullary base $\emptyset$, which is unchanged in v1.1.1. The Lean module
+(\texttt{VRCycle.Forms}) contains no reference to the removed objects (\texttt{VRBool},
+\texttt{impl}, A1, A2), and the build is unaffected. The ``propositional floor'' of the conservativity
+theorem (\texttt{Forms/Conservativity.lean}) is an internal technical layer of Forms, unrelated to
+VR's former $\to$ operator.
+
+\vfill
+\noindent\emph{Prepared with the assistance of Claude (Anthropic, Opus 4.8) in the cycle's Variant A
+architecture; all mathematical content and positions are due to the author, Vitaly Reznik.}
+
+\end{document}

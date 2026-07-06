@@ -1,0 +1,60 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\title{\textbf{VR. A Formal System --- v1.1.2 (revision note)}\\[2pt]
+\large An added clarification of the ontological status of the nullary base (operational reading)}
+\author{Vitaly Reznik}
+\date{2026 --- Version 1.1.2 (revision note)}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{Scope.} This is the revision delta for \emph{VR. A Formal System} v1.1.2. \emph{No
+construction, definition, theorem, or axiom-profile is altered.} The single change is an added
+clarification --- an interpretive-layer paragraph --- stating the ontological status of the nullary
+base \emph{positively}. v1.1.1 already says, correctly, that ``$\emptyset$ is a nullary operation, not a
+posited thing; there are only operations''. That is the negative half (no ontology of substance); this
+note adds the positive half, so the reading is not mistaken for a claim of \emph{zero} ontology.
+
+\section*{The clarification (operational reading --- the status of the base)}
+
+Stating only that $\emptyset$ is ``not a posited thing'' leaves open the natural objection: to posit that
+there \emph{is} an operation is itself a commitment. The corrected reading owns this. Add, as an
+operational-reading remark:
+
+\begin{quote}
+The claim ``there are only operations; $\emptyset$ is a nullary operation, not a posited thing'' removes
+any ontology \emph{of substance} --- no object that \emph{is} prior to operations. It does not claim the
+absence of ontology altogether. To posit that there is an operation --- that there is doing --- is itself
+a minimal ontological commitment, and VR makes exactly one: this single act. The commitment is not
+arbitrary but \emph{self-affirming}: to deny that there is operation is already to perform one (the
+denial). VR's base is therefore best described not as ``no ontology'' but as the \emph{thinnest,
+self-affirming} ontology --- one act, ``there is doing'', nothing further presupposed.
+\end{quote}
+
+\noindent A fuller transcendental treatment (the retortion structure; and why grounding the operation in
+a \emph{physical} fact does not help --- it only trades a thin commitment for the heavier one of
+physicalism, and makes necessary arithmetic hostage to contingent physics) is deferred to the
+accompanying philosophical essay, not carried in this formal work.
+
+\section*{Why VR. A Formal System is otherwise unaffected}
+
+The change is interpretive only. The formal content --- the free term-algebra on
+$\{\emptyset\ (\text{nullary}),\ t\ (\text{unary})\}$ with the recursor, membership defined, A3
+(succession) and A4 (induction) as theorems, and the axiom-free profile $[\,]$ --- is untouched, as is
+the Lean module \texttt{VRCycle.VR}. The nullary base $\emptyset$ is characterised exactly as before by
+$\forall x\,\neg(x \in \emptyset)$; only its \emph{reading} is made precise.
+This note refers to \emph{VR. A Formal System} v1.1.1 (Zenodo DOI 10.5281/zenodo.20688164; concept
+10.5281/zenodo.20212091).
+
+\vfill
+\noindent\emph{Prepared with the assistance of Claude (Anthropic, Opus 4.8) in the cycle's Variant A
+architecture; all mathematical content and positions are due to the author, Vitaly Reznik.}
+
+\end{document}

@@ -1,0 +1,149 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{cor}[thm]{Corollary}
+\theoremstyle{remark}
+\newtheorem{rem}[thm]{Remark}
+
+\newcommand{\OSetZFA}{\textsf{OSetZFA}}
+\newcommand{\OpSet}{\textsf{OpSet}}
+\newcommand{\eq}{\approx}
+\providecommand{\llbracket}{[\![}
+\providecommand{\rrbracket}{]\!]}
+
+\title{\textbf{VR-Sets-ZFA --- v1.0.2 (revision note)}\\[2pt]
+\large Changes over v1.0.1: ZF$^-$ on \OSetZFA, a corrected IV.4, and the cost-of-quotient
+relation to VR-Sets (Brouwer Edition)}
+\author{Vitaly Reznik}
+\date{2026 --- Version 1.0.2 (revision note)}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{Scope.} This is the revision delta for VR-Sets-ZFA v1.0.2; Parts~I--VII of v1.0.1
+are unchanged except as stated below. Three changes: (A) the relation to VR-Sets (Brouwer Edition) is
+made explicit, recasting VR-Sets-ZFA's role as the \emph{quotiented twin} that measures the cost of
+the quotient; (B) the strict inclusion of \S IV.4 is now \emph{earned} rather than asserted, because
+(C) the ZF$^-$ axioms are now machine-verified on \OSetZFA{} itself. All Lean objects named below are
+in module \texttt{VRCycle.SetsZFA}; the build is green and sorry-free.
+
+%======================================================================
+\section{(A) Relation to VR-Sets (Brouwer Edition): the cost of the quotient}
+
+VR-Sets-ZFA was motivated (\S I.2) by the observation that the inductive \texttt{PSet} foundation of
+VR-Sets makes non-well-foundedness impossible in \texttt{OSet} (\texttt{AFA\_Refuted},
+\texttt{quineAtom\_impossible}), so a \emph{coinductive} universe \OSetZFA{} was built to obtain AFA.
+That motivation is now \textbf{historical}. VR-Sets has since been rebuilt on the Brouwer path
+(VR-Sets, Brouwer Edition) on a different carrier --- the pointed graph \OpSet, with identity carried
+as a \emph{witnessed bisimulation and no quotient}. There the Quine atom is a one-vertex self-loop and
+Anti-Foundation is a theorem with axiom profile \texttt{[]} (fully axiom-free,
+\texttt{OpSet.afa}): a member is the same graph re-pointed, so nesting --- including self-membership
+--- is native, and decoration is almost definitional.
+
+VR-Sets-ZFA's actual, current role is the \textbf{quotiented twin} of that construction, and the pair
+is itself a result: the \emph{same} content (Anti-Foundation) costs \texttt{[]} in the relational
+form (\OpSet) and the full ceiling \texttt{[propext, Classical.choice, Quot.sound]} in the quotiented
+form (\OSetZFA). Forming the quotient Skolemises the bisimulation's existential witnesses --- VR's
+transit asymmetry --- and uniqueness must select representatives by \texttt{Classical.choice} and run
+\texttt{PFunctor.M.bisim} through the choice-pulling destructor \texttt{dest}. This is the sharpest
+quantitative illustration of the transit asymmetry in the cycle: not ``the quotient pulls choice
+somewhere'', but one theorem, its profile before and after the quotient.
+
+\begin{rem}[The two universes, read together]
+We read the two works together as the equivalence $\OSetZFA \simeq \OpSet/\!\eq$, with VR-Sets-ZFA the
+quotient of which the Brouwer Edition is the choice-free floor. \textbf{This equivalence is a
+prose-level reading, not yet machine-checked} (in the modality of Conjecture~IV.2); its formalisation
+--- the \texttt{M.corec} unfolding of a graph, descent through the quotient, and bijectivity on the
+$\eq$-classes --- is a single \texttt{Bridge} file, a candidate for v1.1.
+\end{rem}
+
+%======================================================================
+\section{(C) ZF$^-$ axioms on \OSetZFA}
+
+v1.0.1 proved AFA on \OSetZFA{} and a strict $\in$-preserving embedding of the well-founded universe,
+but it did \emph{not} verify the ZF axioms on \OSetZFA{} itself --- only $\varnothing$, singleton and
+extensionality were present. They are now all machine-checked, so that \OSetZFA{} is a model of ZF
+minus Foundation (Foundation being supplied by AFA).
+
+\begin{thm}[Pairing, Union, Power]
+$z \in \{a,b\} \leftrightarrow z = a \vee z = b$ (\texttt{mem\_pair});
+$z \in \bigcup x \leftrightarrow \exists y,\ y \in x \wedge z \in y$ (\texttt{mem\_sUnion});
+$z \in \wp\,x \leftrightarrow z \subseteq x$ (\texttt{mem\_powerset}). Each is built at the
+\texttt{CoPSet} level as a single \texttt{mk}\,$\alpha\,A$ touching only the top branching levels (the
+coinductive structure affects only equality, supplied by \texttt{isBisim\_Equiv} /
+\texttt{bisim\_imp\_Equiv}); the workhorse \texttt{CoPSet.mk\_equiv\_of\_coverage} reduces each
+well-definedness obligation to a child-coverage check. Power set is a verbatim \texttt{PSet.powerset}
+calque --- no special difficulty from the coinductive quotient.
+\end{thm}
+
+\begin{thm}[Separation and Replacement --- operational]
+For a predicate $p:\OSetZFA\to\mathrm{Prop}$,
+$z \in \{w \in x \mid p\,w\} \leftrightarrow z \in x \wedge p\,z$ (\texttt{mem\_sep}); for a function
+$F:\OSetZFA\to\OSetZFA$, $z \in \{F\,y \mid y \in x\} \leftrightarrow \exists y,\ y \in x \wedge
+F\,y = z$ (\texttt{mem\_image}). Because $p$ and $F$ are first-class objects \emph{over the quotient},
+they are automatically $\eq$-invariant: the collapse of the first-order Separation/Replacement
+\emph{schemas} into single quantified-over-an-object statements is the operational reification of
+describability, not a generic type-theoretic accident.
+\end{thm}
+
+\begin{thm}[Infinity]
+With the von Neumann successor $\mathrm{succ}\,x := \texttt{insert}\,x\,x = x\cup\{x\}$ and $\omega$
+the set of von Neumann naturals: $\varnothing \in \omega$ and $\forall x,\ x \in \omega \to
+\mathrm{succ}\,x \in \omega$ (\texttt{infinity}); $z \in \omega \leftrightarrow \exists n,\ z =
+\llbracket\texttt{ofNat}\,n\rrbracket$ (\texttt{mem\_omega}). The naturals match VR's $O_n$ and
+mathlib's \texttt{ZFSet.omega}.
+\end{thm}
+
+\begin{rem}[\OSetZFA{} models ZF$^-$, at the M-type ceiling]
+With Extensionality, $\varnothing$, Pairing, Union, Power, Separation, Replacement and Infinity
+verified, and Foundation supplied as AFA, every member of \OSetZFA{} obeys the ZF$^-$ axioms as
+machine-checked theorems. All witnesses sit at \texttt{[propext, Classical.choice, Quot.sound]} --- the
+M-type ceiling inherited from \texttt{PFunctor.M.dest}, not the set theory (the choice-free
+counterparts live on the \OpSet{} carrier, \S1). \textbf{Honest boundary:} each axiom holds in
+\OSetZFA{} as a theorem; \OSetZFA{} is not itself given a first-order satisfaction relation --- that
+``$\models$ ZF$^-$'' reading stays metatheory, as elsewhere in the cycle.
+\end{rem}
+
+%======================================================================
+\section{(B) Correction to \S IV.4 --- ZFC $\subsetneq$ ZFA earned}
+
+v1.0.1's \S IV.4 stated ``ZFC $\subsetneq$ ZFA''. What it had machine-checked was the strict inclusion
+of \emph{carriers with membership}: \texttt{embedOSet} is injective (\texttt{embedOSet\_injective}) and
+$\in$-preserving (\texttt{embedOSet\_mem}), and the Quine atom witnesses non-surjectivity
+(\texttt{quineAtom\_not\_in\_range\_embedOSet}). That is an inclusion of \emph{universes}, not yet of
+\emph{theories}: ``ZFA universe'' was not fully earned because the ZF$^-$ axioms were not verified on
+\OSetZFA. With \S2 above, the gap is closed.
+
+\begin{thm}[\S IV.4, corrected]
+$\OSetZFA{}$ is a model of ZF$^-$ (\S2); \texttt{OSet} is the grounded (well-founded) fragment, and
+$(\texttt{OSet},\in)\subsetneq(\OSetZFA,\in)$ strictly, with the Quine atom the explicit witness of the
+strictness. Hence the inclusion is of \emph{universes both modelling ZF$^-$}, the well-founded one
+properly inside the one admitting cycles --- the earned form of ``ZFC $\subsetneq$ ZFA''.
+\end{thm}
+
+\noindent The boundary of the previous remark applies: this is an inclusion of machine-checked models,
+not a metatheoretic theorem-set inclusion (which stays, as throughout the cycle, in the metatheory).
+
+%======================================================================
+\section*{Acknowledgement of AI assistance}
+This revision and its companion Lean~4 additions were prepared with the assistance of Claude
+(Anthropic, Opus~4.8), in the Variant~A architecture of the VR cycle: a human curator directing a
+model serving as architect and implementer. All mathematical content, definitions, theorems and
+positions are due to the author, Vitaly Reznik.
+
+\section*{References (new)}
+\begin{itemize}
+\item V. Reznik, \emph{VR-Sets: An Operational Set Theory Unifying ZFC and ZFA (Brouwer Edition)}.
+Zenodo, 2026. DOI 10.5281/zenodo.20643407, v1.1.0 (concept 10.5281/zenodo.20303535).
+\item The VR Cycle Lean~4 formalisation, \url{https://github.com/inventor1975/VRCycle}, modules
+\texttt{VRCycle.SetsZFA} (this work) and \texttt{VRCycle.SetsOp} (Brouwer Edition).
+\end{itemize}
+
+\end{document}

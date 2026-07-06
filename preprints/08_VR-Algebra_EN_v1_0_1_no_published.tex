@@ -1,0 +1,57 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\title{\textbf{VR-Algebra --- v1.0.1 (revision note)}\\[2pt]
+\large Synchronisation with VR v1.1.1 (one-line correction of the parent description and DOI)}
+\author{Vitaly Reznik}
+\date{2026 --- Version 1.0.1 (revision note)}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{Scope.} This is the revision delta for VR-Algebra v1.0.1. \emph{No structure,
+definition, theorem, finding, or axiom-profile of VR-Algebra is altered.} The single change is
+editorial: the recall of the parent work VR (and its citation) is brought up to date with VR v1.1.1.
+
+\section*{The correction}
+
+The preliminaries described VR as
+
+\begin{quote}
+``VR. A Formal System (Reznik, 2026; Zenodo DOI \texttt{10.5281/zenodo.20212092}) --- a minimal
+axiomatisation of arithmetic on \textbf{three primitives} $\{\emptyset,\to,t\}$ and \textbf{four
+axioms}, equivalent to Peano arithmetic.''
+\end{quote}
+
+This is superseded on two counts. (i) \textbf{The primitive count and the axioms.} In VR v1.1.1 the
+propositional implication $\to$ (and the principles A1, A2 and the two-valued logical register) are
+\textbf{removed}: $\to$ generated only a finite truth-function algebra used by no VR theorem ---
+arithmetic, not logic --- and VR generates no logic of its own. (ii) \textbf{The DOI} cited
+(\texttt{20212092}) is the original v1.0; the current version is v1.1.1. The corrected recall reads
+
+\begin{quote}
+``VR. A Formal System (Reznik, 2026; Zenodo DOI \texttt{10.5281/zenodo.20688164}, v1.1.1; concept
+\texttt{10.5281/zenodo.20212091}) --- a minimal \emph{axiom-free} reconstruction of arithmetic on
+\textbf{two primitives} $\{\emptyset, t\}$, with no axioms of its own, equivalent to first-order
+Peano arithmetic.''
+\end{quote}
+
+\section*{Why VR-Algebra is otherwise unaffected}
+
+VR-Algebra (the operational tracking discipline applied to algebraic structures) does not depend on
+the removed layer: it references VR only as the foundational arithmetic, through the operational
+reading and the nullary base $\emptyset$, unchanged in v1.1.1. The Lean module
+(\texttt{VRCycle.Algebra}) contains no reference to the removed objects (\texttt{VRBool},
+\texttt{impl}, A1, A2), and the build and axiom profiles are unaffected.
+
+\vfill
+\noindent\emph{Prepared with the assistance of Claude (Anthropic, Opus 4.8) in the cycle's Variant A
+architecture; all mathematical content and positions are due to the author, Vitaly Reznik.}
+
+\end{document}

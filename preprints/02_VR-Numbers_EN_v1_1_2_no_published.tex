@@ -1,0 +1,494 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\zero}{\varnothing}
+\newcommand{\F}{\mathsf{F}}
+\newcommand{\T}{\top}
+\newcommand{\Obj}{O}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\N}{\mathbb{N}}
+% expression builders / operations
+\newcommand{\isub}{\ominus}              % integer expression a (-) b
+\newcommand{\fdiv}{\oslash}              % fraction expression a (/) b
+
+\title{\textbf{VR-Numbers.}\\[2pt]
+\large Operational Superstructures of Integers, Rationals, Reals, and Complex Numbers
+over the Natural Numbers of VR}
+\author{Vitaly Reznik\\ \small ORCID: 0009-0002-4103-6387}
+\date{2026 --- Version 1.1.2}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Building on VR (Reznik, 2026), the axiom-free reconstruction of arithmetic from two primitive
+operations $\{\zero,t\}$, we develop \textbf{VR-Numbers} --- a program of operational
+superstructures yielding $\Z,\Q,\R,\C$ over VR's natural numbers $\N$. The construction uses no set-theoretic
+(Kuratowski) ordered pairs --- pairing is a syntactic \emph{operation}, not an object; each numerical
+extension is a formal language of expressions
+with equivalence relations and operations. The entire system rests on the base operation $\zero$
+alone --- a nullary operation, carrying no ontology \emph{of substance}; all numerical objects --- including $\N$ ---
+arise as operational constructions (terms over the operations) of progressively greater depth.
+Classical actual infinity is replaced by operational infinity: the induction principle is read as an
+operational principle, not as a postulate of completed infinite totalities. $\C_{VR}$ is the standard
+two-component construction over $\R_{VR}$ (a real and an imaginary part, joined by the postulate
+$i^2=\isub 1$), requiring no posited ordered pairs. The
+structures $\Z_{VR}$, $\Q_{VR}$, $\C_{VR}$ are isomorphic to their standard counterparts;
+$\R_{VR}$, built from Cauchy sequences with a \emph{computable modulus of convergence}, is
+isomorphic to the field of computable real numbers --- a countable subfield of classical $\R$ ---
+reflecting the operational character of the construction. The Lean companion's axiom profile is not
+inherited from VR's empty $[\,]$: the superstructures rest on quotient types
+($[\texttt{propext}, \texttt{Quot.sound}]$), and isomorphism bridges to the standard
+library (Lean Core's \texttt{Rat}) pull \texttt{Classical.choice} (Part~VIII).
+\\[3pt]
+\emph{Keywords:} foundations of mathematics, operational extensions, operational infinity,
+integer/rational/real/complex construction, Cauchy sequences with computable modulus, computable analysis.
+\\[3pt]
+\textbf{Version note (1.1.2).} Scopes the ``no ontology'' language to \emph{no ontology of substance} (\S VI and the Summary): a wording correction --- VR-Numbers ascribes no \emph{substantial} primitive, yet does carry relational and structural commitments (the membership relation $\in$, the successor-identity of the $t^n(\zero)$), which are \emph{tracked}, not denied; no construction, equivalence, operation, or theorem is altered. It otherwise inherits v1.1.1, which re-synchronised VR-Numbers with the parent work VR \textbf{v1.1.1}, which \emph{removed} the propositional implication $\to$ (and the principles A1, A2 and the $\F$/$\zero$ logical register): VR is now pure arithmetic on two operations $\{\zero, t\}$, generating no logic of its own. Accordingly Part~I is restated for $\{\zero, t\}$, and \textbf{Part~V no longer grounds the two-dimensionality of $\C$ in ``the duality of A1''} --- that grounding rested on the now-removed $\F\to\F$/$\F\to\T$ axes and was an over-claim ($i^2=\isub 1$ is a separate postulate, as \S V.4 notes, so A1 gave a coincidence of count, not a derivation). $\C_{VR}$ is presented as the standard two-component construction over $\R_{VR}$ with $i^2=\isub 1$. \emph{No construction, equivalence, operation, or theorem is altered}; only the A1-grounding narrative is removed. (Earlier sync notes for v1.1.0 and 1.0.2--1.0.3 are superseded here.)
+\end{abstract}
+
+\tableofcontents
+
+%======================================================================
+\section*{Part I. Foundation: VR and $\N$ (axiom-free)}
+\addcontentsline{toc}{section}{Part I. Foundation: VR and N}
+
+This work builds on the formal system VR (Reznik, 2026, \emph{An Axiom-Free Reconstruction of
+Arithmetic from Operations Alone}; DOI 10.5281/zenodo.20633314). We recall its essentials in the
+form fixed by VR v1.1.1.
+
+\paragraph{Primitive operations.} VR is generated by \textbf{two} operations: the nullary base $\zero$ and the
+unary succession $t$. Every object is a \emph{term} over this signature; nothing is posited beyond
+what these operations generate. (VR through v1.1.0 listed a third, a propositional implication $\to$;
+VR v1.1.1 removed it as a finite truth-function algebra used by no theorem --- arithmetic, not logic.
+VR generates no logic; the logic used here is metatheoretic.)
+
+\paragraph{No axioms of its own.} What earlier versions called named principles are, under
+the operational reading, definitions or theorems over the freely generated term-algebra. (A1 and A2,
+which governed the removed propositional layer, no longer appear in VR v1.1.1.)
+\begin{itemize}
+\item \textbf{A3} is the \emph{theorem} that $t(x)$ has the von Neumann content
+$x\in t(x)$ and $x\subseteq t(x)$; it follows from the definition of membership below. ($t$ is the
+primitive succession; $t(x)=x\cup\{x\}$ is a gloss, with $\cup,\{\cdot\}$ abbreviations, not primitives.)
+\item \textbf{A4} (induction) is the \emph{recursor} of the inductive term-algebra: the $\Obj_n$
+exhaust the objects generated from $\zero$ by $t$.
+\end{itemize}
+Thus VR is axiom-free relative to the type-theoretic framework (the free term-algebra on
+$\{\zero,t\}$ and its recursor); what Peano postulates, VR derives.
+
+\paragraph{Membership is defined.} $\in$ is not a primitive but a relation defined by structural
+recursion: $z\in\zero := \bot$ and $z\in t(y) := (z\doteq y)\vee(z\in y)$ ($\bot,\vee$ metatheoretic; \texttt{mem} is \texttt{Prop}-valued), where $\doteq$ is structural
+term-identity (coinciding with Leibnizian equality below by theorem).
+
+\paragraph{Natural numbers and equality.} $\Obj_0=\zero,\ \Obj_1=t(\zero)=\{\zero\},\
+\Obj_2=\{\zero,\{\zero\}\},\dots$; the natural number $n$ is the term $\Obj_n$. Equality is
+Leibnizian, $x=y :\Leftrightarrow \forall p:\ p(x)\leftrightarrow p(y)$, read schematically. VR is
+arithmetically equivalent to first-order PA and consistent relative to ZF (a metatheoretic corollary).
+
+\paragraph{Operational status.} There is no ontological primitive: $\zero$ is itself a nullary
+operation, characterised solely by $\forall x\,\neg(x\in\zero)$. All other objects, the naturals
+included, are terms over the operations: $\Obj_n$ is not an independent existing thing but the result
+of $n$ applications of $t$ to $\zero$. The content of $n$ is its operational history. This operational
+position is the foundation of the present work: nothing simply ``exists'' --- objects are terms over
+operations, of progressively greater depth.
+
+\paragraph{Notation.} Expression builders: $a\isub b$ (integer), $a\fdiv b$ (fraction),
+$a\oplus b\cdot i$ (complex). Operations are written with the symbols $\oplus,\otimes,\boxminus$
+(integers), $\boxplus,\boxtimes,\boxminus_{\Q},\oslash_{\Q}$ (rationals), and a subscript naming the
+system where needed ($\oplus_{\R},\otimes_{\R},\dots$); per \S VI.3 every such symbol is read
+operationally.
+
+%======================================================================
+\section*{Part II. Integers $\Z$ as an operational superstructure}
+\addcontentsline{toc}{section}{Part II. Integers}
+
+\paragraph{II.1 Language of subtraction.} Extend VR by a binary symbol $\isub$. An expression
+$a\isub b$ ($a,b\in\N$) records the operation ``subtract $b$ from $a$''. It is not a set-theoretic
+(Kuratowski) pair-object but a formal record of an operation: $\isub$ is a syntactic pairing
+\emph{operation}, and $a\isub b$ a term (a doing), not an object.
+
+\paragraph{II.2 Equivalence.} $a\isub b \approx c\isub d \Leftrightarrow a+d=b+c$ (using only
+$\N$-addition). Reflexive, symmetric, transitive (by commutativity/associativity of $+$, and the
+right-cancellation law $a+c=b+c\Rightarrow a=b$ --- see \S VIII.1).
+
+\paragraph{II.3 Operations.}
+$(a\isub b)\oplus(c\isub d):=(a+c)\isub(b+d)$;\quad
+$(a\isub b)\otimes(c\isub d):=(a\times c+b\times d)\isub(a\times d+b\times c)$;\quad
+$\ominus(a\isub b):=b\isub a$;\quad
+$(a\isub b)\boxminus(c\isub d):=(a+d)\isub(b+c)$ (definable as $\oplus\,\ominus$). All well-defined on
+classes.
+
+\paragraph{II.4 Canonical form.} If $a\ge b$: $(a-b)\isub 0$; if $a<b$: $0\isub(b-a)$.
+
+\paragraph{II.5 Order.} $[a\isub b]$ is \emph{positive} iff $a>b$ in $\N$ (i.e.\ $a=b+\Obj_k$ for some
+$\Obj_k\neq\Obj_0$); and $[x]>[y] :\Leftrightarrow [x]\boxminus[y]$ is positive. This makes
+$\Z_{VR}$ a (decidably) ordered ring; positivity is decidable via the canonical form. (Order is
+inherited below by $\Q_{VR}$ and $\R_{VR}$; the symbols $\varepsilon>0$, $|\cdot|$ used later
+refer to this order.)
+
+\paragraph{II.6 Embedding $\N\to\Z_{VR}$.} $n\mapsto[n\isub 0]$.
+
+\begin{theorem}
+$\Z_{VR}=(\{[a\isub b]\},\oplus,\otimes,\boxminus,>)$ is an ordered commutative ring with unit,
+isomorphic to $\Z$.
+\end{theorem}
+\emph{Proof sketch.} $\varphi([a\isub b])=a-b$ is well-defined on classes, respects operations and
+order, and is bijective.
+
+%======================================================================
+\section*{Part III. Rationals $\Q$ as an operational superstructure}
+\addcontentsline{toc}{section}{Part III. Rationals}
+
+\paragraph{III.1 Language of division.} A symbol $\fdiv$; an expression $a\fdiv b$
+($a,b\in\Z_{VR}$, $b\neq 0_{\Z}$) records ``divide $a$ by $b$''. The restriction $b\neq 0_{\Z}$ is
+syntactic, decidable via the canonical form.
+
+\paragraph{III.2 Equivalence.} $a\fdiv b \approx_{\Q} c\fdiv d \Leftrightarrow a\otimes d = b\otimes c$
+(integral-domain cancellation on $\Z_{VR}$; see \S VIII.3).
+
+\paragraph{III.3 Operations.}
+$(a\fdiv b)\boxplus(c\fdiv d):=(a\otimes d\oplus b\otimes c)\fdiv(b\otimes d)$;\quad
+$(a\fdiv b)\boxtimes(c\fdiv d):=(a\otimes c)\fdiv(b\otimes d)$;\quad
+$(a\fdiv b)\boxminus_{\Q}(c\fdiv d):=(a\otimes d\boxminus b\otimes c)\fdiv(b\otimes d)$;\quad
+$(a\fdiv b)\oslash_{\Q}(c\fdiv d):=(a\otimes d)\fdiv(b\otimes c)$, provided $c\neq 0_{\Z}$.
+
+\paragraph{III.4 Canonical form.} Make the denominator positive (in the $\Z_{VR}$-order, \S II.5)
+and reduce to lowest terms.
+
+\paragraph{III.5 Order and embedding.} $a\fdiv b$ (denominator made positive) is positive iff $a$ is
+positive in $\Z_{VR}$; this orders $\Q_{VR}$. Embedding $\Z_{VR}\to\Q_{VR}$: $a\mapsto[a\fdiv 1_{\Z}]$.
+
+\begin{theorem}
+$\Q_{VR}$ with $\boxplus,\boxtimes,\boxminus_{\Q},\oslash_{\Q},>$ is an ordered field, isomorphic to $\Q$.
+\end{theorem}
+
+%======================================================================
+\section*{Part IV. Real numbers $\R$ via Cauchy sequences (computable modulus)}
+\addcontentsline{toc}{section}{Part IV. Reals}
+
+Real numbers require infinite processes, captured operationally as finite descriptions of them.
+
+\paragraph{IV.1 Functions as operational rules.} A function $a:\N\to\Q_{VR}$ is an operational rule:
+a finite description (algorithm) producing $a(n)\in\Q_{VR}$ for each $n$. Functions are not sets of
+ordered pairs but operational primitives. Each is captured by its finite description; the collection of
+such descriptions is operationally countable. Operationally, $a$ is a partial recursive (Church--Turing,
+equivalently Type-2 computable) function (Weihrauch, 2000); the construction coincides with the
+standard development of computable reals via computable Cauchy sequences (Pour-El \& Richards,
+1989) --- a natural operational route to the computable reals, the one adopted here. (Dedekind cuts
+with a computable predicate, nested intervals, or signed-digit representations would serve equally:
+the operational position dictates the \emph{goal} --- the computable reals --- not a unique method.)
+
+\paragraph{IV.2 Fundamental (Cauchy) sequences, with a computable modulus.} A function
+$a:\N\to\Q_{VR}$ is \emph{fundamental} if
+\[
+  \forall\varepsilon\in\Q_{VR},\ \varepsilon>0,\ \exists N\in\N:\ \forall m,n\ge N:\
+  |a(m)\boxminus_{\Q} a(n)|<\varepsilon.
+\]
+Crucially, the witness $N$ must itself be \emph{operational}: a \textbf{modulus of convergence}
+$N(\varepsilon)$ given by a finite description (an algorithm computing $N$ from $\varepsilon$). This is
+the operational reading of $\exists N$ (\S VI.3) and is not an extra hypothesis but the content of
+``operational rule''. Without a computable modulus a (computable) \emph{Specker sequence} ---
+classically Cauchy but with a non-computable limit --- would qualify, and its class would fall outside
+the computable reals, breaking \S IV.7. With the modulus computable, the limit is computable
+(Pour-El \& Richards). The Lean realisation cannot express this restriction in a single type and
+proves the wider classical statement; see \S VIII.6.
+
+\paragraph{IV.3 Equivalence.}
+$a\approx_C b \Leftrightarrow \forall\varepsilon>0,\ \exists N:\ \forall n\ge N:\
+|a(n)\boxminus_{\Q} b(n)|<\varepsilon$ (with a computable modulus, as in \S IV.2).
+
+\paragraph{IV.4 The construction.} $\R_{VR}$ is the set of $\approx_C$-classes of fundamental sequences.
+
+\paragraph{IV.5 Operations.} Componentwise on representatives:
+$[a]\oplus_{\R}[b]:=[n\mapsto a(n)\boxplus b(n)]$;\
+$[a]\otimes_{\R}[b]:=[n\mapsto a(n)\boxtimes b(n)]$;\
+$[a]\boxminus_{\R}[b]:=[n\mapsto a(n)\boxminus_{\Q} b(n)]$.
+\emph{Division} $[a]\oslash_{\R}[b]$, for $[b]\neq 0$, requires a representative \textbf{bounded away
+from zero} (apartness): since $[b]\neq 0$ there are $k$ and a positive rational $\delta$ with
+$|b(n)|>\delta$ for all $n\ge k$; choosing such a representative, $[a]\oslash_{\R}[b]:=
+[n\mapsto a(n)\oslash_{\Q} b(n)]$ (for $n\ge k$) is well-defined. Apartness from $0$, not mere
+$[b]\neq 0$, is what makes componentwise division total on a chosen representative.
+
+\paragraph{IV.6 Embedding $\Q\to\R_{VR}$.} $q\mapsto[n\mapsto q]$ (constant sequence).
+
+\paragraph{IV.7 Isomorphism theorem.}
+\begin{theorem}
+$\R_{VR}$ is a real closed ordered field, isomorphic to the field of computable real numbers ---
+a countable subfield of the classical real line $\R$.
+\end{theorem}
+\noindent\textbf{What Lean certifies.} The machine-checked isomorphism is with the \emph{full
+classical} $\R$ (the Lean type $\N\to\Q_{VR}$ contains every total function); the restriction to the
+\emph{computable} reals stated in the theorem is metatheoretic --- see \S VIII.6. The gap is
+deliberate and worth naming: the position's object (a countable, \emph{computable} $\R_{VR}$) and the
+machine-certified object (the classical, uncountable $\R$) are not the same --- the formalisation
+verifies \emph{more} than the operational thesis claims; and since $\C_{VR}$ is built over $\R_{VR}$, the
+same gap carries to $\C$. Real-closedness ---
+that roots of polynomials with computable coefficients are computable, notwithstanding the
+undecidability of the sign of a computable real --- is the strongest algebraic claim here
+(Pour-El \& Richards, 1989).
+\begin{remark}
+$\R_{VR}$ is not isomorphic to the entire classical $\R$: the latter has the cardinality of the
+continuum, whereas $\R_{VR}$, consisting of operational rules each given by a finite description with
+a computable modulus, is countable. Concretely, $\R_{VR}$ captures exactly the reals \emph{admitting
+an algorithm that produces arbitrarily close rational approximations} (the computable reals) --- the
+algebraic numbers, $\pi$, $e$, and so on. A real merely \emph{definable} by a finite description need
+not be computable (e.g.\ Chaitin's $\Omega$, or the halting real) and is not among them; non-computable
+reals of classical $\R$ have no place here, corresponding to no algorithm. This aligns VR-Numbers
+with the constructive tradition (Bishop, 1967; Martin-L\"of, 1984).
+\end{remark}
+\begin{remark}[relation to the continuum]
+This $\R_{VR}$ is the \emph{Cauchy/computable} operational real --- countable. It is a distinct
+construction from the choice-sequence (Brouwer) continuum pursued elsewhere in the cycle, which is
+non-enumerable; the two are different operational readings of ``the reals'', not the same object.
+\end{remark}
+
+\paragraph{IV.8 Operational character.} A real in VR is, formally, an algorithm: a finite description
+specifying how to compute arbitrarily close rational approximations (e.g.\ $\sqrt 2$ by Newton's method).
+
+%======================================================================
+\section*{Part V. Complex numbers $\C$}
+\addcontentsline{toc}{section}{Part V. Complex numbers}
+
+In standard mathematics $\C$ is built as ordered pairs of reals with a special multiplication. We
+build it without posited ordered pairs --- as a two-component structure over $\R_{VR}$ (a real and an
+imaginary part), with the algebraic coupling $i^2=\isub 1$.
+
+\paragraph{V.1 Two components.} A complex value carries two real components: a \emph{real} part
+(along which $\N\to\Z\to\Q\to\R$ unfolds) and an \emph{imaginary} part, where expressions
+$b\cdot i$ live; $i$ is not a number but a syntactic marker of which component a value belongs to.
+(Earlier versions ascribed the two components to a ``duality of A1'' --- the implications
+$\F\to\F$/$\F\to\T$; that grounding is dropped in v1.1.1 with the removal of the propositional
+layer. The two-dimensionality is simply the construction's two components, not a consequence of logic.)
+
+\paragraph{V.2 The joining rule.} To make $\C$ one structure rather than two disjoint copies of $\R$,
+the two components are coupled by $i\otimes i := \isub 1$ (i.e.\ $-1$): applying the imaginary marker twice equals
+negation along the real axis. This joining rule is an additional postulate.
+
+\paragraph{V.3 The construction.} A complex number is a formal expression $a\oplus b\cdot i$ ($a,b\in\R_{VR}$) ---
+a syntactic record of two real components, not a set-theoretic ordered pair (pairing here is a syntactic operation). Equivalence: $a\oplus b\cdot i
+\approx c\oplus d\cdot i \Leftrightarrow a=c$ and $b=d$ in $\R_{VR}$. Operations:
+$(a\oplus b\cdot i)\oplus_{\C}(c\oplus d\cdot i):=(a\oplus_{\R} c)\oplus(b\oplus_{\R} d)\cdot i$;\
+$(a\oplus b\cdot i)\otimes_{\C}(c\oplus d\cdot i):=(a\otimes_{\R} c\boxminus_{\R} b\otimes_{\R} d)
+\oplus(a\otimes_{\R} d\oplus_{\R} b\otimes_{\R} c)\cdot i$; conjugation $a\oplus(\ominus b)\cdot i$;
+modulus $\sqrt{a\otimes_{\R} a\oplus_{\R} b\otimes_{\R} b}$. Embedding $\R\to\C_{VR}$:
+$a\mapsto a\oplus 0\cdot i$.
+
+\begin{theorem}
+$\C_{VR}$ is a field, isomorphic to the standard $\C$ (with $\R$ replaced by $\R_{VR}$; the result is
+the field of computable complex numbers).
+\end{theorem}
+
+\paragraph{V.4 On two-dimensionality.} The two-dimensionality of $\C$ is the construction's two
+components together with the postulate $i^2=\isub 1$; it is not derived from anything more primitive.
+(Earlier versions claimed a ``logical origin'' in the duality of A1; this is withdrawn --- it rested on
+the now-removed $\F\to\F$/$\F\to\T$ axes, and even then $i^2=\isub 1$ was admittedly a separate
+postulate, so A1 supplied a coincidence of count, not a derivation.) The theorems of Frobenius (1878)
+and Hurwitz (1898) --- no further normed division algebra without weakening commutativity or
+associativity --- delimit the extension; whether $\mathbb{H},\mathbb{O}$ admit operational
+constructions is open (Part~VII).
+
+%======================================================================
+\section*{Part VI. The operational position of VR-Numbers}
+\addcontentsline{toc}{section}{Part VI. Operational position}
+
+VR-Numbers ascribes no ontology \emph{of substance}: there is no ontological primitive --- $\zero$ is a nullary operation,
+characterised solely by $\forall x\,\neg(x\in\zero)$. All numbers are operational constructions (terms
+over the operations) of progressively greater depth. This is not the claim that the system ascribes
+\emph{no ontology at all}: it carries relational and structural commitments --- the membership relation
+$\in$ used to characterise $\zero$, and the successor-identity of the $t^n(\zero)$ --- which are
+\emph{tracked}, not denied. What is absent is any \emph{substantial} primitive: an object that \emph{is}
+prior to operations.
+
+\paragraph{VI.1 No ontological primitive.} $\zero$ carries no ontological content --- its entire
+characterisation is $\forall x\,\neg(x\in\zero)$, a fact about $\in$, not a description of contents.
+Nothing is ``prior to operations''; $\zero$ is itself an operation. $t$ is a rule, not an object; the
+$\Obj_n=t^n(\zero)$ are records of successive applications, and that is the totality of what they are.
+
+\paragraph{VI.2 Depths of operationality.}
+\begin{center}
+\begin{tabular}{ll}
+\textbf{System} & \textbf{Operational character}\\ \hline
+$\zero$ & The nullary base operation --- depth zero of the construction (no ontology of substance)\\
+$\N$ & Direct applications of $t$ to $\zero$: $\Obj_n=t^n(\zero)$\\
+$\Z$ & Finite syntactic expressions $a\isub b$ over $\N$\\
+$\Q$ & Finite syntactic expressions $a\fdiv b$ over $\Z$\\
+$\R$ & Algorithms (computable modulus) producing rational sequences\\
+$\C$ & Two real components $a\oplus b\cdot i$ over $\R_{VR}$, joined by $i^2=\isub 1$\\
+\end{tabular}
+\end{center}
+
+\paragraph{VI.3 Operational infinity.} The induction principle A4 is conventionally read as
+postulating actual infinity --- the completed totality of all naturals as an object. We reject this
+reading: A4 asserts no infinite object, but the operational principle that any property holding for
+$\zero$ and preserved under $t$ holds for every result of iterated $t$. The quantifier ``for all $n$'' is
+operational --- universal applicability of an operation, not membership in a completed set. We call
+this \emph{operational infinity}.
+
+Operational and actual infinity \textbf{agree on arithmetical consequences}: via the equivalence
+VR $\leftrightarrow$ first-order PA, every \emph{arithmetical} theorem provable with actual infinity
+is provable here with operational infinity (and conversely). They differ in what they posit as
+existing: actual infinity asserts an infinite totality as an object; operational infinity asserts only that
+an unbounded operation is available. \emph{Beyond arithmetic the two diverge}: classical mathematics
+with actual infinity proves, e.g., the uncountability of $\R$ and the existence of non-computable reals
+--- theorems with no counterpart here, since $\R_{VR}$ is countable (\S IV.7). The equivalence is
+therefore at the level of arithmetic, not of all classical mathematics; the operational position does
+not reconstruct theorems essentially depending on completed uncountable totalities. This is a feature:
+it bypasses the Aristotelian/intuitionist objection to completed infinities without losing arithmetic.
+
+All references to ``infinite'' objects ($\N,\Z,\Q,\R,\C$) are read operationally: none is an object;
+each is a domain of applicability for operations over $\zero$. The set-theoretic vocabulary is retained
+for conformity with standard practice, with the operational reading understood (the operational
+reconstruction of that vocabulary is the subject of VR-Sets).
+
+\paragraph{VI.4 The gradient of operationality.} Each successive system is a deeper operational
+construction over $\zero$: naturals (direct $t$-iteration), integers/rationals (finite syntax with
+equivalence), reals (finite descriptions of infinite processes, with computable modulus), complex
+(a second real component, joined by $i^2=\isub 1$). The gradient mirrors the historical introduction of
+each extension and the conceptual difficulty that accompanied it.
+
+\paragraph{VI.5 What does not exist as an object.} Ordered pairs (replaced by syntactic
+juxtaposition $a\isub b,\,a\fdiv b,\,a\oplus b\cdot i$), negative numbers, fractions, reals, complex
+numbers --- none is introduced as a primitive object; each is a notation for an operational class or
+expression. \emph{Nothing is --- all is doing.}
+
+\paragraph{VI.6 Consistency relative to ZF.} $\Z_{VR},\Q_{VR},\C_{VR}$ are isomorphic to their
+standard counterparts; the computable reals form a definable subfield of $\R$ in ZF (Pour-El \&
+Richards, 1989) and $\R_{VR}$ is isomorphic to it. With the standard ZF-models for $\Z,\Q,\C$ and
+the consistency of VR relative to ZF, VR-Numbers is consistent relative to ZF (a metatheoretic
+corollary).
+
+%======================================================================
+\section*{Part VII. Open questions}
+\addcontentsline{toc}{section}{Part VII. Open questions}
+\begin{itemize}
+\item[(1)] \textbf{Type theory.} The operational view of functions ($\R$) and the marker $i$ ($\C$)
+suit Martin-L\"of-style type theories; the Lean~4 formalisation (Part~VIII) is a first step.
+\item[(2)] \textbf{Beyond $\C$.} Whether $\mathbb{H},\mathbb{O}$ (Frobenius 1878, Hurwitz 1898)
+admit analogous operational constructions.
+\item[(3)] \textbf{VR-Sets.} The operational reconstruction of set theory --- membership as ``$x$ was
+used in the construction of $y$'', unifying well-founded (ZFC) and non-well-founded (ZFA) modes ---
+is now available (Brouwer edition, DOI 10.5281/zenodo.20643407).
+\item[(4)] \textbf{Computational realization.} Each level admits direct realization for exact-arithmetic
+computation.
+\end{itemize}
+
+%======================================================================
+\section*{Part VIII. Notes from the Lean 4 formalisation}
+\addcontentsline{toc}{section}{Part VIII. Lean 4 notes}
+
+Parts~II--V are formalised in Lean~4 (Reznik, 2026, DOI 10.5281/zenodo.20352057; on Part~I's
+DOI 10.5281/zenodo.20324240), $\approx 3600$ lines (Integers/Rationals/Reals/Complex), no
+\texttt{sorry}/\texttt{admit}, axiom dependencies documented. Eight observations, in three groups.
+
+\paragraph{VIII.1 Hidden lemma (\S II.2): cancellation of addition.} ``Direct verification'' splits into
+unequal steps; transitivity needs right-cancellation $a+c=b+c\Rightarrow a=b$, proved by induction
+on $c$ using successor injectivity (P4), not by T1--T4 rewriting.
+
+\paragraph{VIII.2 Hidden lemma (\S II.3): left distributivity.} $(a+b)\times c=a\times c+b\times c$ is
+not in T1--T4 (commutativity of $\times$ is not assumed) and is proved by induction on the right
+argument; the formalisation makes this restraint visible.
+
+\paragraph{VIII.3 Hidden lemma (\S III.2): multiplicative cancellation.} Transitivity of $\approx_{\Q}$
+needs $xz=yz\Rightarrow x=y$ ($z\neq 0$); proved constructively via \texttt{Int.natAbs}, avoiding
+mathlib's general \texttt{IntegralDomain} (which would pull \texttt{Classical.choice}). Integral-domain
+cancellation on $\Z$ is constructive; the choice-dependence is infrastructural, not intrinsic.
+
+\paragraph{VIII.4 Boundary: \texttt{Classical.choice} via the $\Q$-isomorphism.} $\Z_{VR}$ is fully
+constructive (\texttt{Quot.sound}, \texttt{propext} only). The $\Q_{VR}$ \emph{construction} itself ---
+the expressions \texttt{NonZeroRatExpr}, the equivalence \texttt{ratEq}, and the operations on its
+classes --- is \emph{also} constructive (\texttt{[propext, Quot.sound]}, no \texttt{Classical.choice}).
+The choice enters only through the \emph{isomorphism} $\Q_{VR}\cong\Q$ (Theorem~2), which maps classes
+to Lean Core's \texttt{Rat} (via \texttt{Rat.divInt}), and \texttt{Rat.add}/\texttt{Rat.mul} normalise
+through \texttt{Nat.gcd} (\texttt{[propext, Classical.choice, Quot.sound]}). So the field theorems proved
+by transport along that bridge inherit the choice --- a feature of Lean's \texttt{Rat} representation,
+not of the rationals (a non-normalising \texttt{Rat} would stay constructive), and \emph{not} of the
+operational construction of Part~III, which is choice-free.
+
+\paragraph{VIII.5 Boundary: the quotient becomes vacuous at $\C$.} $\Z_{VR},\Q_{VR},\R_{VR}$
+share the pattern record/equivalence/quotient. At $\C_{VR}$ the equivalence is componentwise
+equality (\S V.3), coinciding with built-in equality on a two-field structure: the quotient is vacuous,
+$\C_{VR}$ is the first type realised without \texttt{Quotient}. The depth at $\C$ is carried by the
+two-dimensionality (its two components, $i^2=\isub 1$), not by an equivalence.
+
+\paragraph{VIII.6 Boundary: inexpressibility of computability on $\R_{VR}$.} \S IV.1 stipulates
+functions $\N\to\Q_{VR}$ are operational rules and \S IV.7 concludes $\R_{VR}\cong$ the computable
+reals. But the Lean type $\N\to\Q_{VR}$ contains \emph{every} total function of that signature
+(cardinality of the continuum), so the formalisation proves an isomorphism with the \emph{full
+classical} $\R$, not the computable subfield: Lean~4 has no type-level predicate separating computable
+from non-computable functions, so the operational restriction (\S IV.1--IV.2, including the computable
+modulus) is metatheoretic relative to Lean. Recommended reading within this cycle: the formalisation
+faithfully realises the Cauchy construction (\S IV.1--IV.6) and additionally proves a structural
+isomorphism with classical $\R$; the restriction to computable reals (\S IV.2, \S IV.7) is preserved as
+metatheoretic commentary. VR-Forms provides the formal register in which the operational/non-operational
+relation is addressed directly.
+
+\paragraph{VIII.7 Pattern: tactics cleaner than named lemmas.} \texttt{mul\_zero}, \texttt{mul\_right\_cancel}$_0$,
+\texttt{linarith}, \texttt{linear\_combination} carry latent \texttt{Classical.choice} via typeclass
+generality on concrete numeric types; \texttt{ring}, \texttt{omega}, manual identities discharge the same
+goals Classical-free. Prefer tactics to named algebraic lemmas for axiom-minimality on concrete types.
+
+\paragraph{VIII.8 Pattern: \texttt{change} vs \texttt{simp}.} At three points in $\R_{VR}$, \texttt{simp}
+drove goals into incompatible forms (\texttt{Rat.blt}; \texttt{abs\_neg} ring-normalisation;
+\texttt{Real.mk\_eq}); replacing it with \texttt{change} (definitional restatement, no reduction) kept
+syntactic control. The lighter tactic is preferable where it suffices.
+
+%======================================================================
+\section*{Summary}
+\addcontentsline{toc}{section}{Summary}
+VR-Numbers extends VR with operational superstructures yielding $\Z,\Q,\R,\C$. Three theses:
+\emph{(1) No ontology of substance} --- $\zero$ is a nullary operation; all objects are terms over operations; no
+set-theoretic ordered pairs are primitive --- pairing is a syntactic operation (a binary constructor),
+not an object. \emph{(2) Actual infinity is replaced by operational infinity} --- induction
+is universal applicability of an operation, agreeing with actual infinity on arithmetical consequences
+(via VR $\leftrightarrow$ PA) while positing no completed totality. \emph{(3) $\C$ is built without posited ordered pairs} --- as two real components $a\oplus b\cdot i$
+over $\R_{VR}$, coupled by the postulate $i^2=\isub 1$ (its two-dimensionality is the construction's,
+not a consequence of logic). $\Z_{VR},\Q_{VR},\C_{VR}$ are
+isomorphic to their standard counterparts; $\R_{VR}$ (Cauchy sequences with a computable modulus)
+is isomorphic to the computable reals, a countable subfield of $\R$. Consistency relative to ZF follows
+metatheoretically. The position is minimal: \emph{nothing is --- all is doing.}
+
+%======================================================================
+\section*{Acknowledgement of AI assistance}
+\addcontentsline{toc}{section}{Acknowledgement}
+This preprint and its companion Lean~4 formalisation (Parts~II--V) were prepared with the assistance
+of Claude (Anthropic), in the Variant~A architecture used across the VR cycle --- a human curator
+directing a model serving as architect and implementer --- for drafting, English/translation, language,
+consistency checking, and Lean development. All mathematical content, definitions, theorems, and
+positions are due to the author, Vitaly Reznik. Version~1.1.2 (``no ontology'' scoped to ``no ontology of substance''; inheriting the v1.1.1 re-synchronisation with VR v1.1.1 --- the propositional layer removed; the $\C$ A1-grounding
+withdrawn) was prepared with Claude Opus~4.8.
+
+\section*{References}
+\addcontentsline{toc}{section}{References}
+\begin{itemize}
+\item Aczel, P. (1988). \emph{Non-Well-Founded Sets.} CSLI Lecture Notes 14.
+\item Bishop, E. (1967). \emph{Foundations of Constructive Analysis.} McGraw-Hill.
+\item Boolos, Burgess, Jeffrey (2007). \emph{Computability and Logic} (5th ed.). CUP.
+\item Frobenius, G. (1878). \"Uber lineare Substitutionen und bilineare Formen. \emph{J. reine angew. Math.} 84.
+\item Hurwitz, A. (1898). \"Uber die Composition der quadratischen Formen. \emph{Nachr. Ges. Wiss. G\"ottingen}.
+\item Martin-L\"of, P. (1984). \emph{Intuitionistic Type Theory.} Bibliopolis.
+\item Pour-El, M. B., \& Richards, J. I. (1989). \emph{Computability in Analysis and Physics.} Springer.
+\item Reznik, V. (2026). \emph{VR. A Formal System: An Axiom-Free Reconstruction of Arithmetic from Operations Alone.} Zenodo. DOI 10.5281/zenodo.20633314 (concept DOI 10.5281/zenodo.20212091).
+\item Reznik, V. (2026). \emph{VR. A Formal System: A Lean 4 Formalisation of Part I.} Zenodo. DOI 10.5281/zenodo.20324240.
+\item Reznik, V. (2026). \emph{VR-Numbers: A Lean 4 Formalisation of Parts II--V.} Zenodo. DOI 10.5281/zenodo.20352057.
+\item Reznik, V. (2026). \emph{VR-Sets: An Operational Set Theory Unifying ZFC and ZFA (Brouwer Edition), v1.1.0.} Zenodo. DOI 10.5281/zenodo.20643407.
+\item Reznik, V. (2026). \emph{VR-Forms: An Operational Two-Register Apparatus over VR-Sets.} Zenodo. DOI 10.5281/zenodo.20355939.
+\item Weihrauch, K. (2000). \emph{Computable Analysis: An Introduction.} Springer.
+\end{itemize}
+
+\end{document}
