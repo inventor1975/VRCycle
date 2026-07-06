@@ -4,7 +4,8 @@
 machine-checked, with its axiom cost stated), and what is open — where there is no
 certainty yet. Not a catalogue of ambitions, not a pitch, not a uniqueness claim. The
 single criterion is **logic**: if something is wrong, it is unacceptable. The starting
-point is clean — **no ontology** — and the discipline is not to stumble. Where we arrive,
+point is clean — **no ontology of substance** (being is relocated into doing; see the
+Foundation note below) — and the discipline is not to stumble. Where we arrive,
 and where those who come after arrive, is the open question; the compass is logic alone.
 
 **Author**: Vitaly Reznik. **Implementation partner**: Claude (Opus 4.x), Variant A.
@@ -41,22 +42,40 @@ except (a) one intentional teaching skeleton, `Examples/E04_ModeBSkeleton` (a do
 
 ### Foundation — the formal system (`VR.lean`)
 
-- **Three primitives, four axioms, no ontology.** Primitives `{∅, →, t}`; axioms A1–A4.
-  In Lean `VRObj` is the inductive type with constructors `base` (∅, a **nullary
-  operation** — the 0-ary term-former) and `succ` (t). The source states it directly: *"No
-  ontology is ascribed. ∅ is not a thing that is empty… every VR object is a TERM over the
-  signature {base, succ, ∈, →} — there are ONLY operations."* The earlier labels
-  ("Leibnizian void", "Spencer-Brown mark") are dropped as still ontological.
+- **Two primitives, no axioms of its own, no ontology of substance.** Primitives `{∅, t}`
+  — v1.1.1 removed the propositional `→` (and A1, A2, the F/∅ logical register); VR is now
+  pure arithmetic on `{∅, t}`, generating no logic of its own. In Lean `VRObj` is the
+  inductive type with constructors `base` (∅, a
+  **nullary operation** — the 0-ary term-former) and `succ` (t). The source states it
+  directly: *"No ontology is ascribed. ∅ is not a thing that is empty… every VR object is a
+  TERM over the signature {base, succ, ∈, →} — there are ONLY operations."* The earlier
+  labels ("Leibnizian void", "Spencer-Brown mark") are dropped as still ontological.
+  **Scope of "no ontology" (the correction).** This is **no *substance* ontology** — no
+  object that *is*; being is relocated into doing. It is **not** the claim that VR ascribes
+  no ontology *at all*: the operational / set layer carries genuine commitments — global
+  `∈` (an Aczel-style member family), potentialist infinity, relational identity — which are
+  *tracked* (register + axiom tiers), not denied. The bare slogan "the cycle ascribes no
+  ontology" (as it stands in the published *Numbers* v1.1.0 and *Forms* v1.0.2 preprints)
+  overshoots and reads, at face value, as a blanket denial that collides with VR-Sets'
+  global `∈`; the accurate claim is **being relocated into doing, remaining commitments
+  audited**. Cf. the good scoped form already in *VR-Apparatus* (§: "formal register —
+  syntactic descriptions *without ontological commitment*"), which correctly localises the
+  disclaimer to the formal register alone.
 - **What 0 is, and what 1 is.** `0 = ∅ = base` is the nullary operation itself — the act
   taking no operands, the only act available before any succession (not "nothing", not a
   thing). `1 = t(∅) = succ base` is the unique result of the unique operation on that base.
   Each `n = tⁿ(∅)` is the trace of `n` applications. No arbitrary encoding choice (contrast
   von Neumann 1 = {∅} vs Zermelo 1 = {{∅}} as conventions). `O_zero`, `O_one`, all `rfl`.
-- **A4 (induction) is a theorem, not an axiom.** It is the recursor of the inductive type
-  (`A4_induction`). What first-order exposition postulates, type formation absorbs.
-- **Logic layer derived.** `{F, →}` functionally complete; `vnot/vor/vand/viff` defined and
-  their truth tables proved by `rfl`. Leibnizian equality `vrEq x y := ∀ p, p x ↔ p y` is
-  defined, not primitive.
+- **The named principles are theorems, not axioms (A1/A2 gone).** `A3` (succession: `x ∈ t(x)`,
+  `x ⊆ t(x)`) is proved from `mem` (`A3_mem_self`, `A3_subset_succ`); `A4` (induction) is the
+  recursor of the inductive type (`A4_induction`) — what first-order exposition postulates,
+  type formation absorbs. `A1`, `A2` (which governed the removed propositional layer) no longer
+  exist. So VR has **no axioms of its own**.
+- **VR generates no logic of its own (v1.1.1).** The earlier propositional layer — `VRBool`,
+  `{F, →}` functional completeness, `vnot/vor/vand/viff` with `rfl` truth tables — was
+  **removed**: a finite truth-function algebra used by no theorem (arithmetic, not logic). The
+  logic VR *reasons with* (`∀`, `→`, `↔`, induction, Leibnizian equality) is **metatheoretic**.
+  Leibnizian equality `vrEq x y := ∀ p, p x ↔ p y` is defined, not primitive.
 - **∈-acyclicity is structural.** `not_mem_self` and `succ_ne_self` proved by structural
   induction on the inductive type — **no measure / no finiteness theorem** needed.
 - **VR ≡ PA, as a constructive isomorphism.** `Theorem_11_VR_PA : VR_PA_iso` — an explicit
