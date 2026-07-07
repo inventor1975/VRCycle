@@ -8,7 +8,7 @@
 \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
 
 \title{\textbf{VR-Forms --- v1.0.3 (revision note)}\\[2pt]
-\large Two editorial corrections: synchronisation with VR v1.1.1, and scoping of the ``no ontology'' language}
+\large Two editorial corrections (VR v1.1.1 sync; ``no ontology'' scoped) and one added section: Things and Acts}
 \author{Vitaly Reznik}
 \date{2026 --- Version 1.0.3 (revision note)}
 
@@ -16,9 +16,11 @@
 \maketitle
 
 \noindent\textbf{Scope.} This is the revision delta for VR-Forms v1.0.3. \emph{No construction,
-definition, theorem, register, or axiom-profile of VR-Forms is altered.} Two editorial changes:
-(1) the recall of the parent work VR is brought up to date with VR v1.1.1; (2) the ``no ontology''
-language is scoped to ``no ontology of substance''.
+definition, theorem, or axiom-profile of VR-Forms is altered.} Two editorial corrections and one
+added expository section: (1) the recall of the parent work VR is brought up to date with VR v1.1.1;
+(2) the ``no ontology'' language is scoped to ``no ontology of substance''; (3) a new section,
+\emph{Things and Acts}, is added to the two-register discussion --- it names, and prices, what the
+two registers already hold, resting on the cycle's existing axiom profiles (no new formal content).
 
 \section*{(1) Correction: the parent-VR recall}
 
@@ -55,6 +57,68 @@ which are \emph{tracked} (the two registers and the axiom tiers), not denied. Ac
 unqualified ``ascribes no ontology'' should read ``ascribes no ontology \emph{of substance}''; the
 disclaimer, where it belongs, localises to the \emph{formal} register (``syntactic descriptions
 without ontological commitment''), not to the cycle as a whole.
+
+\section*{(3) New section: Things and Acts --- what inhabits the two registers}
+
+\noindent\emph{To be added to the two-register discussion of the full paper.}
+
+\paragraph{Acts and Things.}
+An \emph{Act} is what an operation \emph{constructs}: an object obtained, and witnessed, by
+performing operations --- a term, a witnessed bisimulation, a derivation that leans on nothing
+posited. A \emph{Thing} is what an axiom \emph{posits}: an object, a totality, or an existence
+principle introduced by \emph{postulation} rather than earned by construction (Hilbert's implicit
+definition --- a Thing is whatever a consistent axiom makes it, relative to that axiom). The two
+registers are exactly this contrast: the operational register is the register of Acts (built,
+choice-free, becoming); the formal register is the register of Things (posited, axiomatic,
+completed).
+
+\paragraph{The one exception: the medium.}
+Not everything unproven is a Thing. To state any axiom, or to derive any Act, one already reasons
+--- with the connectives, the quantifiers, the rule of inference. This bare logic is not a Thing
+but the \emph{medium}: it cannot be posited-or-not, for it is presupposed by every posit and every
+derivation, and it is self-affirming --- to deny it one must already use it. Every genuine axiom,
+by contrast, is \emph{optional} (a system may reject it and still reason) and is therefore a Thing.
+In the cycle's ledger this puts the Act/Thing line at the empty profile: an Act depends on \emph{no}
+axiom (\texttt{[]}); \texttt{propext} and \texttt{Quot.sound} are already Things, the cheapest ones;
+\texttt{Classical.choice}, the axiom of infinity, the power set as a completed object, the aleph
+cardinals and their consequences (e.g.\ Banach--Tarski) are the expensive ones. The operational
+register is thus an Act built on the cheapest Things; the formal register adds the expensive ones.
+
+\paragraph{How a Thing is admitted.}
+A Thing is admitted not by construction but by a \emph{consistency check}: one exhibits a model ---
+a structure in which the axiom holds (a theory is consistent iff it has a model) --- and thereby a
+\emph{relative} tag $\mathrm{Con}(\text{base}) \to \mathrm{Con}(\text{base}+\text{Thing})$. The tag
+is never absolute: by G\"odel's second theorem no consistent system strong enough for arithmetic
+proves its own consistency. Hence the operational core, being axiom-free (\texttt{[]}), inherits the
+host's consistency and adds no new burden, while a Thing is the first place a consistency question
+arises at all.
+
+\paragraph{Consistency is necessary but not sufficient; the cost discriminates.}
+Every Thing that has a model is equally \emph{consistent}; consistency does not tell them apart.
+What does is the \emph{kind of cost} the Thing carries. Three kinds recur across the cycle:
+\begin{itemize}
+  \item \textbf{strength} --- the axiom of infinity: completed $\omega$ proves $\mathrm{Con}(\mathrm{PA})$,
+    so it cannot be justified from the finite base at all (G\"odel~II); a genuine leap in consistency
+    strength;
+  \item \textbf{impredicativity} --- the power set: to speak of ``all subsets of $\omega$'' one
+    quantifies over the very totality being formed. Its profile is choice-free (\texttt{[propext]})
+    and does \emph{not} reveal the circularity --- the impredicativity is a cost the machine profile
+    fails to capture (finding~P-1);
+  \item \textbf{non-constructivity} --- the axiom of choice: profile
+    \texttt{[propext, Classical.choice, Quot.sound]} (the choice floor), an unexhibitable witness (no
+    one displays a well-ordering of $\mathbb{R}$), and the non-measurable / Banach--Tarski pathology.
+\end{itemize}
+Thus $\wp(\omega)$ is a cheap, safe Thing and \textsc{ac} an expensive, pathological one, though both
+are consistent: it is the cost, not consistency, that separates them --- and, as P-1 shows, not every
+cost is visible to the axiom profile.
+
+\paragraph{We track, we do not adopt.}
+A Thing is placed in the formal register \emph{with} its tag and its cost; it is not adopted as an
+operational truth. By the $O\!\to\!T\,/\,T\!\to\!O$ asymmetry a Thing does not transit down: the
+completed power set, for instance, is used formally but has no operational correlate --- the
+operational register carries only its \emph{becoming}, the non-enumerable $\wp$. To work with a
+totality in VR is therefore not to build it but to posit it, exhibit its model, and pay --- in the
+ledger --- for what it costs.
 
 \section*{Why VR-Forms is otherwise unaffected}
 
