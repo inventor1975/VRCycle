@@ -43,6 +43,20 @@ open VRCycle.Continuum
 #dependency_matrix [Qop.mul_inv_cancel, GaussQ.mul_inv_cancel, Qop.lt_trichotomy, Qop.ofRat]
   vs [Classical.choice]
 
+/-! ### The whole operational line — not just the inverse — stays below the choice floor.
+    Guards on the core ring operations of each node, so a future edit cannot silently pull
+    `Classical.choice` into the operational number line without breaking the build. -/
+
+-- ℚ_op: core ring operations, choice-free (complements the inverse guard above).
+#assert_not_depends_on Qop.add_comm on Classical.choice
+#assert_not_depends_on Qop.mul_comm on Classical.choice
+#assert_not_depends_on Qop.left_distrib on Classical.choice
+
+-- ℝ_op: the by-hand real built from ℤ (computable modulus) is choice-free in its operations.
+#assert_not_depends_on Real.add_comm on Classical.choice
+#assert_not_depends_on Real.mul_comm on Classical.choice
+#assert_not_depends_on Real.mul_assoc on Classical.choice
+
 /-! ### The decidable pole and the field content stay below the floor -/
 
 #print axioms Qop.lt_trichotomy        -- ℚ trichotomy (ℝ lacks it)

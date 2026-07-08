@@ -420,6 +420,25 @@ by transport along that bridge inherit the choice --- a feature of Lean's \textt
 not of the rationals (a non-normalising \texttt{Rat} would stay constructive), and \emph{not} of the
 operational construction of Part~III, which is choice-free.
 
+\paragraph{VIII.4a Canonical realisation: the choice-free operational line is the primary one.}
+The isomorphism $\Q_{VR}\cong\Q$ of \S VIII.4 is an \emph{interoperability} bridge (it reuses Lean
+Core's field theorems), not the canonical construction of the VR line, and it is the \emph{only} place
+\texttt{Classical.choice} appears in the number tower. The canonical operational number line is realised
+\emph{end to end} below the choice floor by the cycle's \texttt{Continuum} module, independently of that
+bridge: \texttt{Continuum.Rational}'s $\mathtt{Qop}$ is a choice-free field ($\Q$ operationally, profile
+\texttt{[propext, Quot.sound]}, with a total inverse got from a zero-test, no \texttt{Decidable}
+instance); \texttt{Continuum.GaussianRational}'s $\mathtt{GaussQ}$ carries the operational Gaussian
+rationals (a $\C$ layer) inheriting that profile; and \texttt{Continuum.Real} / \texttt{Continuum.UnitInterval}
+build an operational $\R$ by hand from $\Z$, also below the floor. These are not asserted but
+machine-verified: \texttt{Continuum.Spectrum} discharges guards of the form
+\texttt{\#assert\_not\_depends\_on Qop.mul\_inv\_cancel on Classical.choice}. Choice re-enters only on the
+optional mathlib-facing \emph{labels} --- the \texttt{Field}/\texttt{ratCast}/\texttt{ofRat} casts and the
+$\cong$-mathlib theorems --- never on the operations themselves; the \emph{doing} is choice-free, only the
+Tier-3 interop label is not. So the claim ``the VR number line is choice-free, machine-checked'' stands
+under \texttt{\#print axioms} on the canonical objects; the choice recorded in \S VIII.4 is a property of
+the reused Lean-Core \texttt{Rat} representation across the interop bridge, not of the operational line VR
+constructs.
+
 \paragraph{VIII.5 Boundary: the quotient becomes vacuous at $\C$.} $\Z_{VR},\Q_{VR},\R_{VR}$
 share the pattern record/equivalence/quotient. At $\C_{VR}$ the equivalence is componentwise
 equality (\S V.3), coinciding with built-in equality on a two-field structure: the quotient is vacuous,
