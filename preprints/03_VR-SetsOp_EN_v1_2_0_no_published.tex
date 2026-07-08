@@ -1,0 +1,554 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{defn}[thm]{Definition}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{cor}[thm]{Corollary}
+\theoremstyle{remark}
+\newtheorem{rem}[thm]{Remark}
+
+\newcommand{\OpSet}{\textsf{OpSet}}
+\newcommand{\eq}{\approx}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\C}{\mathbb{C}}
+
+\title{\textbf{VR-SetsOp.}\\[2pt]
+\large An Operational Set Theory Unifying ZFC and ZFA (Brouwer Edition)\\[2pt]
+\normalsize \emph{(formerly titled VR-Sets; same Zenodo concept 10.5281/zenodo.20303535 --- retitled to name the operational carrier \OpSet{})}}
+\author{Vitaly Reznik}
+\date{2026 --- Version 1.2.0}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We reconstruct set theory inside the VR programme as an operational universe: a set is a
+\emph{functionality} that, on a query, reveals its members --- formally, a pointed graph --- and
+the identity of sets is a \emph{witnessed bisimulation}, carried as a relation and never collapsed
+to a quotient. On this carrier we obtain, machine-checked in Lean 4 and almost entirely below the
+\texttt{Classical.choice} floor: membership, strong extensionality (identity is exactly
+co-membership), the empty set, pairing, union, the power set, the von Neumann naturals and $\omega$,
+and the Separation and Replacement schemas --- every axiom of ZF without Foundation. The power set is
+machine-checked \emph{choice-free} but is \emph{impredicative}, which isolates the obstruction to
+power set in the operational register as impredicativity, not choice. Anti-Foundation is a theorem ---
+indeed axiom-free: a member is the same graph re-pointed, so nesting (including self-membership) is
+native, and decoration of any graph is almost definitional. Well-foundedness is not an axiom
+but a predicate
+\texttt{IsGrounded}: the ZFC universe and the anti-foundational (Aczel) universe are two fragments
+of one operational domain, not a foundational choice one is forced to make. Version~1.0.3 corrected
+the central error of earlier versions: the earlier text claimed the operational universe is countable
+and inferred that the Axiom of Choice is a free theorem and that paradoxes such as Banach--Tarski
+cannot arise --- a Bishop reading that contradicts the operational continuum the cycle built on the
+Brouwer path. We replace it: the operational universe --- sets as becoming --- is genuinely
+non-enumerable (a machine-checked, choice-free diagonal), while the describable register (sets given
+by a finite rule) is countable. The Axiom of Choice is therefore not an operational theorem; only
+dependent choice is. The absence of Banach--Tarski is re-explained through conservativity, not
+countability.
+\\[3pt]
+\emph{Keywords:} operational set theory, non-well-founded sets, bisimulation, strong
+extensionality, Brouwer, choice sequences, axiom of choice, constructive foundations, Lean 4.
+\\[3pt]
+\textbf{Version note (1.2.0).} No mathematics is altered, added, or removed. Two changes. (i) The
+work is retitled \emph{VR-SetsOp} to name its operational carrier \OpSet{} (the earlier title
+\emph{VR-Sets} named the domain; the content, since Version~1.0.3, is entirely the operational
+universe); the Zenodo concept (10.5281/zenodo.20303535) is unchanged. (ii) A positioning paragraph is
+added to \S\ref{sec:position} stating the exact relation to ZFA: with VR's formal register on
+(classical logic, choice) the set layer \emph{realises} Aczel's ZFA and is \emph{equal to it in
+strength} (equiconsistent, at the level of ZF --- neither stronger nor weaker), with ZFC recovered as
+the well-founded inner class \texttt{IsGrounded}; without the formal register the operational core is
+strictly weaker (constructive, choice-free). This resolves the imprecision in the Version~1.1.0 phrase
+``holds ZFC and ZFA natively'' and records the one strict advantage at equal strength --- nesting is a
+theorem in VR where ZFA posits it.
+
+\textbf{Version note (1.1.0).} A minor version: new mathematics is added, none altered or removed.
+Adds the operational \textbf{power set} (\S3.3): $\wp\,x$ with
+$z\in\wp\,x\iff z\subseteq x$, machine-checked \emph{choice-free} (\texttt{propext}). With it,
+\OpSet{} verifies every axiom of ZF without Foundation. The construction is below the choice floor but
+\emph{impredicative} --- this isolates the obstruction to power set in the operational register as
+impredicativity, not choice, and corrects the blanket ``no power-set operation'' of the earlier \S7
+(Remark~3.10). It also states \textbf{Anti-Foundation as a theorem} on \OpSet{} (\S4.1),
+fully axiom-free, with the cost-of-quotient bridge to VR-Sets-ZFA; anchors \S6.4 in Solovay's model;
+and names two prices (the setoid discipline; impredicativity's invisibility to the axiom audit, P-1).
+No prior mathematics is altered.
+\\[3pt]
+\textbf{Version note (1.0.4).} Editorial synchronisation, no mathematics altered: (i) Remark~5.2
+is corrected --- VR-Numbers' $\R_{VR}$ is the \emph{computable, countable} reals (its Lean
+isomorphism with the full classical line is an inexpressibility artifact, VR-Numbers \S VIII.6), the
+genuinely non-enumerable object is the operational becoming-continuum (and this universe, \S6.1),
+and classical $\R$ is a third thing; (ii) references carry correct, separated DOIs (the formal-system
+\emph{paper} is DOI 10.5281/zenodo.20633314, concept 10.5281/zenodo.20212091; 20324240 is its
+Lean companion); (iii) the describable register is noted to be a minimal representative of ``finite
+rule'' (\S6.2); (iv) the single mathlib borrowing is flagged already in \S1.
+\end{abstract}
+
+\tableofcontents
+
+%======================================================================
+\section{Introduction and the change since Version 1.0.2}
+
+VR-Sets realises the set-theoretic layer of the VR programme. A set is not a ``thing that contains
+elements''; it is an \emph{operation} --- a functionality that, when queried, reveals members, which
+are themselves functionalities. This reading is constitutive, not decorative: every notion below
+(membership, identity, the operations, well-foundedness) is defined in its terms, and every claim is
+checked by the Lean~4 kernel with its axiom cost recorded.
+
+Versions through 1.0.2 presented the operational universe through a classical surrogate (mathlib's
+well-founded \texttt{ZFSet}) and argued, in their \S VI, that the universe is countable, whence the
+Axiom of Choice holds as a theorem and the classical ``pathologies'' (non-measurable sets,
+Banach--Tarski) do not arise. Two things were wrong. First, countability is false of the surrogate
+(\texttt{ZFSet} is the full classical uncountable universe), so the claim was carried by prose, not by
+the machine. Second, and more deeply, the countability reading is a \emph{Bishop} reading, and it
+is incompatible with the operational continuum the VR cycle actually constructed, which took the
+\emph{Brouwer} path: there the space of ``becoming'' (lawless choice sequences) is non-enumerable,
+choice-free, and Cantor's diagonal works.
+
+We resolve the tension on the side the cycle already chose. The operational universe of sets is
+rebuilt from scratch, as functionalities with witnessed-bisimulation identity (\S2), and we prove
+(\S6) that this universe --- sets as becoming --- is not enumerable, by a self-contained diagonal
+that is choice-free. The countable register is the register of \emph{descriptions}: sets given by a
+finite rule. The contrast \emph{done countable / becoming non-enumerable} is the corrected \S VI.
+The Axiom of Choice loses its status as a free theorem; this is not a loss but the honest price of a
+genuinely uncountable operational continuum, and it aligns VR-Sets with VR-Forms (conservativity)
+and with the operational-continuum work.
+
+\paragraph{What is machine-checked.} The development lives in the Lean~4 formalisation of the VR
+cycle, module \texttt{VRCycle.SetsOp} (files \texttt{Pointed}, \texttt{Builder}, \texttt{Closure},
+\texttt{Omega}, \texttt{Extensionality}, \texttt{Congruence}, \texttt{Becoming},
+\texttt{Describable}, \texttt{Schemas}, \texttt{Grounded}, \texttt{Power}, \texttt{AFA}). It is self-contained: it imports
+nothing from mathlib for its core --- precisely so that its axiom profile is visible --- the
+\emph{single} mathlib borrowing (the pairing inversion in the describable register) being flagged
+in Remark~6.5. Throughout, we name the Lean object backing each statement. Almost every object is
+axiom-free or depends only on \texttt{propext}; the single exception is flagged honestly in \S6.
+
+%======================================================================
+\section{The carrier: sets as revealing functionalities}
+
+\subsection{Operational sets}
+\begin{defn}[Operational set; \texttt{OpSet}]
+An operational set is a pointed graph $x=(V,E,\mathrm{pt})$ with $V:\mathrm{Type}$,
+$E:V\to V\to\mathrm{Prop}$, $\mathrm{pt}:V$. Read $E\,a\,b$ as ``querying the functionality at
+vertex $b$ reveals $a$ as a member''; $\mathrm{pt}$ is the set itself. The member of $x$ sitting at
+a vertex $a$ is the same graph re-pointed there, $x.\mathrm{child}\,a:=(V,E,a)$. This is exactly the
+language in which Aczel's anti-foundation axiom is stated (decoration of a graph), but we take
+\emph{no quotient}: the identity of sets is supplied operationally, below.
+\end{defn}
+
+\subsection{Operational identity: witnessed bisimulation, not a quotient}
+\begin{defn}[Bisimulation; operational identity $\eq$]
+A relation $R:x.V\to y.V\to\mathrm{Prop}$ is a bisimulation between $x$ and $y$ if related vertices
+reveal matching members in both directions: for all $a,b$ with $R\,a\,b$,
+\[
+(\forall a',\ x.E\,a'\,a \Rightarrow \exists b',\ y.E\,b'\,b \wedge R\,a'\,b')\ \wedge\
+(\forall b',\ y.E\,b'\,b \Rightarrow \exists a',\ x.E\,a'\,a \wedge R\,a'\,b').
+\]
+We write $x\eq y$ ($x$ and $y$ are operationally identical) when some bisimulation relates their
+points: $\exists R,\ R\,x.\mathrm{pt}\,y.\mathrm{pt}\ \wedge\ R\text{ is a bisimulation}$.
+\end{defn}
+\begin{prop}[$\eq$ is an equivalence; \texttt{Equiv.refl/symm/trans}]
+$\eq$ is reflexive, symmetric and transitive. Each is axiom-free in Lean (no \texttt{propext}, no
+\texttt{Quot.sound}, no \texttt{Classical.choice}).
+\end{prop}
+The methodological point is decisive. To turn ``bisimilar'' into a type-level equality --- to form
+the quotient --- one must Skolemise the existential matches into functions; that step is exactly VR's
+transit asymmetry (operational$\to$formal is free, formal$\to$operational has no mechanism), and it
+is precisely where mathlib's coinductive set construction invokes \texttt{Classical.choice}. We
+therefore do not quotient. Identity remains a relation carried with its witness: a performed
+bisimulation, not a given completion. This is ``doing, not being'' made into the construction, and
+it is why the whole development stays below the choice floor.
+
+\subsection{Membership and strong extensionality}
+\begin{defn}[Membership; \texttt{Mem}]
+$z\in x$ iff some member-vertex of $x$ is operationally identical to $z$:
+$\exists a,\ x.E\,a\,x.\mathrm{pt}\ \wedge\ z\eq x.\mathrm{child}\,a$.
+\end{defn}
+\begin{thm}[Membership respects identity; \texttt{mem\_congr}]
+If $y\eq y'$ then $z\in y\Rightarrow z\in y'$. (Axiom-free.)
+\end{thm}
+\begin{thm}[Strong extensionality; \texttt{ext}, \texttt{equiv\_iff\_same\_mem}]
+Two operational sets are identical iff they have the same members:
+$x\eq y \iff \forall z,\ (z\in x \leftrightarrow z\in y)$. Both directions are axiom-free.
+\end{thm}
+Theorem~2.6 is the heart of the carrier. The forward direction is Theorem~2.5 applied both ways;
+the backward direction is the coinductive content --- one builds a bisimulation out of the
+member-matching (relate the two roots; relate any further pair whose rooted subtrees are already
+identical). It is the AFA-style strong extensionality, kept choice-free precisely because identity
+was never quotiented. It is what licenses $\eq$ as a faithful equality of sets.
+
+%======================================================================
+\section{The operations}
+All operations are instances of one constructor.
+\begin{defn}[Family supremum; \texttt{sup}]
+For a family $c:I\to\OpSet$, the set $\sup c$ whose members are exactly the $c\,i$ is the pointed
+graph with a fresh root revealing each component's point, components kept disjoint.
+\end{defn}
+\begin{thm}[\texttt{mem\_sup}]
+$z\in\sup c \iff \exists i,\ z\eq c\,i$. (Axiom-free.)
+\end{thm}
+From this single law the standard operations follow; each is axiom-free or depends only on
+\texttt{propext}:
+\begin{itemize}
+\item Empty set $\varnothing$ (\texttt{emptySup}): the empty family. $z\notin\varnothing$
+(\texttt{not\_mem\_emptySup}). $\varnothing$ is the nullary operation --- the functionality that
+reveals nothing --- matching the base of the VR formal system.
+\item Singleton $\{a\}$: $z\in\{a\}\iff z\eq a$.
+\item Unordered pair $\{a,b\}$: $z\in\{a,b\}\iff z\eq a\vee z\eq b$.
+\item Union $\bigcup x$: $z\in\bigcup x\iff\exists y,\ y\in x\wedge z\in y$ (\texttt{mem\_union}).
+\item Binary union $a\cup b$ and successor $\mathrm{succ}\,a:=a\cup\{a\}$:
+$z\in\mathrm{succ}\,a\iff z\in a\vee z\eq a$ (\texttt{mem\_succ}).
+\end{itemize}
+\begin{prop}[Operations respect identity; \texttt{*\_congr}]
+\texttt{singleton}, \texttt{pair}, $\cup$ and \texttt{succ} all respect $\eq$ (through Theorem~2.6).
+\end{prop}
+
+\subsection{Infinity}
+\begin{defn}[Von Neumann naturals and $\omega$; \texttt{vn}, \texttt{omega}]
+$\mathrm{vn}\,0:=\varnothing$, $\mathrm{vn}(n{+}1):=\mathrm{succ}(\mathrm{vn}\,n)$;
+$\omega:=\sup\mathrm{vn}$.
+\end{defn}
+\begin{thm}[Infinity; \texttt{mem\_omega}, \texttt{empty\_mem\_omega}, \texttt{omega\_succ\_closed}]
+The members of $\omega$ are exactly the $\mathrm{vn}\,n$ up to $\eq$; $\varnothing\in\omega$; and
+$\omega$ is closed under successor for any member. (Axiom-free, resp.\ \texttt{propext}.)
+\end{thm}
+
+\subsection{Separation and Replacement}
+A genuine property or function of sets cannot depend on the particular graph presenting a set; it
+must respect $\eq$. With that --- and no decidability assumption --- the two schemas hold.
+\begin{thm}[Separation; \texttt{sep}, \texttt{mem\_sep}]
+For a species $p$ respecting $\eq$, the set $\{z\in x\mid p\,z\}$ exists and
+$z\in\{z\in x\mid p\,z\}\iff z\in x\wedge p\,z$. (\texttt{propext}.)
+\end{thm}
+\begin{thm}[Replacement; \texttt{repl}, \texttt{mem\_repl}]
+For a rule $F$ respecting $\eq$, the image $\{F\,z\mid z\in x\}$ exists and
+$w\in\{F\,z\mid z\in x\}\iff\exists z,\ z\in x\wedge w\eq F\,z$. (\texttt{propext}.)
+\end{thm}
+
+\subsection{Power set}
+A subset of $x$ is selected by a predicate on $x$'s member-vertices; the power set ranges over all of
+them. (This is the one operation whose construction reaches into the ambient type theory; see
+Remark~3.10.)
+\begin{defn}[Subset; power set; \texttt{Subset}, \texttt{subsetOf}, \texttt{powerset}]
+$z\subseteq x:\iff\forall w,\ w\in z\Rightarrow w\in x$. For a vertex-predicate $s:x.V\to\mathrm{Prop}$,
+$\texttt{subsetOf}\,x\,s$ is the $\sup$ of the member-vertices of $x$ kept by $s$. The power set
+$\wp\,x:=\sup_{s:x.V\to\mathrm{Prop}}\texttt{subsetOf}\,x\,s$ ranges over all such predicates.
+\end{defn}
+\begin{thm}[Power set; \texttt{mem\_powerset}]
+$z\in\wp\,x \iff z\subseteq x$. (\texttt{propext}; choice-free.) The backward direction selects the
+predicate ``$a$ is a member-vertex whose member lies in $z$'' and closes by strong extensionality
+(Theorem~2.6).
+\end{thm}
+With the power set, \OpSet{} verifies every axiom of ZF without Foundation --- Extensionality,
+$\varnothing$, Pairing, Union, Power, Separation, Replacement, Infinity --- machine-checked below the
+choice floor; Foundation is the predicate \texttt{IsGrounded} of \S4.
+\begin{rem}[The obstruction to power set is impredicativity, not choice]
+The completed power set $\wp\,x$ is constructed \emph{choice-free} (Theorem~3.9); in particular
+$\wp\,\omega$ exists as a set with $z\in\wp\,\omega\iff z\subseteq\omega$. What this costs is \emph{not}
+\texttt{Classical.choice} --- the axiom audit reports \texttt{propext} only --- but
+\emph{impredicativity}: the index $x.V\to\mathrm{Prop}$ is the full power of the representative's
+vertex type, a move legitimate in Lean's impredicative \texttt{Prop} but outside a predicative
+(Brouwer / Martin-L\"of) discipline, and one that \texttt{\#print axioms} cannot detect. So the
+operational register's relation to power set is sharper than the ``absent'' of Version~1.0.4's \S7: the
+\emph{predicative} content of $\wp\,\omega$ is the becoming --- the non-enumerable diagonal of \S6.1
+--- while the \emph{impredicative completed} $\wp\,\omega$ also exists, choice-free, at the cost named
+here. The obstruction is isolated: it is impredicativity, not choice.
+\end{rem}
+
+%======================================================================
+\section{Foundation is a predicate, not a choice}
+Classical set theory must decide, at the level of its axioms, whether $\in$-descent always
+terminates: ZFC posits Foundation, Aczel's theory posits the Anti-Foundation Axiom (AFA). These are
+two incompatible commitments, and a classical theory is forced to pick one. VR is not. On the
+operational carrier, well-foundedness is a property of a set's graph, observed and not postulated.
+\begin{defn}[Groundedness; \texttt{IsGrounded}]
+$x$ is grounded iff its point is accessible under the reveal relation: $\mathrm{Acc}\,(E)\,
+x.\mathrm{pt}$ --- every membership descent from $x$ terminates.
+\end{defn}
+\begin{thm}[Groundedness is a property of the set; \texttt{isGrounded\_iff}]
+If $x\eq y$ then $x$ grounded $\iff y$ grounded. (Axiom-free.)
+\end{thm}
+\begin{thm}[The ZFC fragment is hereditary; \texttt{mem\_grounded}]
+A member of a grounded set is grounded. (Axiom-free.)
+\end{thm}
+Theorem~4.2 makes ``well-founded'' a well-defined predicate on operational sets (transported across
+a bisimulation; the key lemma \texttt{acc\_bisim} carries accessibility along $R$). Hence the ZFC
+fragment is $\{x\mid x\text{ grounded}\}$ ($\varnothing$ is grounded; the fragment is closed downward
+under $\in$), and the ZFA fragment is the whole universe. The Quine atom $A=\{A\}$ is a perfectly
+good operational set --- one vertex with a self-loop (\texttt{quine}), satisfying $A\in A$
+(\texttt{quine\_self\_mem}) --- and it is not grounded (\texttt{quine\_not\_grounded}); no
+anti-foundation axiom is invoked, the graph simply has a cycle. VR thus holds ZFC and ZFA natively,
+as fragments of one universe distinguished by a predicate, with uniform identity (witnessed
+bisimulation) throughout. The grounded fragment enjoys $\in$-acyclicity: no von Neumann natural is a
+member of itself (\texttt{vn\_not\_self\_mem}, by strong induction).
+
+\subsection{Anti-Foundation as a theorem}
+Because membership is the edge relation and a member is the same graph re-pointed
+(\texttt{child}), \emph{nesting is native}: a set contains a set by an edge, never by copying a set
+into another, and self-membership is a self-loop. Aczel's decoration of a graph is therefore almost
+definitional here.
+\begin{defn}[Decoration; \texttt{decorate}, \texttt{IsDecoration}]
+A function $d:V\to\OpSet$ decorates a graph $(V,E)$ if the members of $d\,v$ are exactly the
+$d\,w$ with $E\,w\,v$. The canonical decoration is $\texttt{decorate}\,E\,v:=(V,E,v)$ --- the graph
+re-pointed at $v$.
+\end{defn}
+\begin{thm}[Anti-Foundation; \texttt{afa}, \texttt{decorate\_isDecoration}, \texttt{decoration\_unique}]
+Every graph has a decoration, unique up to operational identity: $\texttt{decorate}\,E$ decorates
+$(V,E)$ --- by \texttt{rfl}, since membership \emph{is} the decoration condition --- and any
+decoration $d$ is pointwise $\eq$ to it: for each $v$, the choice-free \emph{exhibited} bisimulation
+$R_v\,a\,w:=(d\,v).\texttt{child}\,a\eq d\,w$ witnesses $d\,v\eq\texttt{decorate}\,E\,v$.
+\textbf{Fully axiom-free} (\texttt{[]}: no \texttt{propext}, no \texttt{Quot.sound}, no
+\texttt{Classical.choice}).
+\end{thm}
+AFA is thus a theorem, not an axiom; and ZFA is not even a separate commitment --- the Quine atom
+(one vertex, a self-loop) and every cycle are simply admissible graphs. With this and
+Foundation-as-predicate, \OpSet{} holds ZFC and ZFA natively on one carrier.
+
+\paragraph{The cost of the quotient --- bridge to VR-Sets-ZFA.} The companion work VR-Sets-ZFA
+obtains the same anti-foundational content on mathlib's coinductive M-types, by \emph{quotienting} an
+extensional bisimulation. There AFA carries the full \texttt{[propext, Classical.choice, Quot.sound]}:
+forming the quotient Skolemises the bisimulation's existential witnesses (VR's transit asymmetry,
+\S2.2), and uniqueness must select representatives by \texttt{Classical.choice} and run
+\texttt{PFunctor.M.bisim} through the choice-pulling destructor \texttt{dest}. The contrast is exact
+and is itself a result: \emph{the relational identity is axiom-free precisely where its quotient sits
+at the full ceiling} --- the price of turning a performed bisimulation into a given equality is
+\texttt{Classical.choice}. We read the two works together as the equivalence
+$\mathrm{OSetZFA}\simeq\OpSet/\!\eq$ --- the version here being the choice-free floor of which
+VR-Sets-ZFA is the quotient. \textbf{This last equivalence is a prose-level reading, not yet
+machine-checked} (in the modality of Conjecture~IV.2): formalising it --- the \texttt{M.corec}
+unfolding of a graph, its descent through the quotient, and bijectivity on the $\eq$-classes --- is a
+single \texttt{Bridge} file, a candidate for VR-Sets-ZFA~v1.1. Everything else in this paper carries a
+named Lean object and its profile.
+
+%======================================================================
+\section{Numbers}
+The natural numbers are the von Neumann naturals of \S3, genuinely distinct as operational sets.
+\begin{thm}[The operational naturals are distinct; \texttt{vn\_inj}]
+$\mathrm{vn}\,n\eq\mathrm{vn}\,m\Rightarrow n=m$. (\texttt{propext}.)
+\end{thm}
+The proof is the classical one read operationally: the members of $\mathrm{vn}\,m$ are exactly
+$\mathrm{vn}\,0,\dots,\mathrm{vn}(m{-}1)$, no $\mathrm{vn}\,n$ is a member of itself, and these force
+injectivity by the trichotomy of $\N$.
+
+\begin{rem}[Three reals --- stated honestly]
+The reals of the VR cycle come in distinct guises that must not be conflated.
+\begin{itemize}
+\item \textbf{VR-Numbers' $\R_{VR}$} is built from Cauchy sequences with a \emph{computable modulus
+of convergence}; it is isomorphic to the field of \emph{computable} reals and is therefore
+\emph{countable}. (Its Lean realisation additionally proves an isomorphism with the full classical
+line, but that is an artifact of Lean's inability to express computability in a single type, not the
+content of the construction --- see VR-Numbers \S VIII.6.) This is the \emph{done}/describable side.
+\item \textbf{The operational becoming-continuum} --- the space of lawless choice sequences (and the
+Bishop reals over $\Z$ on the Brouwer path) --- is built below the choice floor and is
+\emph{genuinely non-enumerable}, choice-free. The non-enumerability is real, not classical: it is the
+same phenomenon this paper proves for the set universe (Theorem~6.1, \texttt{universe\_not\_enumerable})
+and that the continuum work proves for $\N\to\mathrm{Bool}$ (\texttt{branches\_not\_enumerable}).
+\item \textbf{The classical line $\R$} (mathlib) is uncountable in the usual, choice-laden sense.
+\end{itemize}
+These coexist. The countable computable reals are the performed/describable register; the
+non-enumerable becoming-continuum is the operational ``$\R$'' of the Brouwer path; the classical
+line is the formal-register referent. Which is canonical for the VR continuum is the programme's open
+Bishop/Brouwer question; this work commits the set universe to the Brouwer (non-enumerable) reading.
+\end{rem}
+
+%======================================================================
+\section{Cardinality, the diagonal, and choice --- the corrected core}
+This section replaces the central claims of the earlier \S VI.
+
+\subsection{The operational universe is non-enumerable}
+\begin{thm}[Non-enumerability of the universe; \texttt{universe\_not\_enumerable}]
+No $\N$-indexed enumeration of operational sets is surjective up to operational identity:
+$\neg\,\exists e:\N\to\OpSet,\ \forall x,\ \exists n,\ e\,n\eq x$. The proof is choice-free
+(\texttt{propext} only).
+\end{thm}
+The proof is a self-contained Cantor diagonal inside the operational universe. Given a candidate $e$,
+form the diagonal set $D:=\{\,\mathrm{vn}\,n\mid \mathrm{vn}\,n\notin e\,n\,\}$, a legitimate
+operational set (a $\sup$ over the subtype of indices $n$ with $\mathrm{vn}\,n\notin e\,n$; no
+decidability is needed). By the distinctness of the naturals (Theorem~5.1),
+$\mathrm{vn}\,k\in D\iff\mathrm{vn}\,k\notin e\,k$. If $e$ were surjective, some $e\,m\eq D$, whence
+by extensionality $\mathrm{vn}\,m\in e\,m\iff\mathrm{vn}\,m\notin e\,m$ --- a contradiction.
+
+This is the Brouwerian content of VR-Sets. The diagonal does not fail and the universe is not
+countable. (To be precise: the non-enumerability \emph{theorem} is not itself Brouwerian --- the same
+diagonal works classically; what is Brouwerian is its \emph{profile} --- \texttt{propext}-only,
+choice-free --- and the contrast with the countable \texttt{Desc} register of \S6.2.) Its meaning is the cut between the \emph{done} and the \emph{becoming}: the countable
+register of what has been performed never exhausts the universe of sets as becoming. (In the
+operational-continuum work the same phenomenon appears for the power set of $\omega$: the
+characteristic functions $\N\to\mathrm{Bool}$ are non-enumerable, choice-free.)
+
+\subsection{The describable register is countable}
+\begin{defn}[Finite descriptions; \texttt{Desc}, \texttt{IsDescribable}]
+Let \texttt{Desc} be the finite inductive syntax with constructors $\varnothing$, \texttt{pair},
+\texttt{union}, $\omega$, and let \texttt{eval}$:\texttt{Desc}\to\OpSet$ be its interpretation. A set
+$x$ is describable if $x\eq\texttt{eval}\,d$ for some $d:\texttt{Desc}$.
+\end{defn}
+\begin{thm}[The describable register is countable; \texttt{describable\_countable}]
+There is an $\N$-indexed enumeration reaching every describable set (up to $\eq$), exhibited as
+$n\mapsto\texttt{eval}(\texttt{decode}\,n)$.
+\end{thm}
+\begin{rem}[\texttt{Desc} is a minimal representative of ``finite rule'']
+\texttt{Desc} fixes one concrete finite syntax ($\{\varnothing,\texttt{pair},\texttt{union},
+\omega\}$, without Separation), so it is deliberately \emph{narrower} than the intuitive ``set given
+by a finite rule''. This is exactly why Theorems~6.1 and~6.3 do not collide: the diagonal $D$ of
+\S6.1 is itself given by a finite rule, yet it is \emph{not} expressible in \texttt{Desc}. The
+contrast is robust under this choice: \emph{any} fixed finite syntax yields a countable register, and
+the same diagonal escapes it. \texttt{Desc} is a minimal witness of the schema ``done $=$ countable'',
+not an exhaustion of the notion of description.
+\end{rem}
+\begin{rem}[Honest axiom note]
+Theorem~6.3 is the only object in the development that depends on \texttt{Classical.choice}, and the
+dependence is \emph{borrowed}, not intrinsic. It enters solely through mathlib's proof that the
+natural-number pairing is invertible (\texttt{Nat.unpair\_pair}/\texttt{Nat.pair\_eq\_pair} use
+choice; \texttt{Nat.pair} itself is axiom-free). The fact is constructively true; mathlib merely
+proves it with incidental choice. We keep the theorem and record the cost. The countability of a
+register of descriptions is in any case a statement of the \emph{formal register} --- meta-accounting
+over a finite syntax --- where classical reasoning is admitted with its cost made visible.
+\end{rem}
+Theorems~6.1 and~6.3 together are the corrected \S VI: the earlier ``the operational universe is
+countable, hence AC is free'' is false; the correct statement is the contrast --- the describable
+(done) register is countable, the universe (becoming) is not.
+
+\subsection{The Axiom of Choice is not a theorem}
+The earlier \S VI argued that AC holds because the universe is countable, so every family can be
+enumerated and ``the first element of each'' chosen. That argument is unsound: its premise (every
+family has a countable enumeration) is exactly what Theorem~6.1 refutes. ``AC is free'' and ``the
+continuum is genuinely uncountable'' are two settings of one switch, and the VR cycle has set it on
+the Brouwer side. The honest operational picture:
+\begin{itemize}
+\item \textbf{Dependent choice} is operational and choice-free: a history-dependent rule determines a
+branch by recursion (the \texttt{operational\_dependent\_choice} of the continuum work).
+\item \textbf{Weak continuity (WC-N)} holds operationally for finite-information functionals
+(machine-checked there) and is classically false --- the cleanest two-register exhibit.
+\item \textbf{Full AC} --- a selection over an uncountable family with no rule --- has no operational
+correlate. It is a label of the formal register, not an operational theorem.
+\end{itemize}
+
+\subsection{Why Banach--Tarski does not arise --- through conservativity, not counting}
+The earlier text located the absence of Banach--Tarski in the countability of the universe. With
+countability gone, the explanation must change --- and the correct one is sharper and ties VR-Sets to
+VR-Forms. The Banach--Tarski construction is a form applied to a form ($T\to T$): in the formal
+register it builds a completed uncountable totality (the sphere as a set of points) with a selection
+by full AC (the Vitali set). Neither ingredient has an operational correlate: the completed
+uncountable totality is a formal-register referent, and full AC a formal-register label. By the
+invariance of the operational under the application of form --- the ground of VR-Forms'
+conservativity result, itself machine-checked --- a formal-register construction does not transit to
+the operational register: form has no power to manufacture an operational object where none was
+built. The paradox lives entirely in the formal register and never returns through the operational
+floor. Its absence is a conservativity phenomenon, not a cardinality accident.
+
+There is, moreover, a precise classical anchor. Solovay (1970) showed that
+$\mathrm{ZF}+\mathrm{DC}+$``every set of reals is Lebesgue measurable'' is consistent (relative to an
+inaccessible cardinal); in that model the Banach--Tarski paradox \emph{provably fails}. The
+operational regime --- dependent choice yes, full AC no (\S6.3) --- lands in exactly that territory.
+So the absence is not only a conservativity phenomenon but one with known metamathematical backing:
+Banach--Tarski is not derivable in the choice regime the operational register supports. (This is an
+anchor, not an identification --- the operational register is not claimed to \emph{be} Solovay's
+model; the point is that its choice profile sits where the paradox is known to be underivable.)
+
+%======================================================================
+\section{Position and honest boundaries}\label{sec:position}
+\paragraph{What is established.} The operational universe of sets is built without classical
+scaffolding: a set is a revealing functionality, identity is a witnessed bisimulation (no quotient),
+and on this carrier membership, strong extensionality, $\varnothing$, pairing, union, the power set,
+$\omega$, Separation and Replacement, the distinctness of the naturals, Anti-Foundation (decoration of
+any graph, unique up to $\eq$; axiom-free), and the predicate character of
+well-foundedness are all machine-checked --- almost entirely axiom-free or \texttt{propext}-only (the
+power set is \texttt{propext}, choice-free, though impredicative; Remark~3.10). \OpSet{} thus verifies
+every axiom of ZF without Foundation and locates the ZFC and the ZFA universes as two fragments of one
+carrier (the precise, two-register sense in which it holds them is stated next). The
+corrected cardinality core (universe non-enumerable; describable register countable) is
+machine-checked, the substantive half choice-free.
+
+\paragraph{The two registers, and the exact relation to ZFA.} The relation of \OpSet{} to the
+classical theories is stated most precisely through VR's two registers. VR's \emph{operational}
+register is an unconditional, choice-free constructive ground; its \emph{formal} register admits --- as
+a first-class but conditional, cost-tagged act --- any consistent posit (the axiom of choice, actual
+infinity, the uncountable). \textbf{With the formal register on} (classical logic, choice), the set
+layer of \OpSet{} \emph{realises} \emph{Aczel's} ZFA (that is, $\mathrm{ZF}^-$ with the
+Anti-Foundation Axiom --- non-well-founded sets by self-membership, not by urelements) and is
+therefore \textbf{equal to ZFA in strength: equiconsistent, at the level of ZF} --- neither stronger
+nor weaker. Within it ZFC is recovered as the well-founded inner class $\{x : \texttt{IsGrounded}\,x\}$.
+\textbf{Without the formal register}, the operational core is strictly \emph{weaker} --- constructive
+and choice-free (nearer $\mathrm{CZF}+\mathrm{AFA}$), not full classical ZFA. Three provisos keep this
+exact. (i) It is realisation, not identity of theories: \OpSet{} is a model that satisfies ZFA's
+axioms, so it decides statements (e.g.\ CH) that ZFA leaves open; ``$=\text{ZFA}$'' is at the level of
+axioms and consistency strength, not of the deductive closure. (ii) The equality is for the
+\emph{set layer}; VR as a whole is a proper enrichment of ZFA --- it adds the operational register and
+a machine-checked cost ledger that plain ZFA has not. (iii) The one place VR is strictly \emph{better}
+than ZFA, at equal strength, is the price of nesting: Anti-Foundation is here a \emph{theorem},
+axiom-free (\S4.1), where ZFA must \emph{posit} it --- the same universe, obtained at lower axiomatic
+cost, because the carrier (pointed graphs up to bisimulation) makes self-membership definitional rather
+than assumed. (The pluralist framing --- consistent theories as legitimate, ranked by strength --- is
+not itself novel, cf.\ Hilbert, the set-theoretic multiverse; what is new is the sharp
+operational/formal line, native choice-free Anti-Foundation, and the per-posit machine-checked ledger.)
+
+\paragraph{What is open or deferred.}
+\begin{itemize}
+\item \emph{Bishop vs Brouwer.} The computable $\R_{VR}$ (countable, done) and the non-enumerable
+becoming-continuum coexist (Remark~5.2); which is canonical for the VR continuum is the programme's
+open question. This version commits the set universe to the Brouwer reading, consistently with the
+operational-continuum work.
+\item \emph{The metalanguage.} Lean treats the underlying types classically; the operational reading
+is carried in the metalanguage and tracked by axiom profile. ``Below the choice floor'' is a
+statement about the construction's audited dependencies, exhibited build-time, not a claim that the
+ambient logic is intuitionistic.
+\item \emph{The borrowed choice.} The countability of the describable register inherits one
+\texttt{Classical.choice} from mathlib's pairing inversion (Remark~6.5); removing it would mean
+re-deriving the arithmetic choice-free, orthogonal to the foundations and left aside.
+\item \emph{Power set --- impredicative, not choice-laden.} A completed power set $\wp\,x$ \emph{is}
+constructible choice-free (\S3.3, Theorem~3.9), but only impredicatively (Remark~3.10): the obstruction
+is impredicativity, not choice. The \emph{predicative} content of $\wp(\omega)$ remains the becoming
+--- the non-enumerable diagonal of \S6. CH is a statement about a formal-register referent; it is read
+philosophically, not coded.
+\item \emph{Impredicativity is invisible to the axiom audit (P-1).} Remark~3.10 isolates a new kind of
+boundary: the power set is choice-free yet impredicative, and \texttt{\#print axioms} cannot see the
+impredicativity --- it reports \texttt{propext} only. The operational register therefore needs a
+\emph{second dimension} of accounting beyond the axiom profile; naming it (P-1) is the honest cost of
+the power set, alongside B-1/B-2 (the choice floor in $\R$ / \texttt{Fin}) and TR-R1 (the cost of the
+quotient).
+\item \emph{The setoid tax.} Declining the quotient is a permanent discipline, not a one-time saving:
+every operation carries a congruence lemma (\texttt{*\_congr}, \texttt{mem\_congr},
+\texttt{isGrounded\_iff}), and every downstream use of \OpSet{} pays it. This is the named price of
+staying below the choice floor --- relational identity in exchange for a standing congruence
+obligation. We pay it deliberately, in keeping with the cycle's discipline of naming prices.
+\end{itemize}
+\paragraph{Relation to the earlier version.} Versions through 1.0.2 stand as the classical-surrogate
+presentation (the ZFC axioms realised over \texttt{ZFSet}); their \S VI cardinality claims are
+superseded by \S6 here. The mathematics genuinely machine-checked there (the ZFC axioms as closure
+facts over the surrogate) is unaffected; what is corrected is the operational reading of cardinality
+and choice.
+
+%======================================================================
+\section*{Acknowledgement of AI assistance}
+\addcontentsline{toc}{section}{Acknowledgement of AI assistance}
+This preprint and its companion Lean~4 formalisation were prepared with the assistance of Claude
+(Anthropic), in the Variant~A architecture used across the VR cycle: a human curator directing a
+model that served as architect and implementer. All mathematical content, definitions, theorems, and
+foundational positions are due to the author, Vitaly Reznik. The operational set universe
+(\texttt{VRCycle.SetsOp}), the correction of \S VI, the operational power set (\S3.3), and this
+Version~1.1.0 were developed with Claude Opus~4.8.
+
+\section*{References}
+\addcontentsline{toc}{section}{References}
+\begin{itemize}
+\item P. Aczel, \emph{Non-Well-Founded Sets}, CSLI Lecture Notes 14, 1988.
+\item E. Bishop, \emph{Foundations of Constructive Analysis}, McGraw--Hill, 1967.
+\item L. E. J. Brouwer, collected works on choice sequences and the continuum.
+\item R. M. Solovay, \emph{A model of set-theory in which every set of reals is Lebesgue measurable},
+Annals of Mathematics \textbf{92} (1970), 1--56.
+\item J. von Neumann, \emph{Zur Einf\"uhrung der transfiniten Zahlen}, 1923.
+\item V. Reznik, \emph{VR. A Formal System: An Axiom-Free Reconstruction of Arithmetic from Operations Alone.} Zenodo, 2026. DOI 10.5281/zenodo.20633314 (concept 10.5281/zenodo.20212091); Lean companion DOI 10.5281/zenodo.20324240.
+\item V. Reznik, \emph{VR-Numbers: Operational Superstructures \dots over the Natural Numbers of VR.} Zenodo, 2026. DOI 10.5281/zenodo.20633626 (concept 10.5281/zenodo.20272025).
+\item V. Reznik, \emph{VR-Forms: An Operational Two-Register Apparatus over VR-Sets.} Zenodo, 2026. DOI 10.5281/zenodo.20355939.
+\item V. Reznik, \emph{VR-Sets-ZFA.} Zenodo, 2026. DOI 10.5281/zenodo.20369346.
+\item The VR Cycle Lean~4 formalisation, \url{https://github.com/inventor1975/VRCycle}, module \texttt{VRCycle.SetsOp}.
+\end{itemize}
+
+\end{document}
