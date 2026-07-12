@@ -1,6 +1,9 @@
 -- VRCycle/SetsOp/Closure.lean
 -- VR-Sets, Brouwer edition — Stage S2b: membership respects identity, union, successor.
--- Self-contained continuation.  Target: axiom-free / choice-free ([propext] from `rw` is fine).
+-- Self-contained continuation.  Target: axiom-free / choice-free.
+-- (2026-07-12, VR Part II tier pass: the former "[propext] from `rw` is fine"
+-- allowance is repaid — `rw` by Iff lemmas replaced with Iff.trans combinators;
+-- the whole membership calculus now sits on the EMPTY axiom list.)
 --
 --   * `mem_congr`      — membership respects operational identity on the container.
 --   * `union` / `mem_union`     — the big union ⋃x, with the ZF membership law.
@@ -42,8 +45,10 @@ def OpSet.union (x : OpSet.{u}) : OpSet.{u} :=
 /-- **Union membership law**: `z ∈ ⋃x ↔ ∃ y, y ∈ x ∧ z ∈ y`. -/
 theorem OpSet.mem_union (x z : OpSet.{u}) :
     z.Mem x.union ↔ ∃ y, y.Mem x ∧ z.Mem y := by
-  rw [OpSet.union, OpSet.mem_sup]
-  constructor
+  refine Iff.trans
+    (OpSet.mem_sup
+      (fun p : { q : x.V × x.V // x.E q.1 x.pt ∧ x.E q.2 q.1 } => x.child p.1.2) z)
+    ⟨?_, ?_⟩
   · rintro ⟨⟨⟨a, a'⟩, ha, ha'⟩, hz⟩
     exact ⟨x.child a, ⟨a, ha, OpSet.Equiv.refl _⟩, ⟨a', ha', hz⟩⟩
   · rintro ⟨y, ⟨a, ha, hya⟩, hzy⟩
@@ -59,11 +64,9 @@ def OpSet.binUnion (a b : OpSet.{u}) : OpSet.{u} := (OpSet.pair a b).union
 
 theorem OpSet.mem_binUnion (z a b : OpSet.{u}) :
     z.Mem (OpSet.binUnion a b) ↔ z.Mem a ∨ z.Mem b := by
-  rw [OpSet.binUnion, OpSet.mem_union]
-  constructor
+  refine Iff.trans (OpSet.mem_union (OpSet.pair a b) z) ⟨?_, ?_⟩
   · rintro ⟨y, hy, hzy⟩
-    rw [OpSet.mem_pair] at hy
-    cases hy with
+    cases (OpSet.mem_pair y a b).1 hy with
     | inl h => exact Or.inl (OpSet.mem_congr h hzy)
     | inr h => exact Or.inr (OpSet.mem_congr h hzy)
   · rintro (h | h)
@@ -74,8 +77,10 @@ theorem OpSet.mem_binUnion (z a b : OpSet.{u}) :
 def OpSet.succ (a : OpSet.{u}) : OpSet.{u} := OpSet.binUnion a (OpSet.singleton a)
 
 theorem OpSet.mem_succ (z a : OpSet.{u}) :
-    z.Mem (OpSet.succ a) ↔ z.Mem a ∨ z.Equiv a := by
-  rw [OpSet.succ, OpSet.mem_binUnion, OpSet.mem_singleton]
+    z.Mem (OpSet.succ a) ↔ z.Mem a ∨ z.Equiv a :=
+  Iff.trans (OpSet.mem_binUnion z a (OpSet.singleton a))
+    ⟨fun h => h.imp id (OpSet.mem_singleton z a).1,
+     fun h => h.imp id (OpSet.mem_singleton z a).2⟩
 
 -- CHECKS: no sorry, no admit; self-contained.
 

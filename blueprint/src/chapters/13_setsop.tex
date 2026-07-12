@@ -25,8 +25,9 @@ under \texttt{VRCycle/SetsOp/} (\texttt{Pointed}, \texttt{Builder},
 \texttt{Closure}, \texttt{Omega}, \texttt{Extensionality}, \texttt{Congruence},
 \texttt{Becoming}, \texttt{Describable}, \texttt{Schemas}, \texttt{Grounded},
 \texttt{Power}).
-Almost every object is \axiomprofile{[]} or \axiomprofile{[propext]}; the one
-exception is flagged in \S\ref{sec:setsop_cardinality}.
+After the 2026-07-12 tier pass (Iff-\texttt{rw} replaced by combinators)
+every object is \axiomprofile{[]} --- the empty axiom list --- except the
+describable-register encoding flagged in \S\ref{sec:setsop_cardinality}.
 
 %──────────────────────────────────────────────────────────────────────
 \section{The carrier: sets as revealing functionalities}
@@ -102,7 +103,7 @@ singleton ($z\in\{a\}\iff z\approx a$), pair
 ($z\in\{a,b\}\iff z\approx a\vee z\approx b$), union
 ($z\in\bigcup x\iff\exists y,\ y\in x\wedge z\in y$), and successor
 $\mathrm{succ}\,a := a\cup\{a\}$ ($z\in\mathrm{succ}\,a\iff z\in a\vee z\approx a$).
-Each \axiomprofile{[]} or \axiomprofile{[propext]}.  The operations respect
+Each \axiomprofile{[]}.  The operations respect
 $\approx$ (\texttt{*\_congr}, via Theorem~\ref{thm:setsop_ext}).
 \end{theorem}
 
@@ -114,7 +115,7 @@ $\approx$ (\texttt{*\_congr}, via Theorem~\ref{thm:setsop_ext}).
 The von Neumann naturals $\mathrm{vn}$ and $\omega := \mathrm{sup}\,\mathrm{vn}$:
 the members of $\omega$ are exactly the $\mathrm{vn}\,n$ up to $\approx$;
 $\varnothing\in\omega$; and $\omega$ is closed under successor for any member
-(\texttt{omega\_succ\_closed}).  \axiomprofile{[]}/\axiomprofile{[propext]}.
+(\texttt{omega\_succ\_closed}).  All \axiomprofile{[]}.
 \end{theorem}
 
 \begin{theorem}[Separation and Replacement]
@@ -126,7 +127,7 @@ For a species $p$ respecting $\approx$,
 $z\in\{z\in x\mid p\,z\}\iff z\in x\wedge p\,z$ (\texttt{mem\_sep}).  For a rule
 $F$ respecting $\approx$, $w\in\{F\,z\mid z\in x\}\iff\exists z,\ z\in x\wedge
 w\approx F\,z$ (\texttt{mem\_repl}).  No decidability is needed; both
-\axiomprofile{[propext]}.
+\axiomprofile{[]}.
 \end{theorem}
 
 \begin{theorem}[Power set --- choice-free but impredicative]
@@ -139,7 +140,7 @@ $\wp\,x := \mathrm{sup}$ over the vertex-predicates $s : x.V \to \mathrm{Prop}$
 $z \in \wp\,x \iff z \subseteq x$ (\texttt{mem\_powerset}); the backward
 direction selects $s\,a :=$ ``$a$ is a member-vertex whose member lies in $z$''
 and closes by strong extensionality (Theorem~\ref{thm:setsop_ext}).
-\axiomprofile{[propext]} --- \emph{choice-free}.  But see
+\axiomprofile{[]} --- axiom-free.  But see
 Finding~\ref{find:setsop_impredicative}: the construction is below the choice
 floor yet \emph{impredicative}.  With it, \texttt{OpSet} verifies every ZF$^-$
 axiom (Extensionality, $\varnothing$, Pairing, Union, Power, Separation,
@@ -155,8 +156,7 @@ Replacement, Infinity) choice-free; Foundation is the predicate
 A \emph{completed} power set $\wp\,x$ is constructible \emph{choice-free}
 (Theorem~\ref{thm:setsop_power}); in particular $\wp\,\omega$ exists as a set with
 $z\in\wp\,\omega\iff z\subseteq\omega$.  What this costs is not
-\texttt{Classical.choice} --- the axiom audit reports \axiomprofile{[propext]},
-none --- but \emph{impredicativity}: the index $x.V\to\mathrm{Prop}$ is the full
+\texttt{Classical.choice} --- the axiom audit reports the empty list --- but \emph{impredicativity}: the index $x.V\to\mathrm{Prop}$ is the full
 power of the representative's vertex type, a move legitimate in Lean's
 impredicative \texttt{Prop} but outside a predicative (Brouwer / Martin-L\"of)
 discipline, and one that \texttt{\#print axioms} cannot detect.  The operational
@@ -201,7 +201,7 @@ $A\in A$ (\texttt{quine\_self\_mem}) and is \emph{not} grounded
 (\texttt{quine\_not\_grounded}) --- no anti-foundation axiom invoked, the graph
 simply has a cycle.  VR thus holds ZFC and ZFA natively, as fragments of one
 universe under a uniform (bisimulation) identity, and faces neither Foundation
-nor AFA as a postulate.  \axiomprofile{[]}/\axiomprofile{[propext]}.
+nor AFA as a postulate.  All \axiomprofile{[]}.
 \end{theorem}
 
 \begin{theorem}[Anti-Foundation as an axiom-free theorem]
@@ -244,11 +244,11 @@ bijectivity on $\approx$-classes) is a candidate for VR-Sets-ZFA~v1.1.
 \uses{thm:setsop_fragments, thm:setsop_ext}
 No $\mathbb{N}$-indexed enumeration is surjective up to $\approx$:
 $\lnot\,\exists e:\mathbb{N}\to\texttt{OpSet},\ \forall x,\ \exists n,\ e\,n\approx x$
-(\texttt{universe\_not\_enumerable}, \axiomprofile{[propext]}).  The proof is a
+(\texttt{universe\_not\_enumerable}, \axiomprofile{[]} --- axiom-free).  The proof is a
 self-contained Cantor diagonal \emph{inside} the universe: the diagonal set
 $D := \{\mathrm{vn}\,n \mid \mathrm{vn}\,n\notin e\,n\}$ (a \texttt{sup} over a
 subtype, no decidability) satisfies, by the distinctness of the naturals
-(\texttt{vn\_inj}, \axiomprofile{[propext]}),
+(\texttt{vn\_inj}, \axiomprofile{[]}),
 $\mathrm{vn}\,k\in D\iff\mathrm{vn}\,k\notin e\,k$; were $e$ surjective, some
 $e\,m\approx D$ forces $\mathrm{vn}\,m\in e\,m\iff\mathrm{vn}\,m\notin e\,m$.
 This is the Brouwerian content: the diagonal \emph{works}, cutting done from

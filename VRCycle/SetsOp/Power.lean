@@ -40,8 +40,9 @@ def OpSet.subsetOf (x : OpSet.{u}) (s : x.V → Prop) : OpSet.{u} :=
 /-- Membership law of `subsetOf`: a member is a kept member-vertex's member, up to `≈`. -/
 theorem OpSet.mem_subsetOf (x : OpSet.{u}) (s : x.V → Prop) (z : OpSet.{u}) :
     z.Mem (OpSet.subsetOf x s) ↔ ∃ a, (x.E a x.pt ∧ s a) ∧ z.Equiv (x.child a) := by
-  rw [OpSet.subsetOf, OpSet.mem_sup]
-  constructor
+  refine Iff.trans
+    (OpSet.mem_sup (fun q : { a : x.V // x.E a x.pt ∧ s a } => x.child q.val) z)
+    ⟨?_, ?_⟩
   · rintro ⟨⟨a, ha, hsa⟩, hz⟩; exact ⟨a, ⟨ha, hsa⟩, hz⟩
   · rintro ⟨a, ⟨ha, hsa⟩, hz⟩; exact ⟨⟨a, ha, hsa⟩, hz⟩
 
@@ -57,8 +58,8 @@ def OpSet.powerset (x : OpSet.{u}) : OpSet.{u} :=
 /-- **Power-set membership law**: `z ∈ 𝒫 x ↔ z ⊆ x`. -/
 theorem OpSet.mem_powerset (x z : OpSet.{u}) :
     z.Mem (OpSet.powerset x) ↔ OpSet.Subset z x := by
-  rw [OpSet.powerset, OpSet.mem_sup]
-  constructor
+  refine Iff.trans
+    (OpSet.mem_sup (fun s : x.V → Prop => OpSet.subsetOf x s) z) ⟨?_, ?_⟩
   · -- z ≈ subsetOf x s, some s  ⟹  z ⊆ x
     rintro ⟨s, hz⟩ w hw
     have hw' : w.Mem (OpSet.subsetOf x s) := OpSet.mem_congr hz hw
@@ -72,11 +73,10 @@ theorem OpSet.mem_powerset (x z : OpSet.{u}) :
     constructor
     · intro hw
       obtain ⟨a, ha, hwa⟩ := hsub w hw
-      rw [OpSet.mem_subsetOf]
-      exact ⟨a, ⟨ha, ha, OpSet.mem_congr_left hwa hw⟩, hwa⟩
+      exact (OpSet.mem_subsetOf x _ w).2
+        ⟨a, ⟨ha, ha, OpSet.mem_congr_left hwa hw⟩, hwa⟩
     · intro hw
-      rw [OpSet.mem_subsetOf] at hw
-      obtain ⟨a, ⟨_, _, hcaz⟩, hwa⟩ := hw
+      obtain ⟨a, ⟨_, _, hcaz⟩, hwa⟩ := (OpSet.mem_subsetOf x _ w).1 hw
       exact OpSet.mem_congr_left hwa.symm hcaz
 
 -- CHECKS: no sorry, no admit; self-contained; identity stays a witnessed bisimulation.

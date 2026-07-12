@@ -21,8 +21,10 @@ The ZTL value kernel is \emph{vendored} into
 \texttt{VRCycle/SetsZTL/Kernel.lean} with a commit pin (the dependency is
 one-way: ZTL never depends on VR).  The kernel stands on the \emph{empty}
 axiom list, as it does at home; the whole verdict layer of this chapter is
-likewise \axiomprofile{[]}, with \axiomprofile{[propext]} entering only
-through \texttt{vn\_inj} of Chapter~\ref{chap:setsop}.
+likewise \axiomprofile{[]}; after the 2026-07-12 tier pass of
+Chapter~\ref{chap:setsop} (Iff-\texttt{rw} repaid with combinators) even the
+\texttt{vn\_inj} route is axiom-free, so the ENTIRE module stands on the
+empty axiom list.
 
 \begin{definition}[The verdict carried with its certificate]
 \label{def:setsztl_eqverdict}
@@ -59,7 +61,7 @@ On the operational naturals every identity atom decides:
 \texttt{vnVerdict n m} is never \textsf{Z}, and its value is \textsf{T}
 exactly when $n = m$ (\textsf{F} earned through \texttt{vn\_inj}).  Identity
 on this register is \emph{totally earnable} --- the Lean twin of E21~\S1.
-Both \axiomprofile{[propext]}.
+Both \axiomprofile{[]}.
 \end{theorem}
 
 \begin{theorem}[Groundedness is orthogonal to earnability]
@@ -73,7 +75,7 @@ and $\Omega$ earns \textsf{F} against $\varnothing$ --- apartness across the
 grounded/ungrounded divide.  The cycle that dooms a sentence (the liar:
 permanent quarantine, an lfp leftover) is harmless in a set (identity is
 gfp-shaped): AFA-as-theorem is the set-side mirror of
-quarantine-as-theorem.  \axiomprofile{[]} and \axiomprofile{[propext]}.
+quarantine-as-theorem.  All \axiomprofile{[]}.
 \end{theorem}
 
 \begin{theorem}[The fully-earned register is classical]

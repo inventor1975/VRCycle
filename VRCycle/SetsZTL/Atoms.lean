@@ -27,8 +27,8 @@
 --     on the classically true formulas — verdicts over verified
 --     identity atoms never lie and never refuse.
 --
--- Axiom target: [] for the kernel/verdict layer; [propext] where
--- vn_inj enters (measured at the bottom).
+-- Axiom profile: the ENTIRE module on the empty axiom list (measured at
+-- the bottom; after the 2026-07-12 tier pass even vn_inj is axiom-free).
 
 import VRCycle.SetsOp
 import VRCycle.SetsZTL.Kernel
@@ -294,7 +294,7 @@ theorem earned_register_T_iff {α : Type v} (env : α → V) (fact : α → Prop
 -- CHECKS: no sorry, no admit.
 
 -- Axiom audit — MEASURED per object (VR discipline).
--- Target: [] for the verdict layer, [propext] where vn_inj enters.
+-- Result: EVERY object below on the empty axiom list.
 #print axioms EqVerdict.val
 #print axioms EqVerdict.sound_T
 #print axioms EqVerdict.sound_F

@@ -72,15 +72,18 @@ theorem OpSet.mem_sup {I : Type u} (c : I → OpSet.{u}) (z : OpSet.{u}) :
 def OpSet.emptySup : OpSet.{u} := OpSet.sup (fun e : PEmpty.{u+1} => e.elim)
 
 theorem OpSet.not_mem_emptySup (z : OpSet.{u}) : ¬ z.Mem OpSet.emptySup := by
-  rw [OpSet.emptySup, OpSet.mem_sup]; rintro ⟨e, _⟩; exact e.elim
+  -- Iff-combinator style, not `rw` by an Iff lemma: keeps the proof off propext.
+  intro h
+  obtain ⟨e, _⟩ := (OpSet.mem_sup (fun e : PEmpty.{u+1} => e.elim) z).1 h
+  exact e.elim
 
 /-- Singleton `{a}`. -/
 def OpSet.singleton (a : OpSet.{u}) : OpSet.{u} := OpSet.sup (fun _ : PUnit.{u+1} => a)
 
 theorem OpSet.mem_singleton (z a : OpSet.{u}) :
-    z.Mem (OpSet.singleton a) ↔ z.Equiv a := by
-  rw [OpSet.singleton, OpSet.mem_sup]
-  exact ⟨fun ⟨_, h⟩ => h, fun h => ⟨PUnit.unit, h⟩⟩
+    z.Mem (OpSet.singleton a) ↔ z.Equiv a :=
+  Iff.trans (OpSet.mem_sup (fun _ : PUnit.{u+1} => a) z)
+    ⟨fun ⟨_, h⟩ => h, fun h => ⟨PUnit.unit, h⟩⟩
 
 /-- Unordered pair `{a, b}`.  Indexed by `PUnit ⊕ PUnit` (a two-element type in `Type u`,
 so the index lives in the same universe as the sets). -/
@@ -89,8 +92,10 @@ def OpSet.pair (a b : OpSet.{u}) : OpSet.{u} :=
 
 theorem OpSet.mem_pair (z a b : OpSet.{u}) :
     z.Mem (OpSet.pair a b) ↔ z.Equiv a ∨ z.Equiv b := by
-  rw [OpSet.pair, OpSet.mem_sup]
-  constructor
+  refine Iff.trans
+    (OpSet.mem_sup
+      (Sum.elim (fun _ : PUnit.{u+1} => a) (fun _ : PUnit.{u+1} => b)) z)
+    ⟨?_, ?_⟩
   · rintro ⟨i, h⟩
     cases i with
     | inl _ => exact Or.inl h

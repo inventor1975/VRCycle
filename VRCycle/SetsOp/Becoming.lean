@@ -6,7 +6,9 @@
 --
 -- This file imports `Continuum` ONLY for ℕ arithmetic (strong induction, order); it adds no
 -- Classical.choice.  The operational core (Pointed…Congruence) stays self-contained.
--- Target: choice-free ([propext, Quot.sound]).
+-- Target: choice-free — ACHIEVED at the empty axiom list (2026-07-12 tier
+-- pass: Iff-`rw` replaced by combinators; `vn_inj` and
+-- `universe_not_enumerable` are now axiom-free).
 
 import VRCycle.SetsOp.Congruence
 import VRCycle.Continuum
@@ -26,15 +28,14 @@ theorem OpSet.vn_mem_iff (x : OpSet.{0}) (m : Nat) :
       · intro h; exact absurd h (OpSet.not_mem_emptySup x)
       · rintro ⟨k, hk, _⟩; exact absurd hk (Nat.not_lt_zero k)
   | succ m ih =>
-      show x.Mem (OpSet.succ (OpSet.vn m)) ↔ _
-      rw [OpSet.mem_succ, ih]
-      constructor
-      · rintro (⟨k, hk, h⟩ | h)
-        · exact ⟨k, Nat.lt_succ_of_lt hk, h⟩
+      refine Iff.trans (OpSet.mem_succ x (OpSet.vn m)) ⟨?_, ?_⟩
+      · rintro (h | h)
+        · obtain ⟨k, hk, h⟩ := ih.1 h
+          exact ⟨k, Nat.lt_succ_of_lt hk, h⟩
         · exact ⟨m, Nat.lt_succ_self m, h⟩
       · rintro ⟨k, hk, h⟩
         rcases Nat.lt_succ_iff_lt_or_eq.1 hk with hk' | hk'
-        · exact Or.inl ⟨k, hk', h⟩
+        · exact Or.inl (ih.2 ⟨k, hk', h⟩)
         · exact Or.inr (hk' ▸ h)
 
 /-- `k < m → vn k ∈ vn m`. -/
@@ -72,8 +73,10 @@ def OpSet.diag (e : Nat → OpSet.{0}) : OpSet.{0} :=
 
 theorem OpSet.mem_diag (e : Nat → OpSet.{0}) (k : Nat) :
     (OpSet.vn k).Mem (OpSet.diag e) ↔ ¬ (OpSet.vn k).Mem (e k) := by
-  rw [OpSet.diag, OpSet.mem_sup]
-  constructor
+  refine Iff.trans
+    (OpSet.mem_sup
+      (fun p : { n : Nat // ¬ (OpSet.vn n).Mem (e n) } => OpSet.vn p.val) _)
+    ⟨?_, ?_⟩
   · rintro ⟨⟨n, hn⟩, hk⟩
     rw [OpSet.vn_inj hk]; exact hn
   · intro hk

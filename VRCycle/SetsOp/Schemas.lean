@@ -25,8 +25,10 @@ def OpSet.sep (x : OpSet.{u}) (p : OpSet.{u} → Prop) : OpSet.{u} :=
 theorem OpSet.mem_sep {x : OpSet.{u}} {p : OpSet.{u} → Prop}
     (hp : ∀ {a b : OpSet.{u}}, a.Equiv b → (p a ↔ p b)) (z : OpSet.{u}) :
     z.Mem (OpSet.sep x p) ↔ z.Mem x ∧ p z := by
-  rw [OpSet.sep, OpSet.mem_sup]
-  constructor
+  refine Iff.trans
+    (OpSet.mem_sup
+      (fun q : { a : x.V // x.E a x.pt ∧ p (x.child a) } => x.child q.val) z)
+    ⟨?_, ?_⟩
   · rintro ⟨⟨a, ha, hpa⟩, hz⟩
     exact ⟨⟨a, ha, hz⟩, (hp hz).2 hpa⟩
   · rintro ⟨⟨a, ha, hz⟩, hpz⟩
@@ -45,8 +47,9 @@ def OpSet.repl (x : OpSet.{u}) (F : OpSet.{u} → OpSet.{u}) : OpSet.{u} :=
 theorem OpSet.mem_repl {x : OpSet.{u}} {F : OpSet.{u} → OpSet.{u}}
     (hF : ∀ {a b : OpSet.{u}}, a.Equiv b → (F a).Equiv (F b)) (w : OpSet.{u}) :
     w.Mem (OpSet.repl x F) ↔ ∃ z, z.Mem x ∧ w.Equiv (F z) := by
-  rw [OpSet.repl, OpSet.mem_sup]
-  constructor
+  refine Iff.trans
+    (OpSet.mem_sup (fun q : { a : x.V // x.E a x.pt } => F (x.child q.val)) w)
+    ⟨?_, ?_⟩
   · rintro ⟨⟨a, ha⟩, hw⟩
     exact ⟨x.child a, ⟨a, ha, OpSet.Equiv.refl _⟩, hw⟩
   · rintro ⟨z, ⟨a, ha, hza⟩, hw⟩
