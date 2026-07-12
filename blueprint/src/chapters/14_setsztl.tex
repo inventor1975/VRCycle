@@ -92,9 +92,77 @@ nor refuse.  Proved by one structural induction with a per-connective
 \texttt{propext}).
 \end{theorem}
 
+\section{Choice sequences as the lazy register (step (б))}
+\label{sec:setsztl_stages}
+
+The measured twin is \texttt{zchoice.py} (E22).  The objects are VR's own:
+a \texttt{Branch} of the binary spread (Chapter~\ref{chap:continuum}) is the
+sequence-in-growth, its performed segment \texttt{take} is the LAZY register,
+and the stage court \texttt{Forces} --- what the segment forces over every
+continuation --- is where the greedy register's verdicts are judged.  The
+Branch layer inherits the Continuum's own choice-free tier
+(\axiomprofile{[propext(, Quot.sound)]}); the kernel cells are
+\axiomprofile{[]}.
+
+\begin{definition}[The stage court]
+\label{def:setsztl_forces}
+\lean{VRCycle.SetsZTL.Forces}
+\leanok
+Node $s$ \textbf{forces} $P$ when every branch through $s$ satisfies $P$.
+\axiomprofile{[]}.
+\end{definition}
+
+\begin{theorem}[Heredity is native to the lazy register]
+\label{thm:setsztl_heredity}
+\lean{VRCycle.SetsZTL.through_mono, VRCycle.SetsZTL.forces_mono}
+\leanok
+\uses{def:setsztl_forces}
+A verdict forced at a node is forced at every extension: earned-at-a-stage
+survives every future choice (E22 §3: 0 revocations vs 1371 greedy deaths).
+The Kripke persistence the greedy register refuses as a free axiom (E12) is
+native to the lazy one.
+\end{theorem}
+
+\begin{theorem}[The ladder cells: p→p redeemed, ¬¬ overclaims]
+\label{thm:setsztl_ladder}
+\lean{VRCycle.SetsZTL.identity_forced_at_root, VRCycle.SetsZTL.identity_greedy_abstains, VRCycle.SetsZTL.ladder_overclaims, VRCycle.SetsZTL.atom_not_forced_at_root}
+\leanok
+\uses{def:setsztl_forces}
+The identity law, fallen in the greedy court
+(\texttt{zimp Z Z = F}), is \emph{redeemed} by the stage court (every branch
+satisfies it) --- a law of logic, not of data; while the ¬¬ ladder verdict
+(\texttt{znot (znot Z) = T}) asserts an atom NO prefix forces (the all-false
+branch refutes it).  Raw greedy verdicts are not assertions about the future;
+warranted ones are (E22 §1: 0 violations for the sound grade).  All four
+cells \axiomprofile{[]}.
+\end{theorem}
+
+\begin{theorem}[Lawless stage = global supervaluation]
+\label{thm:setsztl_super}
+\lean{VRCycle.SetsZTL.stage_eq_super, VRCycle.SetsZTL.pad_through}
+\leanok
+\uses{def:setsztl_forces, thm:setsztl_heredity}
+For a property read off the horizon-$H$ segment, forcing at node $s$ is
+EXACTLY the universal quantifier over all finite completions of $s$ to
+length $H$ --- the world-set of the global $\square$ (E22 §2: measured
+totally, 49545 pairs, then kernel-checked here).  Zero trust is
+assertability against a maximally ignorant future; a law narrows the worlds
+and strengthens the stage.
+\end{theorem}
+
+\begin{theorem}[Stream identity at a stage]
+\label{thm:setsztl_streams}
+\lean{VRCycle.SetsZTL.eq_never_forced, VRCycle.SetsZTL.apart_earned, VRCycle.SetsZTL.through_pointwise}
+\leanok
+\uses{def:setsztl_forces}
+Equality of branches is never forced at a finite stage (below any node two
+explicit continuations diverge), while apartness is earned by one
+disagreeing reveal and, being an $\exists$-fact, persists.  E6 recast
+per-stage: stream equality is Z-permanent, apartness earnable ---
+constructive practice reproduced by the registers.
+\end{theorem}
+
 What is \emph{deliberately not} formalised here: the warranty ladder over
 partially examined registers (sound~$\supset$~hereditary, the E21 find that
 revised ZTL's E12) lives and is measured in the ZTL repository; its Lean twin
-belongs to the ZTL corpus, not to VR.  Step~(б) of the programme --- choice
-sequences as the lazy register --- will enter through
-\texttt{Becoming} (Chapter~\ref{chap:setsop}).
+belongs to the ZTL corpus, not to VR.
