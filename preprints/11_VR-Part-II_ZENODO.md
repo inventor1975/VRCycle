@@ -66,7 +66,7 @@ does not depend on trusting the AI: every claim is reproducible by the
 repositories' regressions and the Lean 4 kernel.
 
 **Keywords:**
-zero-trust logic; three-valued logic; witnessed bisimulation;
+ZTL; VR cycle; zero-trust logic; three-valued logic; witnessed bisimulation;
 operational set theory; choice sequences; supervaluation; Kripke
 persistence; intuitionism; constructive mathematics; axiom audit;
 non-well-founded sets; Brouwer; Lean 4; machine-checked proofs
