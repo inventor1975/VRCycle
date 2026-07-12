@@ -24,7 +24,15 @@
 -- the enumeration is nonetheless EXHIBITED as a rule (`descEnum`), not choice-asserted.  The
 -- substantive operational payoff (the universe IS non-enumerable) is choice-free in
 -- `Becoming.lean`; this is its countable counterpart.  Everything else in `SetsOp/` is
--- choice-free (axiom-free or `[propext]`).
+-- axiom-free (the 2026-07-12 tier pass repaid the former [propext] allowance).
+--
+-- TODO (optional, curator 2026-07-12): the residual Tier-3 here is removable in
+-- principle — the fact is constructively true.  The path: hand-roll a ℕ-pairing
+-- (pair/unpair + unpair_pair/pair_eq_pair by structural Nat induction, avoiding
+-- mathlib's classical div/mod/sqrt lemmas) and a bespoke tree encoding of `Desc`
+-- with its `encodek`.  Estimated: a half-day-plus of careful Nat work, with the
+-- risk that the dirty core-lemma chain runs longer.  Reopen only if a fully empty
+-- module-wide declaration becomes worth that price; the flag as it stands is honest.
 
 import VRCycle.SetsOp.Becoming
 
