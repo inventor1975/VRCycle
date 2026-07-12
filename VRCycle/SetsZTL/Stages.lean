@@ -29,7 +29,20 @@
 --     ∃-fact of the branches, persists (`apart_earned`).
 --
 -- Axiom profile: MEASURED at the bottom; the kernel cells are [];
--- the Branch layer inherits whatever mathlib's List lemmas cost.
+-- the Branch layer sits at [propext(, Quot.sound)] — the Continuum's
+-- own choice-free tier (Branch.lean itself is [propext]); no
+-- Classical.choice anywhere.
+--
+-- TODO (optional, curator 2026-07-12; twin of the Describable note):
+-- the residual propext here is mathlib's, not ours — every List lemma
+-- used (length_append, getElem_map, take_range, ext_getElem, …) is
+-- constructively true but proved with simp upstream. Removable at a
+-- price: either hand-roll ~9 list lemmas (the List.range ones are the
+-- painful part — tail-recursive loop implementation; 1–2 days, chain
+-- risk), or refactor Continuum's Branch.take to a structural seg
+-- (cleaner lemmas, but surgery on a published module used by
+-- Cantor/BarSound). Reopen only if the whole Continuum wing is ever
+-- lifted to the empty list; the tier as it stands matches the wing.
 
 import VRCycle.Continuum.Branch
 import VRCycle.SetsZTL.Kernel
