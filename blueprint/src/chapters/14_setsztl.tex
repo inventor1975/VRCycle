@@ -162,6 +162,37 @@ per-stage: stream equality is Z-permanent, apartness earnable ---
 constructive practice reproduced by the registers.
 \end{theorem}
 
+\section{The survival ledger (step (в))}
+\label{sec:setsztl_survival}
+
+Criterion C2 (curator, 2026-07-12): \textbf{a proof survives the move onto
+ZTL iff it stands below the classical floor} — ZTL's fallen laws are the laws
+of free truth, their Lean fingerprint is \texttt{Classical.choice}, and a
+constructive proof from earned premises is a chain of ZTL-alive rules
+(measured: E20 rules 14/14; E21 §3 constructors; E22 §1 warranty). The
+four-tier axiom ledger the cycle has kept from its first work is therefore
+the ZTL-survival audit — ``VR always stood on ZTL,'' literally.  The full
+MEASURED ledger is \texttt{ZTL\_SURVIVAL.md} (405 live-audited objects +
+flagship anchors): everything VR calls operational moves; what stays is
+exactly what was already flagged classical by design, by substrate, or by
+borrowed plumbing.  The audit bounds proofs, never theorems (auditor, not
+separator).
+
+\begin{theorem}[Spot-checks: three flagships, moved]
+\label{thm:setsztl_survival}
+\lean{VRCycle.SetsZTL.extVerdict_val, VRCycle.SetsZTL.afaVerdict_val, VRCycle.SetsZTL.vnMemVerdict_T_iff, VRCycle.SetsZTL.memCongrVerdict_val}
+\leanok
+\uses{def:setsztl_eqverdict, thm:setsop_ext}
+Strong extensionality moves as a certificate constructor
+(\texttt{extVerdict}: from member-matching data the identity witness is
+built); AFA-as-theorem moves (\texttt{afaVerdict}: decorations carry earned
+identity at every vertex); membership becomes a carried verdict
+(\texttt{MemVerdict} — the membership twin of \texttt{EqVerdict}, closing
+step~(а)'s gap: the vn register total and classical, earned $\in$
+transported along earned $\approx$ by \texttt{memCongrVerdict}).  All on the
+empty axiom list.
+\end{theorem}
+
 What is \emph{deliberately not} formalised here: the warranty ladder over
 partially examined registers (sound~$\supset$~hereditary, the E21 find that
 revised ZTL's E12) lives and is measured in the ZTL repository; its Lean twin
