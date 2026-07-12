@@ -37,6 +37,7 @@ Fourteen Zenodo records (seven works × Lean + preprint). Two further works (Ope
 | 14 | **VR-Apparatus v1.0.0 (preprint)** | [**10.5281/zenodo.20381417**](https://doi.org/10.5281/zenodo.20381417) | — |
 | 15 | **VR-Topology v1.0.0 (Lean)** | — *(Zenodo pending)* | **`v1.13-vr-topology-v1.0.0`** |
 | 16 | **VR-Transit v1.0.0 (Lean)** | — *(no Zenodo; cited by git tag, curatorial decision)* | **`v1.15-vr-transit-v1.0.0`** |
+| 17 | **VR Part II v1.0.0 (preprint)** | [**10.5281/zenodo.21326038**](https://doi.org/10.5281/zenodo.21326038) | — *(Lean in-repo: `VRCycle.SetsZTL`; ledger `ZTL_SURVIVAL.md`)* |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 

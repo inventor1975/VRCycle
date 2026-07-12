@@ -1,4 +1,11 @@
-# Zenodo upload sheet — VR Part II v1.0.0 (NOT yet published)
+# Zenodo upload sheet — VR Part II v1.0.0
+
+**PUBLISHED 2026-07-12: DOI 10.5281/zenodo.21326038 (concept DOI
+10.5281/zenodo.21326037 — resolves to the latest version). Verified
+via the API: title/version/license/keywords/related identifiers all
+as below; the uploaded PDF is byte-identical to the repository copy
+(280,783 bytes). The DOI is embedded in the tex source; the repo PDF
+is NOT rebuilt — it stays the exact published artifact.**
 
 **File to upload:** `preprints/11_VR-Part-II_EN_v1_0_0.pdf` (9 pages)
 
