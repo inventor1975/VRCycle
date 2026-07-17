@@ -127,6 +127,52 @@ theorem selectors_not_enumerable :
   branches_not_enumerable
 
 -- ============================================================
+-- §Twins.  The computational face: anonymous symmetry cannot break
+-- ============================================================
+
+/-- One synchronous round of an anonymous network: every node applies the
+SAME rule `f` to (left neighbour, self, right neighbour).  The wiring
+`L, R` is arbitrary — this is stronger than a ring. -/
+def netStep (f : S → S → S → S) (L R : Fin m → Fin m)
+    (c : Fin m → S) : Fin m → S :=
+  fun i => f (c (L i)) (c i) (c (R i))
+
+/-- The run of the network from the identical start `s0`. -/
+def netRun (f : S → S → S → S) (L R : Fin m → Fin m) (s0 : S) :
+    ℕ → Fin m → S
+  | 0     => fun _ => s0
+  | t + 1 => netStep f L R (netRun f L R s0 t)
+
+/-- **Deterministic twins never break** (the folklore core of Angluin 1980):
+in an anonymous network of identical deterministic automata started
+identically, the configuration is constant across nodes at EVERY round,
+whatever the wiring.  Symmetry is not broken — it is reproduced by every
+step. -/
+theorem twins_never_break (f : S → S → S → S) (L R : Fin m → Fin m)
+    (s0 : S) : ∀ t, ∀ i j : Fin m, netRun f L R s0 t i = netRun f L R s0 t j := by
+  intro t
+  induction t with
+  | zero => intro i j; rfl
+  | succ t ih =>
+    intro i j
+    show f _ _ _ = f _ _ _
+    rw [ih (L i) (L j), ih i j, ih (R i) (R j)]
+
+/-- **No leader, ever**: with at least two nodes, no round distinguishes a
+unique one — whatever "distinguished" means (any predicate `P`).  The
+deterministic half of the sock story, machine-checked: without a coin —
+without a cell invariant under negation — the symmetric cannot choose. -/
+theorem no_unique_leader (f : S → S → S → S) (L R : Fin m → Fin m)
+    (s0 : S) (P : S → Prop) (i j : Fin m) (hij : i ≠ j) :
+    ∀ t, ¬ ∃! k, P (netRun f L R s0 t k) := by
+  rintro t ⟨k, hk, huniq⟩
+  have hi : P (netRun f L R s0 t i) := by
+    rw [twins_never_break f L R s0 t i k]; exact hk
+  have hj : P (netRun f L R s0 t j) := by
+    rw [twins_never_break f L R s0 t j k]; exact hk
+  exact hij ((huniq i hi).trans (huniq j hj).symm)
+
+-- ============================================================
 -- Axiom audit
 -- ============================================================
 #print axioms operational_dependent_choice
@@ -134,5 +180,7 @@ theorem selectors_not_enumerable :
 #print axioms not_continuity   -- the formal-register contrast: classical by design
 #print axioms no_symmetric_selector
 #print axioms selectors_not_enumerable
+#print axioms twins_never_break
+#print axioms no_unique_leader
 
 end VRCycle.Continuum

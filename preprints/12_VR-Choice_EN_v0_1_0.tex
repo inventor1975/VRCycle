@@ -150,8 +150,15 @@ anonymous networks is deterministically impossible; Angluin 1980,
 Itai--Rodeh 1981), while randomized agents succeed almost surely in
 expected two rounds.  A companion simulation in the ZTL workspace
 measures exactly this: deterministic twins never disagree; coin-equipped
-socks break symmetry in $\approx 2$ rounds.  The sock chooses itself, or
-nothing chooses it.
+socks break symmetry in $\approx 2$ rounds.  The deterministic half is
+itself a theorem of the corpus (\texttt{twins\_never\_break},
+\texttt{no\_unique\_leader}; empty axiom list): in an anonymous network
+of identical automata started identically, the configuration is constant
+across nodes at every round \emph{for arbitrary wiring} --- stronger
+than a ring --- so no round distinguishes a unique node under any
+predicate.  To our knowledge this folklore impossibility had not been
+machine-checked before.  The sock chooses itself, or nothing chooses
+it.
 \end{rem}
 
 \section{Cardinals as becomings}
