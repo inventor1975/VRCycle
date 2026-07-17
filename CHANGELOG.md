@@ -1,5 +1,17 @@
 # Changelog
 
+## Continuum: Russell's socks — 2026-07-17
+
+`Continuum/Choice.lean` §Socks: selection over indistinguishable pairs split
+into rule and act. **`no_symmetric_selector`** — no swap-symmetric selection
+rule exists (the Fraenkel–Mostowski sock statement in miniature) — on the
+**empty axiom list**; **`selectors_not_enumerable`** — the selectors are
+exactly the branches, so the acts are a continuum (`[propext]`, inherits the
+branch diagonal). Rules: zero. Acts: uncountable. `Classical.choice` nowhere
+in the section: theorems about choice that borrowed none. Full build green,
+8369 jobs. Companion runs and the act/object reading live in the ZTL
+workspace (dilemmas, 2026-07-17).
+
 ## VR-Transit v1.0.0 — 2026-05-29
 
 Tenth work: transit conservativity (the apparatus is axiom-neutral) plus a

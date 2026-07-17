@@ -16,6 +16,11 @@
 --   (4) AC + AD → ⊥ is a T→T phenomenon (ADDENDUM): the contradiction needs both formal
 --       contexts co-asserted in one deduction, with no operational material between; it never
 --       returns through the operational floor.  Essay-level, not a Lean claim.
+--   (5) Russell's SOCKS — selection over indistinguishable pairs — splits the same way:
+--       as a RULE it is impossible (no swap-symmetric selector, `no_symmetric_selector`,
+--       the Fraenkel–Mostowski statement in miniature); as an ACT it is a continuum (every
+--       branch — operationally, a lawless coin — selects; `selectors_not_enumerable`).
+--       Rules: zero.  Acts: uncountable.  Choice lives as an act, never as an object.
 --
 -- This file formalises (1) and bundles (1)+(2, operational side) choice-free; (2-formal), (3),
 -- (4) are cited / essay, by design.
@@ -80,10 +85,54 @@ theorem operational_choice_available :
   ⟨operational_dependent_choice, NbhdFun.continuity_of_nbhd⟩
 
 -- ============================================================
+-- §Socks.  Russell's socks: rules number zero, acts a continuum
+-- ============================================================
+
+/-- The swap of the indistinguishable pair in box `k`, acting on selections.
+The two socks of a box are `false`/`true` only in the formal register's
+bookkeeping — the box itself offers no mark; the swap at `k` flips the pick
+there.  A rule that "does not read our labels" must be invariant under these
+swaps beyond some finite bookkeeping bound. -/
+def swapAt (k : ℕ) (c : ℕ → Bool) : ℕ → Bool :=
+  fun n => if n = k then !(c n) else c n
+
+theorem swapAt_self (k : ℕ) (c : ℕ → Bool) : swapAt k c k = !(c k) := by
+  unfold swapAt
+  rw [if_pos rfl]
+
+/-- **No selection rule exists** (Russell's socks; the Fraenkel–Mostowski sock
+statement in miniature).  A rule may read the bookkeeping labels only up to a
+finite bound and must be swap-invariant beyond it; no selection is — the swap
+at any box beyond the bound moves the pick there.  Choice-free, and rule-free
+by theorem. -/
+theorem no_symmetric_selector :
+    ¬ ∃ (c : ℕ → Bool) (N : ℕ), ∀ k, N ≤ k → swapAt k c = c := by
+  rintro ⟨c, N, h⟩
+  have h1 : swapAt N c N = c N := congrFun (h N (Nat.le_refl N)) N
+  rw [swapAt_self] at h1
+  cases hc : c N with
+  | false => rw [hc] at h1; exact Bool.noConfusion h1
+  | true  => rw [hc] at h1; exact Bool.noConfusion h1
+
+/-- Every branch — every performed sequence; operationally, a lawless coin —
+IS a selection: the act picks where no rule can.  Definitionally choice-free. -/
+def actSelector (β : Branch) : ℕ → Bool := β
+
+/-- **The selectors are exactly the branches**, so the acts are not even
+enumerable (`branches_not_enumerable`) while the rules number zero
+(`no_symmetric_selector`): selection over indistinguishable pairs exists
+never as a rule and uncountably as an act. -/
+theorem selectors_not_enumerable :
+    ¬ ∃ e : ℕ → (ℕ → Bool), Function.Surjective e :=
+  branches_not_enumerable
+
+-- ============================================================
 -- Axiom audit
 -- ============================================================
 #print axioms operational_dependent_choice
 #print axioms operational_choice_available
 #print axioms not_continuity   -- the formal-register contrast: classical by design
+#print axioms no_symmetric_selector
+#print axioms selectors_not_enumerable
 
 end VRCycle.Continuum
