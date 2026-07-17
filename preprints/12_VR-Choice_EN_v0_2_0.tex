@@ -23,9 +23,10 @@
 \large Russell's socks, cardinals as becomings, and the productive
 continuum,\\ machine-checked on the empty axiom list}
 \author{Vitaly Reznik}
-\date{2026 --- DRAFT v0.1.0 (unpublished)\\[2pt]
+\date{2026 --- DRAFT v0.2.0 (unpublished)\\[2pt]
 \small Lean 4 corpus: \texttt{github.com/inventor1975/VRCycle},
-\texttt{VRCycle/Continuum/\{Choice,Cardinal\}.lean}}
+\texttt{VRCycle/Continuum/\{Choice,Cardinal\}.lean}\\
+\small Verify from zero: see \S\ref{sec:verify} (four commands, one audit table)}
 
 \begin{document}
 \maketitle
@@ -55,6 +56,13 @@ itself.  Every proof is choice-free; the central results carry the empty
 axiom list, verified by \texttt{\#print axioms}.  Nothing here is a new
 classical theorem; the contribution is the operational re-reading, the
 axiom pricing, and the machine check.
+
+The paper is written to be \emph{verified from zero}: Section~\ref{sec:verify}
+gives four shell commands and one audit table, so that any agent ---
+human or machine --- can re-derive every claim through the Lean~4 kernel
+without trusting the author or this text.  An empty axiom list is
+precisely a verdict two parties who share no axioms and no trust can
+both confirm: the strongest form of a checkable claim.
 \end{abstract}
 
 \section{Introduction: act against object}
@@ -277,8 +285,9 @@ since its first proof --- inherited not from the library but from our
 own \texttt{simp} on a Boolean hypothesis.  One explicit
 \texttt{Bool.noConfusion} restored the empty list.  The lesson is
 methodological: before blaming the substrate, audit your own tactics.
-\MEASURED{}: the current audit shows the empty list for every theorem
-named in this note.
+\MEASURED{}: the current audit (Table~\ref{tab:audit}) shows the empty
+list for every theorem named in this note save one --- DC, which carries
+\texttt{[propext]}, marked and not load-bearing for the thesis.
 \end{finding}
 
 \section{Relation to the literature}
@@ -295,16 +304,65 @@ None of these results is claimed as new; the operational re-reading, the
 splitting of each theme into rule-half and act-half, and the empty-list
 machine check are the contribution.
 
-\section{Reproducibility}
+\section{Machine verification: check it from zero}
+\label{sec:verify}
 
-All theorems live in \texttt{VRCycle/Continuum/Choice.lean} and
-\texttt{VRCycle/Continuum/Cardinal.lean} of the public repository
-(\texttt{github.com/inventor1975/VRCycle}); \texttt{lake build} verifies
-the corpus (8\,370 jobs at the time of writing), and \texttt{\#print
-axioms} lines at the end of each file exhibit the axiom profile of every
-public object.  The companion simulations (symmetry breaking, the
-quantum coin) live in the ZTL workspace
-(\texttt{github.com/inventor1975/ZTL}, \texttt{dilemmas/}).
+This section is written so that any agent --- human or machine --- can
+verify every claim of this paper \emph{without trusting the author, the
+AI that helped write it, or this text.}  That is the point of the empty
+axiom list.  A theorem whose \texttt{\#print axioms} is empty is provable
+from nothing: two parties who share no axioms, no training, and no trust
+can still both compute the same verdict, because the Lean~4 kernel
+re-derives it from zero.  This is the strongest form of a zero-trust
+claim, and it is mechanical, not rhetorical.
+
+\paragraph{The protocol (four commands).}
+\begin{verbatim}
+  git clone https://github.com/inventor1975/VRCycle
+  cd VRCycle          # commit 01dd0a5; toolchain in lean-toolchain (Lean 4.29.1)
+  lake exe cache get  # mathlib cache
+  lake build          # verifies the whole corpus (~8370 jobs)
+\end{verbatim}
+The \texttt{\#print axioms} lines at the foot of
+\texttt{VRCycle/Continuum/\{Choice,Cardinal,Branch\}.lean} then print,
+for every named theorem, exactly the axiom profile tabulated below.  A
+verifier compares the printed lines against Table~\ref{tab:audit}; any
+mismatch falsifies the paper.  Nothing is taken on the author's word.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lll@{}}
+\hline
+\textbf{Theorem} & \textbf{Axioms} & \textbf{Claim} \\
+\hline
+\texttt{no\_symmetric\_selector}   & $[\,]$        & no swap-symmetric selection rule \\
+\texttt{selectors\_not\_enumerable}& $[\,]$        & the selection acts are a continuum \\
+\texttt{twins\_never\_break}       & $[\,]$        & anonymous determinism keeps symmetry \\
+\texttt{no\_unique\_leader}        & $[\,]$        & hence no round distinguishes a node \\
+\texttt{natIntoBranch}             & $[\,]$        & $\N \hookrightarrow \Branch$ performed \\
+\texttt{cantor\_ladder}            & $[\,]$        & no floor surjects onto its power \\
+\texttt{nat\_strictly\_below\_branch}& $[\,]$      & $\N$ strictly below $2^{\N}$ \\
+\texttt{escape\_escapes}           & $[\,]$        & the fugitive differs from every entry \\
+\texttt{branches\_productive}      & $[\,]$        & uncountability with witness handed over \\
+\texttt{branches\_not\_enumerable} & $[\,]$        & the diagonal (tier-cleaned) \\
+\texttt{operational\_dependent\_choice}& \texttt{[propext]} & DC as recursion on a rule \\
+\hline
+\end{tabular}
+\caption{The audit table.  ``$[\,]$'' = the empty axiom list: provable
+from nothing, not even \texttt{propext}.  Every row is a line the build
+prints; a verifier confirms each independently.  The single
+\texttt{[propext]} is honest and marked --- it is the one place a
+proof-irrelevance rewrite was used, and it is not load-bearing for the
+paper's thesis (the impossibility and the diagonal both stand at
+$[\,]$).}
+\label{tab:audit}
+\end{table}
+
+The companion simulations (symmetry breaking, the quantum coin) live in
+the ZTL workspace (\texttt{github.com/inventor1975/ZTL},
+\texttt{dilemmas/}); they are evidence, not proof, and are labelled as
+such --- only the Lean theorems above carry the empty-axiom guarantee.
 
 \section*{Acknowledgement}
 
