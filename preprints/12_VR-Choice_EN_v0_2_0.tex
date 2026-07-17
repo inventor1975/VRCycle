@@ -316,7 +316,22 @@ can still both compute the same verdict, because the Lean~4 kernel
 re-derives it from zero.  This is the strongest form of a zero-trust
 claim, and it is mechanical, not rhetorical.
 
-\paragraph{The protocol (four commands).}
+\paragraph{The fast path: one file, one command, no dependencies.}  Every
+empty-axiom-list theorem of this paper is reproved, from scratch, in a
+single self-contained file \texttt{Verify\_Choice\_standalone.lean} at the
+repository root --- \emph{no mathlib, no lake, no imports}.  Any agent
+checks the lot in under a second:
+\begin{verbatim}
+  lean Verify_Choice_standalone.lean
+\end{verbatim}
+It prints, for each of the ten theorems, \texttt{does not depend on any
+axioms}.  This is the whole zero-trust claim in executable form: the
+bare Lean~4 kernel (version in \texttt{lean-toolchain}, 4.29.1)
+re-derives every verdict from nothing --- no library to trust, no author
+to trust, no text to trust.  Two parties who share only the kernel can
+both run it and agree.
+
+\paragraph{The full path (with the substrate).}
 \begin{verbatim}
   git clone https://github.com/inventor1975/VRCycle
   cd VRCycle          # commit 01dd0a5; toolchain in lean-toolchain (Lean 4.29.1)
@@ -328,6 +343,10 @@ The \texttt{\#print axioms} lines at the foot of
 for every named theorem, exactly the axiom profile tabulated below.  A
 verifier compares the printed lines against Table~\ref{tab:audit}; any
 mismatch falsifies the paper.  Nothing is taken on the author's word.
+(The standalone file and the in-corpus versions prove the same
+statements; the corpus adds the operational framing and the
+\texttt{[propext]}-carrying DC theorem, which the standalone omits since
+it is not empty-list.)
 
 \begin{table}[h]
 \centering
