@@ -1,0 +1,311 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{defn}[thm]{Definition}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{cor}[thm]{Corollary}
+\theoremstyle{remark}
+\newtheorem{rem}[thm]{Remark}
+\newtheorem{finding}[thm]{Finding}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Branch}{\textsf{Branch}}
+\newcommand{\MEASURED}{\textsc{measured}}
+
+\title{\textbf{Choice as an Act.}\\[2pt]
+\large Russell's socks, cardinals as becomings, and the productive
+continuum,\\ machine-checked on the empty axiom list}
+\author{Vitaly Reznik}
+\date{2026 --- DRAFT v0.1.0 (unpublished)\\[2pt]
+\small Lean 4 corpus: \texttt{github.com/inventor1975/VRCycle},
+\texttt{VRCycle/Continuum/\{Choice,Cardinal\}.lean}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Three classical set-theoretic themes --- the axiom of choice on
+indistinguishable pairs (Russell's socks), the comparison of infinite
+cardinals, and the uncountability of the continuum --- are re-read
+operationally: an assertion counts only as an \emph{act}, performed and
+witnessed, never as a completed object postulated into existence.  Under
+this reading each theme splits cleanly in two, and both halves become
+short machine-checked theorems.  For the socks: no selection \emph{rule}
+exists (no swap-symmetric selector beyond any finite bookkeeping bound
+--- the Fraenkel--Mostowski statement in miniature, proved on the
+\emph{empty} axiom list), while selection \emph{acts} form a continuum
+(the selectors are exactly the branches, which are not enumerable).  For
+cardinals: a comparison is an act whose witness is data --- an explicit
+injection $\N \hookrightarrow 2^{\N}$ is performed; the Cantor--Lawvere
+diagonal is proved uniformly for every floor of the power-set ladder, on
+the empty axiom list; the resulting order is \emph{partial by design},
+since cardinal trichotomy is equivalent to full AC and is cited as a
+formal-register label rather than claimed.  For uncountability: the sign
+is flipped from prohibition to \emph{productivity} --- the fugitive from
+any enumeration is computed by an explicit term, so the continuum is
+productive in Post's sense: the catalogue that reads itself extends
+itself.  Every proof is choice-free; the central results carry the empty
+axiom list, verified by \texttt{\#print axioms}.  Nothing here is a new
+classical theorem; the contribution is the operational re-reading, the
+axiom pricing, and the machine check.
+\end{abstract}
+
+\section{Introduction: act against object}
+
+The VR cycle reads mathematics operationally: an object is what an
+operation reveals, an identity is earned by a witness, and nothing is
+asserted on credit.  This note applies that discipline to the corner of
+set theory where credit is most concentrated: choice, cardinal
+comparison, and uncountability.
+
+The organizing distinction is grammatical.  A \emph{rule} is a uniform
+prescription that could be written down once and applied everywhere; an
+\emph{act} is a performance, individuated by its occurrence, whose
+witness exists after and because of it.  Classical set theory does not
+mark this distinction: the axiom of choice postulates a completed system
+of selections (an object), cardinal comparability postulates completed
+comparisons, and uncountability is stated as a prohibition.  The
+operational reading marks the distinction everywhere, and the three
+classical themes then factor as follows.
+
+\begin{itemize}
+\item \textbf{Choice.}  Where a rule exists, choice is available
+  choice-free (dependent choice as recursion on a history-dependent
+  rule; already in the cycle).  Where a rule provably cannot exist ---
+  the indistinguishable pairs --- selection survives as an act; and acts
+  are plentiful precisely where rules are impossible
+  (Section~\ref{sec:socks}).
+\item \textbf{Cardinals.}  A comparison of infinite types is an act:
+  its witness (an injection) is data.  Performed comparisons yield a
+  \emph{partial} order; the missing totality is not an oversight but a
+  price tag, since trichotomy of cardinals is equivalent to full AC
+  (Hartogs).  The ladder of power floors never closes from below, by a
+  uniform diagonal (Section~\ref{sec:cardinals}).
+\item \textbf{Uncountability.}  Read operationally it is not a wall but
+  a generator: from every enumeration the escape is \emph{computed}.
+  The continuum is productive (Section~\ref{sec:productive}).
+\end{itemize}
+
+\paragraph{What is not claimed.}  No classical theorem is contested, and
+none is new: the mathematical content of each proof is elementary and
+classical.  The axiom of choice is not refuted --- a symmetric-selector
+impossibility is a statement about \emph{rules}, while AC postulates an
+object exempt from symmetry.  Independence results (that ZF+DC proves
+neither AC nor the Banach--Tarski decomposition; Solovay's model) are
+metatheory: cited, never formalised here.  The contribution is the
+re-reading, the split of each theme into an impossible-rule half and a
+performed-act half, the axiom pricing of every step, and the machine
+check.
+
+\paragraph{The instrument.}  Everything is formalised over the cycle's
+becoming-space: $\Branch := \N \to \mathsf{Bool}$, the space of
+performed binary sequences, with its finite performed segments
+(\texttt{Branch.take}).  The corpus is Lean~4 over mathlib; every public
+object ends with \texttt{\#print axioms}.  ``Empty axiom list'' below
+means exactly that: not even \texttt{propext}.
+
+\section{Russell's socks: rules number zero, acts a continuum}
+\label{sec:socks}
+
+A countable family of pairs of indistinguishable socks admits no choice
+rule: this is Russell's classical illustration, made precise by
+Fraenkel--Mostowski permutation models.  The operational rendering: the
+two socks of box $k$ are \texttt{false}/\texttt{true} only in the formal
+register's bookkeeping; the box itself offers no mark, so the
+\emph{swap} at box $k$ is a symmetry of the situation.  A \emph{rule}
+must not read our labels --- beyond some finite bookkeeping bound it
+must be swap-invariant.
+
+\begin{thm}[\texttt{no\_symmetric\_selector}; empty axiom list]
+No selection is swap-invariant beyond any finite bound: for every
+selector $c : \N \to \mathsf{Bool}$ and every bound $N$ there is a box
+$k \ge N$ at which the swap moves the selection.
+\end{thm}
+
+The proof is one line --- the swap at $k$ flips the pick at $k$, and no
+Boolean equals its own negation --- and that brevity is the point: the
+impossibility of a sock-choosing \emph{rule} is not deep, it is
+grammatical.  What the classical discussion obscures is the other half:
+
+\begin{thm}[\texttt{selectors\_not\_enumerable}; empty axiom list]
+The selectors are exactly the branches; hence they are not enumerable:
+no map $\N \to (\N \to \mathsf{Bool})$ is surjective.
+\end{thm}
+
+Selection over indistinguishable pairs therefore exists \emph{never as a
+rule and uncountably as an act}: any performed sequence --- operationally,
+a lawless coin --- selects.  Rules: zero.  Acts: a continuum.
+
+\begin{rem}[The computational face]
+The same split is a classical fact of distributed computing:
+deterministic symmetric agents cannot break symmetry (leader election in
+anonymous networks is deterministically impossible; Angluin 1980,
+Itai--Rodeh 1981), while randomized agents succeed almost surely in
+expected two rounds.  A companion simulation in the ZTL workspace
+measures exactly this: deterministic twins never disagree; coin-equipped
+socks break symmetry in $\approx 2$ rounds.  The sock chooses itself, or
+nothing chooses it.
+\end{rem}
+
+\section{Cardinals as becomings}
+\label{sec:cardinals}
+
+\begin{defn}[Witnessed comparison]
+$\mathrm{OpInj}(A,B) := \{ f : A \to B \mid f \text{ injective} \}$,
+carried as \emph{data}: a performed comparison is an explicit injection,
+not an existence claim.
+\end{defn}
+
+\begin{prop}[\texttt{natIntoBranch}; empty axiom list]
+An explicit injection $\N \hookrightarrow \Branch$ is performed:
+$n \mapsto$ the branch that fires exactly at $n$.
+\end{prop}
+
+\begin{thm}[\texttt{cantor\_ladder}; empty axiom list]
+For every type $A$, no map $A \to (A \to \mathsf{Bool})$ is surjective.
+\end{thm}
+
+The diagonal is stated once and holds at \emph{every} floor: each
+doubling --- each added colleague --- opens a floor the previous one
+cannot reach.  Combining the two:
+
+\begin{cor}[\texttt{nat\_strictly\_below\_branch}; empty axiom list]
+$\N$ is operationally strictly below its power floor: the injection up
+is performed, and no surjection comes back.
+\end{cor}
+
+\paragraph{The order is partial by design.}  Performed comparisons
+compose, but no totality is claimed: trichotomy of cardinals is
+equivalent to the full axiom of choice (Hartogs), i.e.\ to the completed
+object this note declines.  Two becomings are comparable where a
+comparison has been performed --- and nowhere else for free.  The
+missing comparisons are not unknown truths; they are unperformed acts.
+
+\section{Productive uncountability: the sign flipped}
+\label{sec:productive}
+
+Classically, uncountability is a prohibition: \emph{there is no}
+enumeration.  Operationally the same content is a production:
+
+\begin{defn}[\texttt{escape}]
+$\mathrm{escape}(e) := n \mapsto \lnot\, e(n)(n)$, for any
+$e : \N \to \Branch$.
+\end{defn}
+
+\begin{thm}[\texttt{escape\_escapes}, \texttt{branches\_productive};
+empty axiom list]
+For every enumeration $e$ and every $k$,
+$\mathrm{escape}(e) \ne e(k)$; hence for every enumeration there
+\emph{is} a branch it misses, and the witness is handed over, not merely
+asserted.
+\end{thm}
+
+The fugitive is a \emph{term}: computed from the catalogue, differing
+from each entry at that entry's own line.  This is productivity in
+Post's sense, transplanted from computability theory to the
+becoming-space: the continuum is not a large warehouse but a mirror ---
+\emph{the catalogue that reads itself extends itself}.  Uncountability
+is thereby re-signed from a wall to a generator: every attempt to
+complete the listing manufactures the next item.  (In the cycle's
+earlier ZTL expedition the same theme split into non-registrability and
+incompleteness of registries, measured over marked streams; the present
+theorem is the choice-free kernel of that split.)
+
+\section{The demarcation: DC and the writable remainder}
+\label{sec:dc}
+
+The cycle already contains the positive half of choice: a
+history-dependent rule determines a branch by recursion, choice-free
+(\texttt{operational\_dependent\_choice}) --- dependent choice is the
+\emph{performable} part of AC, the part with process semantics: each
+selection is made in the context of those already made, and a witness
+accrues step by step.  The present note adds the negative half (no rule
+on symmetric pairs) and the act half (any branch selects).  What remains
+of full AC above DC is precisely the part that can only be
+\emph{written}: simultaneous selection over families no process
+traverses.  That remainder buys the familiar exotica --- and, by
+Solovay's model (metatheory, cited), giving it up costs analysis nothing
+while dissolving, e.g., the Banach--Tarski decomposition, whose
+non-measurable pieces are choice-certificates that can never be
+exhibited.  In the cycle's terms: DC is choice earned in acts; the
+remainder is choice on permanent credit.
+
+\section{Findings}
+
+\begin{finding}
+\textbf{Rules zero, acts a continuum.}  Selection over
+indistinguishable pairs is impossible as a rule (empty axiom list) and
+uncountably plentiful as an act.  The two halves are one theorem apart
+in the same file.
+\end{finding}
+
+\begin{finding}
+\textbf{Comparison is an act; the order is partial by design.}
+Trichotomy is not lost --- it is priced: it costs exactly full AC, and
+the operational register declines the purchase.
+\end{finding}
+
+\begin{finding}
+\textbf{The ladder never closes from below}, uniformly and on the empty
+axiom list: one diagonal serves every floor.
+\end{finding}
+
+\begin{finding}
+\textbf{Uncountability is a productivity.}  The positive form ---
+witness handed over --- is strictly more informative than the classical
+prohibition, and costs no axioms at all.
+\end{finding}
+
+\begin{finding}
+\textbf{The tier confession.}  The cycle's central diagonal
+(\texttt{branches\_not\_enumerable}) had carried \texttt{[propext]}
+since its first proof --- inherited not from the library but from our
+own \texttt{simp} on a Boolean hypothesis.  One explicit
+\texttt{Bool.noConfusion} restored the empty list.  The lesson is
+methodological: before blaming the substrate, audit your own tactics.
+\MEASURED{}: the current audit shows the empty list for every theorem
+named in this note.
+\end{finding}
+
+\section{Relation to the literature}
+
+Fraenkel's and Mostowski's permutation models are the classical home of
+the sock impossibility; the present Theorem~2.1 is its miniature, stated
+for selections rather than models.  Post's productive sets supply the
+name and the shape of Section~\ref{sec:productive}.  Angluin's and
+Itai--Rodeh's results on anonymous leader election are the computational
+face of the rule/act split.  The diagonal in the uniform form is
+Lawvere's fixed-point argument specialised to $\mathsf{Bool}$.  Brouwer's
+choice sequences stand behind the branch space and the lawless coin.
+None of these results is claimed as new; the operational re-reading, the
+splitting of each theme into rule-half and act-half, and the empty-list
+machine check are the contribution.
+
+\section{Reproducibility}
+
+All theorems live in \texttt{VRCycle/Continuum/Choice.lean} and
+\texttt{VRCycle/Continuum/Cardinal.lean} of the public repository
+(\texttt{github.com/inventor1975/VRCycle}); \texttt{lake build} verifies
+the corpus (8\,370 jobs at the time of writing), and \texttt{\#print
+axioms} lines at the end of each file exhibit the axiom profile of every
+public object.  The companion simulations (symmetry breaking, the
+quantum coin) live in the ZTL workspace
+(\texttt{github.com/inventor1975/ZTL}, \texttt{dilemmas/}).
+
+\section*{Acknowledgement}
+
+This work was carried out with the substantial participation of the AI
+system Claude (Anthropic; this draft --- Claude Fable~5) in a dialogue
+setting; all design decisions, fork choices, and final responsibility
+rest with the human author.  The reliability of the results does not
+depend on trusting the AI: every claim is checkable by the Lean~4 kernel
+and the repository's audit lines.
+
+\end{document}
