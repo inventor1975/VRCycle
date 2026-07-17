@@ -1,5 +1,19 @@
 # Changelog
 
+## Preprint 12: "Choice as an Act" v1.0.0 — 2026-07-17
+
+Twelfth work of the preprint line (`preprints/12_VR-Choice_EN_v1_0_0.pdf`,
+6 pp). Russell's socks, cardinals as becomings, and the productive
+continuum — the rule/act split of choice, cardinal comparison as a
+witnessed act (order partial by design; trichotomy priced at full AC,
+declined), the uniform Cantor–Lawvere ladder, uncountability re-signed
+from wall to generator (Post productivity), the anonymous-symmetry
+impossibility (Angluin, machine-checked), and the DC demarcation. Ten
+central theorems on the EMPTY axiom list. Written to be verified from
+zero: a single mathlib-free file `Verify_Choice_standalone.lean` reproves
+all ten in under a second (`lean Verify_Choice_standalone.lean`). Zenodo
+sheet: `preprints/12_VR-Choice_ZENODO.md`. Tag: `choice-v1.0.0`.
+
 ## Continuum: operational cardinals — 2026-07-17
 
 `Continuum/Cardinal.lean`: the cardinal as a type of BECOMING (the curator's

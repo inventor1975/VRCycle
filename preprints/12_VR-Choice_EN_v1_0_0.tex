@@ -23,10 +23,11 @@
 \large Russell's socks, cardinals as becomings, and the productive
 continuum,\\ machine-checked on the empty axiom list}
 \author{Vitaly Reznik}
-\date{2026 --- DRAFT v0.2.0 (unpublished)\\[2pt]
-\small Lean 4 corpus: \texttt{github.com/inventor1975/VRCycle},
-\texttt{VRCycle/Continuum/\{Choice,Cardinal\}.lean}\\
-\small Verify from zero: see \S\ref{sec:verify} (four commands, one audit table)}
+\date{2026 --- Version 1.0.0\\[2pt]
+\small Lean 4 corpus: \texttt{github.com/inventor1975/VRCycle} (tag
+\texttt{choice-v1.0.0})\\
+\small Verify from zero: see \S\ref{sec:verify} --- one file, one command,
+no dependencies}
 
 \begin{document}
 \maketitle
@@ -58,11 +59,13 @@ classical theorem; the contribution is the operational re-reading, the
 axiom pricing, and the machine check.
 
 The paper is written to be \emph{verified from zero}: Section~\ref{sec:verify}
-gives four shell commands and one audit table, so that any agent ---
-human or machine --- can re-derive every claim through the Lean~4 kernel
-without trusting the author or this text.  An empty axiom list is
-precisely a verdict two parties who share no axioms and no trust can
-both confirm: the strongest form of a checkable claim.
+gives a single self-contained file (no mathlib, no imports) that reproves
+every empty-axiom result in under a second, plus the full-corpus path and
+one audit table, so that any agent --- human or machine --- can re-derive
+every claim through the Lean~4 kernel without trusting the author or this
+text.  An empty axiom list is precisely a verdict two parties who share
+no axioms and no trust can both confirm: the strongest form of a
+checkable claim.
 \end{abstract}
 
 \section{Introduction: act against object}
@@ -334,7 +337,7 @@ both run it and agree.
 \paragraph{The full path (with the substrate).}
 \begin{verbatim}
   git clone https://github.com/inventor1975/VRCycle
-  cd VRCycle          # commit 01dd0a5; toolchain in lean-toolchain (Lean 4.29.1)
+  cd VRCycle          # tag choice-v1.0.0; toolchain in lean-toolchain (Lean 4.29.1)
   lake exe cache get  # mathlib cache
   lake build          # verifies the whole corpus (~8370 jobs)
 \end{verbatim}
