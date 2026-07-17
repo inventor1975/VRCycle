@@ -83,10 +83,39 @@ theorem nat_strictly_below_branch :
   ⟨⟨natIntoBranch.1, natIntoBranch.2⟩, branches_not_enumerable⟩
 
 -- ============================================================
+-- §Productive uncountability — the sign flipped
+-- ============================================================
+
+/-- **The escape program.**  Uncountability, read operationally, is not a
+prohibition ("no enumeration exists") but a PRODUCTIVITY (Post): from any
+enumeration the fugitive is COMPUTED — a term, not a ghost.  The catalogue
+that reads itself extends itself. -/
+def escape (e : ℕ → Branch) : Branch := fun n => !(e n n)
+
+/-- The escape escapes: computed from the catalogue, it differs from every
+entry at that entry's own line. -/
+theorem escape_escapes (e : ℕ → Branch) (k : ℕ) : escape e ≠ e k := by
+  intro h
+  have hk : (!(e k k)) = e k k := congrFun h k
+  cases hb : e k k with
+  | false => rw [hb] at hk; exact Bool.noConfusion hk
+  | true  => rw [hb] at hk; exact Bool.noConfusion hk
+
+/-- **The continuum is productive** — the positive form of
+`branches_not_enumerable`: for every enumeration there IS a branch it
+misses, and the witness is handed over, not merely asserted.  Uncountability
+as a generator, not a wall. -/
+theorem branches_productive :
+    ∀ e : ℕ → Branch, ∃ β : Branch, ∀ k, β ≠ e k :=
+  fun e => ⟨escape e, escape_escapes e⟩
+
+-- ============================================================
 -- Axiom audit
 -- ============================================================
 #print axioms natIntoBranch
 #print axioms cantor_ladder
 #print axioms nat_strictly_below_branch
+#print axioms escape_escapes
+#print axioms branches_productive
 
 end VRCycle.Continuum
