@@ -1,5 +1,7 @@
 # Zenodo upload sheet — VR: Choice as an Act v1.0.0
 
+**PUBLISHED 2026-07-17: DOI 10.5281/zenodo.21419290 (v1.0, CC BY 4.0). Verified: title/author/license/related-works as below; repo isSupplementedBy + both DOIs (ZTL, Part II) attached. DOI embedded in tex header; repo PDF NOT rebuilt — stays the exact published artifact.**
+
 **READY. The curator publishes on Zenodo (manual step); this sheet only
 prepares. New standalone record (not a new version of an existing one) —
 this is a fresh work in the VRCycle preprint line (the twelfth).**
