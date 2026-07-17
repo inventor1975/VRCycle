@@ -15,6 +15,7 @@ import VRCycle.Continuum.Registers
 import VRCycle.Continuum.Cantor
 import VRCycle.Continuum.Model
 import VRCycle.Continuum.Choice
+import VRCycle.Continuum.Cardinal
 import VRCycle.Continuum.UnitInterval
 import VRCycle.Continuum.Real
 import VRCycle.Continuum.Rational

@@ -1,5 +1,17 @@
 # Changelog
 
+## Continuum: operational cardinals — 2026-07-17
+
+`Continuum/Cardinal.lean`: the cardinal as a type of BECOMING (the curator's
+definition). A comparison is an ACT — the witness is data: **`natIntoBranch`**
+(an explicit injection ℕ ↪ Branch, `[propext]`); **`cantor_ladder`** — the
+Cantor–Lawvere diagonal, uniform over every floor, on the **empty axiom
+list**: no type surjects onto its power floor — the doubling ladder never
+closes from below; **`nat_strictly_below_branch`** — the first step fully
+earned (injection up + `branches_not_enumerable` back). The order is partial
+by design: trichotomy of cardinals ⟺ AC — cited, not claimed. Choice-free
+throughout. Full build green.
+
 ## Continuum: Russell's socks — 2026-07-17
 
 `Continuum/Choice.lean` §Socks: selection over indistinguishable pairs split
