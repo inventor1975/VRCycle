@@ -93,12 +93,15 @@ productive sets; Post; Brouwer choice sequences; leader election; Angluin;
 constructive mathematics; operational mathematics; Lean 4; machine-checked
 proofs; empty axiom list; zero-trust; reproducibility
 
-**Related/alternate identifiers:**
-- https://github.com/inventor1975/VRCycle — isSupplementedBy (the Lean 4
-  corpus; tag `choice-v1.0.0`; `VRCycle/Continuum/{Choice,Cardinal}.lean`
-  and the standalone `Verify_Choice_standalone.lean`)
-- 10.5281/zenodo.21318981 — isRelatedTo (ZTL, Zero-Trust Logic — concept DOI)
-- 10.5281/zenodo.21326038 — isRelatedTo (VR Part II — the ZTL/VR bridge)
+**Related/alternate identifiers** (relation types are DataCite/Zenodo
+dropdown values — `isRelatedTo` is NOT one; use the below):
+- https://github.com/inventor1975/VRCycle — **is supplemented by**
+  (the Lean 4 corpus; tag `choice-v1.0.0`;
+  `VRCycle/Continuum/{Choice,Cardinal}.lean` and the standalone
+  `Verify_Choice_standalone.lean`)
+- 10.5281/zenodo.21318981 — **references** (ZTL, Zero-Trust Logic —
+  concept DOI; the logic this work operationalizes)
+- 10.5281/zenodo.21326038 — **references** (VR Part II — same preprint line)
 
 **Additional notes (paste into "Additional notes"):**
 The preprint text is CC BY 4.0; the accompanying repository code is under
