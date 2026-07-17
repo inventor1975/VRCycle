@@ -4,11 +4,16 @@
 
 `Continuum/Cardinal.lean`: the cardinal as a type of BECOMING (the curator's
 definition). A comparison is an ACT — the witness is data: **`natIntoBranch`**
-(an explicit injection ℕ ↪ Branch, `[propext]`); **`cantor_ladder`** — the
+(an explicit injection ℕ ↪ Branch); **`cantor_ladder`** — the
 Cantor–Lawvere diagonal, uniform over every floor, on the **empty axiom
 list**: no type surjects onto its power floor — the doubling ladder never
 closes from below; **`nat_strictly_below_branch`** — the first step fully
-earned (injection up + `branches_not_enumerable` back). The order is partial
+earned (injection up + `branches_not_enumerable` back). TIER PASS same day:
+the whole module AND the branch diagonal (`branches_not_enumerable`, which
+had carried `[propext]` since June via a `simp` on a Bool hypothesis) now
+stand on the **empty axiom list** — own-recursion `beq` lemmas, explicit
+`Bool.noConfusion`; `selectors_not_enumerable` cleared by cascade. The order
+is partial
 by design: trichotomy of cardinals ⟺ AC — cited, not claimed. Choice-free
 throughout. Full build green.
 

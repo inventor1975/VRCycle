@@ -34,14 +34,27 @@ namespace VRCycle.Continuum
 existence claim. -/
 def OpInj (A B : Type) : Type := {f : A → B // Function.Injective f}
 
+/-- `Nat.beq` is reflexive — by own recursion: the library versions of the
+`beq` lemmas carry `propext` in this import context, and the empty axiom
+list is worth two private lines. -/
+private theorem beq_self : ∀ a : ℕ, Nat.beq a a = true
+  | 0     => rfl
+  | a + 1 => beq_self a
+
+private theorem eq_of_beq : ∀ {a b : ℕ}, Nat.beq a b = true → a = b
+  | 0,     0,     _ => rfl
+  | 0,     _ + 1, h => Bool.noConfusion h
+  | _ + 1, 0,     h => Bool.noConfusion h
+  | a + 1, b + 1, h => congrArg Nat.succ (eq_of_beq (a := a) (b := b) h)
+
 /-- ℕ embeds into the branches by an explicit witness: `n ↦` the branch that
 fires exactly at `n`.  The comparison is performed, not postulated. -/
 def natIntoBranch : OpInj ℕ Branch :=
   ⟨fun n => (fun k => Nat.beq k n), by
     intro m n h
     have hm : Nat.beq m m = Nat.beq m n := congrFun h m
-    rw [Nat.beq_refl] at hm
-    exact (Nat.eq_of_beq_eq_true hm.symm)⟩
+    rw [beq_self] at hm
+    exact (eq_of_beq hm.symm)⟩
 
 -- ============================================================
 -- §The ladder

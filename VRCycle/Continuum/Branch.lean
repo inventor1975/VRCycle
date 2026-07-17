@@ -59,7 +59,9 @@ theorem branches_not_enumerable : ¬ ∃ e : ℕ → Branch, Function.Surjective
   rintro ⟨e, he⟩
   obtain ⟨k, hk⟩ := he (fun n => !(e n n))
   have h : e k k = !(e k k) := congrFun hk k
-  cases hb : e k k <;> rw [hb] at h <;> simp at h
+  cases hb : e k k with
+  | false => rw [hb] at h; exact Bool.noConfusion h
+  | true  => rw [hb] at h; exact Bool.noConfusion h
 
 -- ============================================================
 -- §B2.  Brouwerian principles — STATED as Props, never adopted
