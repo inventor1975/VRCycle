@@ -343,7 +343,15 @@ Bridge theorems connect formal terms in the formal register to concrete VR-Sets 
 
 #### Central boundary
 
-**Theorem III.1 (conservativity of T₁ over T₀)** — the core result of VR-Forms — is **not formalised** in this Lean cycle. Full formalisation would require deep-embedding `Formula L₁`, `Derivation T₁`, and proving conservativity by induction over derivations — a proof-theory project beyond the scale of the VR-Forms preprint cycle.
+**Theorem III.1 (conservativity of T₁ over T₀)** — the core result of VR-Forms — **is formalised.** This section long said the opposite: that a deep embedding of `Formula L₁` and `Derivation T₁` was "a proof-theory project beyond the scale of the cycle". That project was carried out, in three storeys, all sorry-free and all below the Classical.choice floor:
+
+| module | storey | axioms |
+|---|---|---|
+| `Forms/Conservativity.lean` | propositional, abstract relative interpretation | `[propext]` |
+| `Forms/ConservativityFOL.lean` | quantifiers, terms, functions; concrete VR instance | `[propext]`, `[propext, Quot.sound]` |
+| `Forms/ConservativityComprehension.lean` | set-builder terms `{x : φ}` — full fidelity to the preprint's π | `[propext, Quot.sound]` |
+
+The comprehension storey is the substantive one: `conservativity_comprehension_concrete` rests on `T1c_haxioms`, in which the conservativity hypothesis is **proved rather than assumed**, so the instance is non-vacuous.
 
 This boundary is structurally different from VR-Sets's five structural boundaries:
 

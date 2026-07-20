@@ -232,8 +232,11 @@ VR is a **free** programme, not a pursuit of pure constructivism. At this stage 
 ### Invariance of the operational under application of form (a position, not a theorem)
 
 VR's articulated answer on AC / AD / Power Set / CH (from the former ADDENDUM). It is a
-**philosophical position** — the ground of conservativity, not a machine-checked result
-(conservativity itself is not formalised; §3). Three configurations of application; the thesis
+**philosophical position** — the ground of conservativity, not itself a machine-checked
+result. (Conservativity itself IS formalised, in three storeys up to comprehension terms,
+sorry-free and choice-free — `Forms/Conservativity{,FOL,Comprehension}.lean`; corrected
+2026-07-20, this line previously said the opposite. What stays a position is the
+invariance thesis below, not the theorem.) Three configurations of application; the thesis
 concerns the two with an operational anchor:
 
 - **O→T** (an operational act inscribing a formal term — ⌜℘(ℕ)⌝, ⌜c⌝): the act stays fully

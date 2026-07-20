@@ -40,7 +40,7 @@ The reason is architectural. Full formalisation of conservativity would require 
 
 The methodological position is honest: conservativity is **mathematically proved** in the preprint (§III.2 gives the full inductive proof via the translation π), but **Lean-unformalisable** at the shallow-embedding depth chosen here. This is distinct from open conjectures, which are mathematically open rather than formalisation-limited. The Lean cycle records this distinction by *not* introducing a `def Conjecture_Conservativity : Prop` — such a definition would misrepresent the result as open to Lean attack, when in fact it is proved (just outside the shallow apparatus).
 
-The transit pattern (§IV.2) is documented as an inference template in `Forms/Transit.lean`, not formalised as a Lean theorem. The conservativity justification flows through external reference to the preprint's §III.2 proof.
+The transit pattern (§IV.2) is documented as an inference template in `Forms/Transit.lean`, not formalised as a Lean theorem. The conservativity justification originally flowed through external reference to the preprint's §III.2 proof; since the deep embedding was built (`Forms/Conservativity{,FOL,Comprehension}.lean`, sorry-free, choice-free) it flows through a machine-checked theorem instead.
 
 ### **Observation 4: equation-compiler catch-all does not reduce in term mode**
 

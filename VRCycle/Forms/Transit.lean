@@ -174,20 +174,38 @@ def translate_pi (t : FormalTerm) : Prop :=
 
 -- SOURCE: VR-Forms preprint Part III §III.2, Part IV §IV.2.
 --
--- ## Theorem III.1 (conservativity) — BOUNDARY
+-- ## Theorem III.1 (conservativity) — FORMALISED; this block was stale
 --
 -- Theorem III.1 is the central result of VR-Forms: T₁ is conservative
 -- over T₀. Its proof is metalogical (induction over derivations in T₁;
--- π maps each derivation step to T₀). Full formalisation requires
--- deep-embedded Formula L₀, Formula L₁, Derivation T₀, Derivation T₁
--- types and the π-preservation proof — a proof-theory project beyond the
--- scope of this Lean cycle (CLAUDE.md Decision 5).
+-- π maps each derivation step to T₀), and this file once recorded it as
+-- an honest boundary — "not formalisable at this depth in shallow-Lean",
+-- a proof-theory project beyond the cycle.
 --
--- STATUS: Theorem III.1 is documented here by external reference to the
--- preprint. This is an honest boundary: the conservativity theorem is
--- *proved* in the preprint (metalogically), but *not formalisable* at
--- this depth in shallow-Lean. A `def : Prop` would misrepresent it as
--- open (Conjectures IV.1/IV.2 pattern); it is not open.
+-- That boundary was CROSSED, and the note above outlived it. The deep
+-- embedding exists, in three storeys, sorry-free and choice-free:
+--
+--   VRCycle/Forms/Conservativity.lean              propositional floor
+--     `conservativity`                             [propext]
+--   VRCycle/Forms/ConservativityFOL.lean           quantifiers, terms,
+--     `conservativity`                             functions  [propext]
+--     `VRExample.conservativity_empty_concrete`    [propext, Quot.sound]
+--   VRCycle/Forms/ConservativityComprehension.lean set-builders {x : φ},
+--     `conservativity`                             full fidelity to the
+--     `conservativity_comprehension_concrete`      preprint's π
+--                                                  [propext, Quot.sound]
+--
+-- The comprehension storey is the substantive one: its concrete instance
+-- PROVES the conservativity hypothesis (`T1c_haxioms`) rather than
+-- assuming it, so the result is non-vacuous. Nothing anywhere needs
+-- Classical.choice — an operational programme cannot be defended by a
+-- theorem that requires choice, and it is not.
+--
+-- STATUS (corrected 2026-07-20, by measurement): formalised. The stale
+-- text is kept above rather than deleted, because a comment that told
+-- readers the keystone was unproved for as long as this one did is worth
+-- leaving visible as a record of how the repository can lie to a reader
+-- while every theorem in it is true.
 --
 -- ## Transit pattern — application template (§IV.2)
 --
