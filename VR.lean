@@ -1,6 +1,6 @@
 -- VR — root file of the VR core library (VR proper, every declaration on [], guarded)
 -- Lean 4 formalisation of the VR Cycle
-import VR.VRArithmetic
+import VR.Arithmetic
 import VR.Numbers
 import VR.Forms
 import VR.Apparatus

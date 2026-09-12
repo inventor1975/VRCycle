@@ -9,7 +9,7 @@ one library. This commit draws the perimeter IN CODE:
 
 * **Two Lake libraries in one package.** `VR` is VR proper (source directory `VR/`, root `VR.lean`; the
   library was called `VRCycle` for a few hours on 2026-09-12 — renamed at the curator's word on 09-13,
-  together with the formal system `VR.lean` → `VR/VRArithmetic.lean`): `VRArithmetic.lean`, the witnessed numbers
+  together with the formal system `VR.lean` → `VR/Arithmetic.lean`): `Arithmetic.lean`, the witnessed numbers
   (`Numbers/Integers` = `IntExpr`/`intEq` and its operations, `IntegersOp`, `IntegersOrd`,
   `RationalsOp`, `RealsOp`), `SetsZTL`, `SetsOp`, the forms (`Language`, `Realisability`, `Transit`,
   `Substrate`, `Examples`, `Conservativity*`), the topology tower (`FormalTopology` … `Tychonoff`), the

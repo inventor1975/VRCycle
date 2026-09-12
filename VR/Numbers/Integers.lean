@@ -1,7 +1,7 @@
 -- VR-Numbers: Integers ℤ_VR (DOI 10.5281/zenodo.20272743)
 -- Part II. Integers ℤ as an Operational Superstructure.
 
-import VR.VRArithmetic
+import VR.Arithmetic
 -- Mathlib imported for §II.6 only: ring and push_cast tactics for the
 -- isomorphism theorem. All prior definitions (IntExpr, intEq, operations,
 -- canonical form) are independent of mathlib. Per PLAN.md principle 1.

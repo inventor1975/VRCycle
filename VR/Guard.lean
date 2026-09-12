@@ -8,7 +8,7 @@
 -- library of this package, `VRClassical`, which depends on the core and is not covered by this guard.
 
 import VR.Meta.DependsOn
-import VR.VRArithmetic
+import VR.Arithmetic
 import VR.Numbers
 import VR.Forms
 import VR.Apparatus

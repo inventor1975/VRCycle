@@ -72,7 +72,7 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 >    bridge (from `Q → Quotient s` back to a witnessed map) needs `Quotient.out` — the T→O absence
 >    in miniature; not provided. The programme 1→5 is complete. **The perimeter (same day):** the repository
 >    is now two Lake libraries — `VR` (directory `VR/`, root `VR.lean`; the formal system is
->    `VR/VRArithmetic.lean`) = VR proper, `VRClassical` = the classical register and
+>    `VR/Arithmetic.lean`) = VR proper, `VRClassical` = the classical register and
 >    the bridges (everything stated about Mathlib objects or lifted to `Quotient`). The core is
 >    guarded at build time (`VR/Guard.lean`, `#assert_axiom_free_library`): any declaration of
 >    any `VR.*` module carrying `propext`, `Quot.sound`, `Classical.choice` or `sorryAx` fails
