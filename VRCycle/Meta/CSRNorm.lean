@@ -667,6 +667,7 @@ structure OCR (α : Type) extends CR α where
   le_trans : ∀ {a b c}, le a b → le b c → le a c
   le_add_right : ∀ {a b} (c : α), le a b → le (add a c) (add b c)
   zero_le_one : le zero one
+  one_pos : ¬ le one zero
   le_of_smul : ∀ (c : Nat) {x : α}, le zero (mul (CR.numeral toCR (c + 1)) x) → le zero x
 
 namespace OCR
@@ -753,6 +754,26 @@ theorem le_of_cert (hyps : List (CSR.PE × CSR.PE)) (cs : List Nat) (c₀ k : Na
     cr_ring S.toCR
   have h4 := S.le_respects (S.refl _) h3 h2
   exact le_of_sub_nonneg S (S.le_of_smul c₀ h4)
+
+/-- **Inconsistent hypotheses**: `Σ cᵢ (Bᵢ − Aᵢ) + (m+1) ≈ 0` refutes them. -/
+theorem false_of_cert (hyps : List (CSR.PE × CSR.PE)) (cs : List Nat) (m : Nat)
+    (hh : hypsOK S env hyps)
+    (hcert : CR.cancelP (CR.normC (.add (combo hyps cs) (natPE (m + 1))))
+           = CR.cancelP (CR.normC .zero)) : False := by
+  have h1 := CR.eq_of_normC S.toCR env _ _ hcert
+  change S.r (S.add (CSR.eval S.toCSR env (combo hyps cs)) (CSR.eval S.toCSR env (natPE (m + 1))))
+    S.zero at h1
+  rw [eval_natPE] at h1
+  have h2 : S.le S.zero (S.add (CSR.eval S.toCSR env (combo hyps cs)) (CR.numeral S.toCR (m + 1))) :=
+    nonneg_add S (combo_nonneg S env hyps cs hh) (nonneg_numeral S (m + 1))
+  -- 1 ≤ m+1 ≤ combo + (m+1) ≈ 0, so 1 ≤ 0
+  have h3 : S.le (CR.numeral S.toCR (m + 1))
+      (S.add (CSR.eval S.toCSR env (combo hyps cs)) (CR.numeral S.toCR (m + 1))) :=
+    S.le_respects (S.zero_add _) (S.refl _) (S.le_add_right _ (combo_nonneg S env hyps cs hh))
+  have h4 : S.le S.one (CR.numeral S.toCR (m + 1)) :=
+    S.le_respects (S.zero_add _) (S.add_comm _ _) (S.le_add_right S.one (nonneg_numeral S m))
+  have h5 : S.le S.one S.zero := S.le_respects (S.refl _) h1 (S.le_trans h4 h3)
+  exact S.one_pos h5
 
 end OCR
 
@@ -873,10 +894,14 @@ private def fmSearch (rows : List Row) : Option (Array Rat) := Id.run do
   for v in variablesOf rows do
     rs := fmStep v rs
     if rs.length > 4000 then return none
+  -- prefer a certificate using the goal (direct form); else any contradiction among hypotheses
   for r in rs do
     let c := coeffOf [] r.form
     let contra := if r.strict then c.num ≤ 0 else c.num < 0
     if contra && ratPos r.lam[0]! then return some r.lam
+  for r in rs do
+    let c := coeffOf [] r.form
+    if c.num < 0 && r.lam[0]!.num == 0 then return some r.lam
   return none
 
 private def natLcm (a b : Nat) : Nat := a * b / Nat.gcd a b
@@ -1013,7 +1038,6 @@ syntax (name := crLinarith) "cr_linarith " term:max (" [" term,* "]")? : tactic
     let D := lam.foldl (fun d q => natLcm d q.den) 1
     let cs : Array Nat := lam.map (fun q => (q.num * (D : Int) / (q.den : Int)).toNat)
     let c0 := cs[0]!
-    unless c0 ≥ 1 do throwError "cr_linarith: degenerate certificate"
     -- k = −(constant of the combination) · D
     let combForm := (List.range (n + 1)).foldl (fun acc i =>
       let r := if i == 0 then goalRow else hypRows[i - 1]!
@@ -1036,30 +1060,46 @@ syntax (name := crLinarith) "cr_linarith " term:max (" [" term,* "]")? : tactic
       let (pf, _, _, _) := hyps[i]!
       hh ← mkAppM ``And.intro #[pf, hh]
     -- certificate equation, decided by evaluation
-    let c0m1 := mkNatLit (c0 - 1)
-    let kE := mkNatLit k
-    let lhsPE := mkApp2 (mkConst ``CSR.PE.add)
-      (mkApp2 (mkConst ``CSR.PE.mul) (mkApp (mkConst ``OCR.natPE) (mkNatLit c0))
-        (mkApp2 (mkConst ``CSR.PE.add) peR (mkApp (mkConst ``CSR.PE.neg) peL)))
-      (mkApp (mkConst ``CSR.PE.neg) (mkApp2 (mkConst ``OCR.combo) hypList csList))
-    let n₁ := mkApp (mkConst ``CR.cancelP) (mkApp (mkConst ``CR.normC) lhsPE)
-    let n₂ := mkApp (mkConst ``CR.cancelP) (mkApp (mkConst ``CR.normC) (mkApp (mkConst ``OCR.natPE) kE))
-    let hEq ← mkEq n₁ n₂
-    let inst ← synthInstance (mkApp (mkConst ``Decidable) hEq)
-    let dec := mkApp2 (mkConst ``Decidable.decide) hEq inst
-    let r ← withDefault (whnf dec)
-    unless r.isConstOf ``Bool.true do
-      throwError "cr_linarith: certificate does not check:\n  {← reduce n₁}\n  {← reduce n₂}"
-    let hcert := mkApp3 (mkConst ``of_decide_eq_true) hEq inst
-      (mkApp2 (mkConst ``Eq.refl [levelOne]) (mkConst ``Bool) (mkConst ``Bool.true))
-    let pfLe := mkAppN (mkApp (mkConst ``OCR.le_of_cert) α)
-      #[S, envE, hypList, csList, c0m1, kE, peL, peR, hh, hcert]
-    let pf ← if wrapLt then
-        let a := gargs[gargs.size - 2]!
-        let b := gargs[gargs.size - 1]!
-        let ltDef ← mkAppM ``OCR.lt_def #[S, a, b]
-        mkAppM ``Iff.mpr #[ltDef, pfLe]
-      else pure pfLe
+    let decideEq (n₁ n₂ : Expr) : MetaM Expr := do
+      let hEq ← mkEq n₁ n₂
+      let inst ← synthInstance (mkApp (mkConst ``Decidable) hEq)
+      let dec := mkApp2 (mkConst ``Decidable.decide) hEq inst
+      let r ← withDefault (whnf dec)
+      unless r.isConstOf ``Bool.true do
+        throwError "cr_linarith: certificate does not check:\n  {← reduce n₁}\n  {← reduce n₂}"
+      pure (mkApp3 (mkConst ``of_decide_eq_true) hEq inst
+        (mkApp2 (mkConst ``Eq.refl [levelOne]) (mkConst ``Bool) (mkConst ``Bool.true)))
+    let pf ← if c0 ≥ 1 then do
+        -- direct form: (c₀)(R − L) − Σ cᵢ(Bᵢ − Aᵢ) ≡ k
+        let c0m1 := mkNatLit (c0 - 1)
+        let kE := mkNatLit k
+        let lhsPE := mkApp2 (mkConst ``CSR.PE.add)
+          (mkApp2 (mkConst ``CSR.PE.mul) (mkApp (mkConst ``OCR.natPE) (mkNatLit c0))
+            (mkApp2 (mkConst ``CSR.PE.add) peR (mkApp (mkConst ``CSR.PE.neg) peL)))
+          (mkApp (mkConst ``CSR.PE.neg) (mkApp2 (mkConst ``OCR.combo) hypList csList))
+        let n₁ := mkApp (mkConst ``CR.cancelP) (mkApp (mkConst ``CR.normC) lhsPE)
+        let n₂ := mkApp (mkConst ``CR.cancelP) (mkApp (mkConst ``CR.normC) (mkApp (mkConst ``OCR.natPE) kE))
+        let hcert ← decideEq n₁ n₂
+        let pfLe := mkAppN (mkApp (mkConst ``OCR.le_of_cert) α)
+          #[S, envE, hypList, csList, c0m1, kE, peL, peR, hh, hcert]
+        if wrapLt then
+          let a := gargs[gargs.size - 2]!
+          let b := gargs[gargs.size - 1]!
+          let ltDef ← mkAppM ``OCR.lt_def #[S, a, b]
+          mkAppM ``Iff.mpr #[ltDef, pfLe]
+        else pure pfLe
+      else do
+        -- the hypotheses are inconsistent: Σ cᵢ(Bᵢ − Aᵢ) + (m+1) ≡ 0
+        unless k ≥ 1 do throwError "cr_linarith: degenerate refutation"
+        let mE := mkNatLit (k - 1)
+        let lhsPE := mkApp2 (mkConst ``CSR.PE.add) (mkApp2 (mkConst ``OCR.combo) hypList csList)
+          (mkApp (mkConst ``OCR.natPE) (mkNatLit k))
+        let n₁ := mkApp (mkConst ``CR.cancelP) (mkApp (mkConst ``CR.normC) lhsPE)
+        let n₂ := mkApp (mkConst ``CR.cancelP) (mkApp (mkConst ``CR.normC) (mkConst ``CSR.PE.zero))
+        let hcert ← decideEq n₁ n₂
+        let pfFalse := mkAppN (mkApp (mkConst ``OCR.false_of_cert) α)
+          #[S, envE, hypList, csList, mE, hh, hcert]
+        pure (mkApp2 (mkConst ``False.elim [levelZero]) gt pfFalse)
     let pt ← inferType pf
     unless ← isDefEq gt pt do
       throwError "cr_linarith: the goal is not the evaluation of its reification:\n{gt}\n{pt}"

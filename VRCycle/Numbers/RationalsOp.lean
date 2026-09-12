@@ -432,6 +432,7 @@ def QExpr.ocr : VR.CSR.OCR QExpr :=
     le_trans := fun h1 h2 => qle_trans h1 h2
     le_add_right := fun c h => qle_add_right c h
     zero_le_one := qle_of_qlt qone_pos
+    one_pos := fun h => (qlt_iff_le_not_le.mp qone_pos).2 h
     le_of_smul := fun c x h => by
       have hN : intPos (VR.CSR.CR.numeral QExpr.cr (c + 1)).num :=
         (qpos_iff _).mp (qnumeral_succ_pos c)

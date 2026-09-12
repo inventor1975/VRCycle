@@ -392,6 +392,7 @@ def IntExpr.ocr : VR.CSR.OCR IntExpr :=
     le_trans := fun h1 h2 => intLe_trans h1 h2
     le_add_right := fun c h => intLe_add_right c h
     zero_le_one := intLe_of_lt intPos_one
+    one_pos := fun h => one_ne_zero_I (intLe_antisymm h (intLe_of_lt intPos_one))
     le_of_smul := fun c x h => by
       have hN := intPos_numeral_succ c
       have h' : imul zeroI (VR.CSR.CR.numeral IntExpr.cr (c + 1))
