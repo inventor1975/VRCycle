@@ -406,6 +406,61 @@ macro_rules
   | `(tactic| int_linarith) => `(tactic| cr_linarith VR.Numbers.IntExpr.ocr)
   | `(tactic| int_linarith [$ts,*]) => `(tactic| cr_linarith VR.Numbers.IntExpr.ocr [$ts,*])
 
+-- ============================================================
+-- §5. Powers of two, as integer pairs — the scale of the dyadic approximations
+-- ============================================================
+
+/-- `2^n` on VR numbers, by doubling. -/
+def vpow2 : Nat → VRObj
+  | 0 => VRObj.succ VRObj.base
+  | n + 1 => vadd (vpow2 n) (vpow2 n)
+
+/-- `2^n` as an integer pair. -/
+def pow2 (n : Nat) : IntExpr := .mk (vpow2 n) VRObj.base
+
+theorem pow2_zero : pow2 0 = oneI := rfl
+
+theorem pow2_succ (n : Nat) : pow2 (n + 1) ≈ᵢ iadd (pow2 n) (pow2 n) := by
+  change IntExpr.mk (vadd (vpow2 n) (vpow2 n)) VRObj.base ≈ᵢ iadd (.mk (vpow2 n) VRObj.base) (.mk (vpow2 n) VRObj.base)
+  int_ring_pairs
+
+theorem pow2_add : ∀ m n : Nat, pow2 (m + n) ≈ᵢ imul (pow2 m) (pow2 n)
+  | m, 0 => by
+      change IntExpr.mk (vpow2 m) VRObj.base ≈ᵢ imul (.mk (vpow2 m) VRObj.base) (.mk (VRObj.succ VRObj.base) VRObj.base)
+      int_ring_pairs
+  | m, n + 1 => by
+      have h1 := pow2_succ (m + n)
+      have h2 := pow2_add m n
+      have h3 := pow2_succ n
+      calc pow2 (m + (n + 1)) ≈ᵢ iadd (pow2 (m + n)) (pow2 (m + n)) := h1
+        _ ≈ᵢ iadd (imul (pow2 m) (pow2 n)) (imul (pow2 m) (pow2 n)) := iadd_respects _ _ _ _ h2 h2
+        _ ≈ᵢ imul (pow2 m) (iadd (pow2 n) (pow2 n)) := by int_ring
+        _ ≈ᵢ imul (pow2 m) (pow2 (n + 1)) := imul_respects _ _ _ _ (intEq_refl _) (intEq_symm _ _ h3)
+
+theorem pow2_pos : ∀ n : Nat, intPos (pow2 n)
+  | 0 => intPos_one
+  | n + 1 => intPos_respects (intEq_symm _ _ (pow2_succ n)) (intPos_add (pow2_pos n) (pow2_pos n))
+
+theorem pow2_nonneg (n : Nat) : zeroI ≤ᵢ pow2 n := intNonneg_of_pos (pow2_pos n)
+
+theorem one_le_pow2 : ∀ n : Nat, oneI ≤ᵢ pow2 n
+  | 0 => intLe_refl _
+  | n + 1 => by
+      have h := one_le_pow2 n
+      have h2 := pow2_succ n
+      have h3 : pow2 n ≤ᵢ iadd (pow2 n) (pow2 n) :=
+        intLe_respects (zero_iadd _) (iadd_comm _ _) (intLe_add_right (pow2 n) (pow2_nonneg n))
+      exact intLe_respects (intEq_refl _) (intEq_symm _ _ h2) (intLe_trans h h3)
+
+theorem pow2_le_add : ∀ (a e : Nat), pow2 a ≤ᵢ pow2 (a + e)
+  | a, 0 => intLe_refl _
+  | a, e + 1 => by
+      have h := pow2_le_add a e
+      have h2 := pow2_succ (a + e)
+      have h3 : pow2 (a + e) ≤ᵢ iadd (pow2 (a + e)) (pow2 (a + e)) :=
+        intLe_respects (zero_iadd _) (iadd_comm _ _) (intLe_add_right _ (pow2_nonneg _))
+      exact intLe_respects (intEq_refl _) (intEq_symm _ _ h2) (intLe_trans h h3)
+
 #print axioms vle_total
 #print axioms vle.decidable
 #print axioms intLe_trans
@@ -416,5 +471,7 @@ macro_rules
 #print axioms intLt_trichotomy
 #print axioms intPos_mul_self
 #print axioms intNonneg_mul_self
+#print axioms pow2_add
+#print axioms pow2_le_add
 
 end VR.Numbers

@@ -14,9 +14,11 @@
 -- Every branch's `[0,1]` point (`intval α` from `UnitInterval.lean`) is a `Pre`; the Cauchy
 -- proof goes via `intval_prefix`/`intval_diff_bound`/`dyadic_bound`.  All `[propext, Quot.sound]`.
 
-import VRCycle.Continuum.UnitInterval
+import VRCycle.Continuum.UnitIntervalZ
 
 namespace VRCycle.Continuum
+
+open VRCycle.Continuum.Z
 
 /-- A pre-real: a sequence of integer numerators (`seq n` approximates `value · 2^n`) that
 is **asymptotically Cauchy** — for every precision `k`, eventually any two stages agree:

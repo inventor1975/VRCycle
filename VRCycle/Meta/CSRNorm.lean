@@ -884,7 +884,7 @@ private def natLcm (a b : Nat) : Nat := a * b / Nat.gcd a b
 /-- `cr_linarith S`, `cr_linarith S [t₁, …]`: closes `S.le L R` / `S.lt L R` from the `le`/`lt`
 hypotheses in context (and the extra terms), by a Farkas certificate found by Fourier–Motzkin and
 checked by reflection (`OCR.le_of_cert`) — on `[]`. -/
-syntax (name := crLinarith) "cr_linarith " term (" [" term,* "]")? : tactic
+syntax (name := crLinarith) "cr_linarith " term:max (" [" term,* "]")? : tactic
 
 @[tactic crLinarith] def evalCrLinarith : Tactic := fun stx => do
   match stx with
@@ -933,9 +933,18 @@ syntax (name := crLinarith) "cr_linarith " term (" [" term,* "]")? : tactic
       if e.isProj then pure (``VR.CSR.OCR ++ f, 4)
       else match e.constName? with
         | some n => pure (n, 2)
-        | none => throwError "cr_linarith: {f} is not a constant: {e}"
+        | none => pure (Name.anonymous, 0)   -- a lambda (e.g. a dense order's dummy `lt`): unused
     let (leN, leAr) ← getRel `le
     let (ltN, ltAr) ← getRel `lt
+    -- the equivalence `r` of the ring: an `r a b` hypothesis gives `le a b` and `le b a`
+    let rIdx := (getStructureFields env ``VR.CSR.CSR).idxOf? `r
+    let (rN, rAr) ← do
+      let some idx := rIdx | throwError "cr_linarith: no field r"
+      let e ← whnfCore (Expr.proj ``VR.CSR.CSR idx Sv)
+      if e.isProj then pure (``VR.CSR.CSR.r, 4)
+      else match e.constName? with
+        | some n => pure (n, 2)
+        | none => pure (Name.anonymous, 0)
     let isRel (n : Name) (ar : Nat) (t : Expr) : Bool :=
       t.getAppFn.constName? == some n && t.getAppNumArgs == ar
     -- collect hypotheses: (proof, a, b, isLt) — an `lt a b` hypothesis is used as
@@ -953,6 +962,16 @@ syntax (name := crLinarith) "cr_linarith " term (" [" term,* "]")? : tactic
         let ltDef ← mkAppM ``OCR.lt_def #[S, a, b]
         let pf ← mkAppM ``Iff.mp #[ltDef, h]
         return hyps.push (pf, a, b, true)
+      else if isRel rN rAr t then
+        let a := args[args.size - 2]!
+        let b := args[args.size - 1]!
+        -- le a b := le_respects (refl a) h (le_refl a);  le b a := le_respects h (refl b) (le_refl b)
+        -- (built explicitly; the kernel checks the definitional unfolding of `S.r` to the goal's `r`)
+        let refla := mkAppN (mkConst ``CSR.CSR.refl) #[α, toCSR, a]
+        let lerefla := mkAppN (mkConst ``OCR.le_refl) #[α, S, a]
+        let pab := mkAppN (mkConst ``OCR.le_respects) #[α, S, a, a, a, b, refla, h, lerefla]
+        let pba := mkAppN (mkConst ``OCR.le_respects) #[α, S, a, b, a, a, h, refla, lerefla]
+        return (hyps.push (pab, a, b, false)).push (pba, b, a, false)
       else return hyps
     for d in (← getLCtx) do
       if d.isImplementationDetail then continue
