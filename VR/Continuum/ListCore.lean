@@ -100,7 +100,7 @@ theorem halve_fst_le : ∀ n : Nat, (halve n).1 ≤ n
 
 
 -- ------------------------------------------------------------
--- Reading entries and taking prefixes, on `[]` (added for SetsZTL.Stages, 2026-09-12).
+-- Reading entries and taking prefixes, on `[]` (added for ZTL.Stages, 2026-09-12).
 -- Core's `l[i]?` reaches `propext` through its `GetElem?` instance; `nth` is the same reading
 -- by structural recursion, and the prefix facts below replace `List.take_length`,
 -- `List.take_append_of_le_length`, `List.length_append`, `List.ext_getElem`.

@@ -11,7 +11,7 @@ one library. This commit draws the perimeter IN CODE:
   library was called `VRCycle` for a few hours on 2026-09-12 — renamed at the curator's word on 09-13,
   together with the formal system `VR.lean` → `VR/Arithmetic.lean`): `Arithmetic.lean`, the witnessed numbers
   (`Numbers/Integers` = `IntExpr`/`intEq` and its operations, `IntegersOp`, `IntegersOrd`,
-  `RationalsOp`, `RealsOp`), `SetsZTL`, `SetsOp`, the forms (`Language`, `Realisability`, `Transit`,
+  `RationalsOp`, `RealsOp`), `ZTL`, `SetsOp`, the forms (`Language`, `Realisability`, `Transit`,
   `Substrate`, `Examples`, `Conservativity*`), the topology tower (`FormalTopology` … `Tychonoff`), the
   continuum (`Branch`, `Spread`, `Cover`, `BarSound`, `Cantor`, `Cardinal`, `Choice`, `Model`,
   `Registers`, `UnitInterval`, `UniformContinuity`, `ListCore`), the apparatus (`Identity`, `Wrapping`,
@@ -47,6 +47,11 @@ one library. This commit draws the perimeter IN CODE:
   (`propext`, `Quot.sound`, `Classical.choice`) and without `sorry`. Lean's type theory — the
   calculus of inductive constructions with its `Prop`, universes and the `Quot` primitive — is the
   proof checker, not an axiom of VR; that is the curator's reading and the honest one.
+* **Renamed `SetsZTL/` → `ZTL/` (09-13, curator's word).** It was never a second kind of set: `SetsOp/`
+  is the one operational universe (what a set is), and this directory is the ZTL layer over it — the
+  vendored kernel (`Kernel`), identity and membership atoms carried with their certificates (`Atoms`),
+  choice sequences as the lazy register (`Stages`), the survival spot-checks (`Survival`). Module
+  `VR.ZTL`, Lean namespace `VRCycle.ZTL`; nothing else imports these files, so no other file changed.
 * Not done: the per-module README prose still cites the old paths for the classical modules; the
   blueprint likewise. Cosmetic, to be swept separately.
 
@@ -75,7 +80,7 @@ one library. This commit draws the perimeter IN CODE:
 ## Integrity programme, step 1a: `csr_ring` and the witnessed rationals — 2026-09-12
 
 The curator's programme (2026-09-12): VR must stand on itself from arithmetic to the top — numbers
-on `[]` as witnessed layers, then sets = `SetsZTL`/`SetsOp`, forms over them, topology over them,
+on `[]` as witnessed layers, then sets = `ZTL`/`SetsOp`, forms over them, topology over them,
 apparatus with witnessed identity. Step 1 is the number floor.
 
 * **New instrument `Meta/CSRNorm.lean` — `csr_ring`, a `ring` on `[]` up to an equivalence.**
@@ -154,7 +159,7 @@ apparatus with witnessed identity. Step 1 is the number floor.
 ## Integrity programme, steps 2–3: sets and forms on the operational universe — 2026-09-12
 
 * **Step 2 — the set floor.** No code: `SetsOp` (set = revealing functionality, identity = witnessed
-  bisimulation, ZF without Foundation, AFA as a theorem, all on `[]`) and `SetsZTL` are THE set
+  bisimulation, ZF without Foundation, AFA as a theorem, all on `[]`) and `ZTL` are THE set
   floor of the tower; `Sets/` (Mathlib `ZFSet`, the ZFC register) is a bridge, kind 3.
 * **Step 3 — VR-Forms over `OpSet`.** `Realisability.lean`: `isRealisable` classifies a term by
   `DecidableEq FormalTerm` (a `match` on string literals compiles to a splitter that reaches
@@ -189,7 +194,7 @@ Mathlib's ℚ/ℝ/ZFSet and are the declared limit; 17 remain cleanable). Each w
   `conservativity` / `conservativity_comprehension_concrete` on `[]`: `omega` and `simp only`
   closures replaced by a local `NatAux` (five hand lemmas) and `show`/`rw`; `genInjectivity` off.
   The third storey of conservativity is now axiom-free like the first two.
-* **Wave 5 — `SetsZTL/Stages.lean`.** `ListCore` gains `nth`, `nth_ext`, `nth_append_*`,
+* **Wave 5 — `ZTL/Stages.lean`.** `ListCore` gains `nth`, `nth_ext`, `nth_append_*`,
   `take_length'`, `take_append_of_le`, `length_append'` (all by induction); the stage court
   (`through_mono`, `pad_through`, `stage_eq_super`, `through_pointwise`, `apart_earned`) no longer
   reaches propext through `List.ext_getElem` / `getElem?` / `take_range`.
@@ -264,7 +269,7 @@ lemmas proved with `omega`) — next wave.
 
 Not yet done, by kind (census of 2026-09-12): tactic artefacts in `Continuum.Real`/`GaussianRational`/
 `UnitInterval`, `Numbers.Integers`, `Sets.VRNumbers` (`ring`, mathlib `Int.instMonoid`),
-`ConservativityComprehension`, `SetsZTL.Stages`, `Topology.Tychonoff` — mechanical, sizeable;
+`ConservativityComprehension`, `ZTL.Stages`, `Topology.Tychonoff` — mechanical, sizeable;
 carrier `Quotient` (`Quot.sound` via `Quotient.sound`/`funext`) in `Qop`/`Real`/`Apparatus.Composition`
 — a redesign after the `SetsOp` pattern (witnessed identity, no quotient; `OpSet.ext` is on `[]`);
 statements about mathlib objects (`ZFSet` in VR-Forms' realisability, `AddSubgroup`, `Finset`,

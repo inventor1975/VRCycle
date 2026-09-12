@@ -1,4 +1,4 @@
--- VRCycle/SetsZTL/Kernel.lean
+-- VR/ZTL/Kernel.lean
 -- VR Part II — the ZTL value kernel, VENDORED.
 --
 -- Provenance (the pin of the stitch): this is the value core of
@@ -15,7 +15,7 @@
 -- returns T only if T is forced under every classical reading of Z.
 -- No imports; target: empty axiom list (measured at the bottom).
 
-namespace VRCycle.SetsZTL
+namespace VRCycle.ZTL
 
 inductive V where
   | T
@@ -86,4 +86,4 @@ end V
 #print axioms V.ax_xnor_ZZ
 #print axioms V.lift2_classical
 
-end VRCycle.SetsZTL
+end VRCycle.ZTL

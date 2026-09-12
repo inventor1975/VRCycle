@@ -1,4 +1,4 @@
--- VRCycle/SetsZTL/Stages.lean
+-- VR/ZTL/Stages.lean
 -- VR Part II, step (б): choice sequences as the lazy register — the
 -- Lean half of the measured stand ZTL/zchoice.py (E22).
 --
@@ -47,9 +47,9 @@
 import VR.Continuum.Branch
 import VR.Continuum.ListCore
 import VR.Continuum.Cover
-import VR.SetsZTL.Kernel
+import VR.ZTL.Kernel
 
-namespace VRCycle.SetsZTL
+namespace VRCycle.ZTL
 
 open VRCycle.Continuum
 
@@ -263,4 +263,4 @@ theorem apart_earned {s : List Bool} {α β : Branch}
 #print axioms through_pointwise
 #print axioms apart_earned
 
-end VRCycle.SetsZTL
+end VRCycle.ZTL

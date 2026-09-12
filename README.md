@@ -21,7 +21,7 @@ Since 2026-09-12 the package builds **two Lake libraries**:
 
 | library | what it is | axiom profile |
 |---|---|---|
-| **`VR`** (directory `VR/`, root `VR.lean`) | VR proper: `VR/Arithmetic.lean` (the formal system), the witnessed numbers ℤ→ℚ→ℝ on their own pairs (`Numbers/*Op`), the ZTL and operational set universes (`SetsZTL/`, `SetsOp/`), the forms (`Forms/`), the topology tower (`Topology/` up to Tychonoff), the Brouwer continuum (`Continuum/`), the apparatus (`Apparatus/`), the instruments (`Meta/`) | **`[]` for every declaration** — enforced at build time by `VR/Guard.lean` (`#assert_axiom_free_library VR`); `lake build VR` fails otherwise. 2026-09-12: 1516 declarations checked. |
+| **`VR`** (directory `VR/`, root `VR.lean`) | VR proper: `VR/Arithmetic.lean` (the formal system), the witnessed numbers ℤ→ℚ→ℝ on their own pairs (`Numbers/*Op`), the ZTL and operational set universes (`ZTL/`, `SetsOp/`), the forms (`Forms/`), the topology tower (`Topology/` up to Tychonoff), the Brouwer continuum (`Continuum/`), the apparatus (`Apparatus/`), the instruments (`Meta/`) | **`[]` for every declaration** — enforced at build time by `VR/Guard.lean` (`#assert_axiom_free_library VR`); `lake build VR` fails otherwise. 2026-09-12: 1516 declarations checked. |
 | **`VRClassical`** | the classical register and the bridges: the old ℤ/ℚ/ℝ/ℂ over Mathlib and their isomorphisms, ZFC/ZFA (`Sets/`, `SetsZFA/`), Brouwer's fixed point over Mathlib's ℝ, the Hilbert/Hahn–Banach audit, algebra instances, transit examples, the quotient bridges of the continuum (`Qop`, `GaussQ`, `Real`) and of the apparatus, the Mathlib Frame bridge of the topology, the ZFC reading of the forms, apparatus instances over ℝ/`PSet` | the standard Lean/Mathlib axioms, declared per object |
 
 `VRClassical` depends on `VR`; nothing in `VR` depends on it. The package (repository) keeps its name `VRCycle`; the per-module
@@ -52,7 +52,7 @@ Fourteen Zenodo records (seven works × Lean + preprint). Two further works (Ope
 | 14 | **VR-Apparatus v1.0.0 (preprint)** | [**10.5281/zenodo.20381417**](https://doi.org/10.5281/zenodo.20381417) | — |
 | 15 | **VR-Topology v1.0.0 (Lean)** | — *(Zenodo pending)* | **`v1.13-vr-topology-v1.0.0`** |
 | 16 | **VR-Transit v1.0.0 (Lean)** | — *(no Zenodo; cited by git tag, curatorial decision)* | **`v1.15-vr-transit-v1.0.0`** |
-| 17 | **VR Part II v1.0.0 (preprint)** | [**10.5281/zenodo.21326038**](https://doi.org/10.5281/zenodo.21326038) | — *(Lean in-repo: `VRCycle.SetsZTL`; ledger `ZTL_SURVIVAL.md`)* |
+| 17 | **VR Part II v1.0.0 (preprint)** | [**10.5281/zenodo.21326038**](https://doi.org/10.5281/zenodo.21326038) | — *(Lean in-repo: `VRCycle.ZTL`; ledger `ZTL_SURVIVAL.md`)* |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 

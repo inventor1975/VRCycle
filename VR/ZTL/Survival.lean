@@ -1,4 +1,4 @@
--- VRCycle/SetsZTL/Survival.lean
+-- VR/ZTL/Survival.lean
 -- VR Part II, step (в): spot-checks of the survival criterion C2
 -- (curator's decision 2026-07-12; the ledger is ZTL_SURVIVAL.md).
 --
@@ -27,9 +27,9 @@
 --
 -- Axiom profile: MEASURED at the bottom — the empty list throughout.
 
-import VR.SetsZTL.Atoms
+import VR.ZTL.Atoms
 
-namespace VRCycle.SetsZTL
+namespace VRCycle.ZTL
 
 open VRCycle.SetsOp
 
@@ -150,4 +150,4 @@ theorem afaVerdict_val {G : Type u} {E : G → G → Prop}
 #print axioms extVerdict_val
 #print axioms afaVerdict_val
 
-end VRCycle.SetsZTL
+end VRCycle.ZTL

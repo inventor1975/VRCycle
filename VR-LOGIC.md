@@ -37,7 +37,7 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 > `CHANGELOG.md`). What was removed was never mathematics — auto-generated `injEq` lemmas,
 > `simp`/`omega`/`ring` proof terms, core list and division lemmas — and the central conservativity
 > theorems (propositional, first-order, **comprehension**), the operational continuum's Cantor /
-> bar-soundness / continuity / dependent-choice theorems, the stage court of `SetsZTL.Stages`, the
+> bar-soundness / continuity / dependent-choice theorems, the stage court of `ZTL.Stages`, the
 > operational topology's describability apparatus (`Operational`, `Compact`, `Continuous`) and the
 > ring laws of ℤ_VR in their witnessed form (`Numbers/IntegersOp.lean`: `IntExpr` up to `intEq`, no
 > quotient) and the binary Tychonoff theorem (`tychonoff_binary`, with its whole `prodF` apparatus)
@@ -58,7 +58,7 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 >    `Real` are quotient bridges on `[Quot.sound]` for Mathlib-style consumers; `Pre.ofBranch` (a
 >    branch's point as a Cauchy sequence) on `[]`. Instruments: `csr_ring`/`cr_ring`/`cr_linarith`
 >    (`Meta/CSRNorm.lean`), all on `[]`; the order/apartness/inverse of ℝ_op (`rinvPos`, termwise
->    `qinv'`) also on `[]`. **Steps 2–3 (same day):** the set floor is `SetsOp`/`SetsZTL`
+>    `qinv'`) also on `[]`. **Steps 2–3 (same day):** the set floor is `SetsOp`/`ZTL`
 >    (`Sets/` = ZFC bridge), and VR-Forms' operational register is `OpSet`: `isRealisable`, π,
 >    the transit pattern and the substrate thesis on `[]`; ⌜AFA⌝ realised in `OpSet` while its
 >    ZFC reading is refuted in `PSet` (`afa_two_registers`) — the ZFA boundary is a boundary of

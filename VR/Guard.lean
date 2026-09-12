@@ -15,6 +15,6 @@ import VR.Apparatus
 import VR.Topology
 import VR.Continuum
 import VR.SetsOp
-import VR.SetsZTL
+import VR.ZTL
 
 #assert_axiom_free_library VR

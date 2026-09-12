@@ -1,4 +1,4 @@
--- VRCycle/SetsZTL/Atoms.lean
+-- VR/ZTL/Atoms.lean
 -- VR Part II, step (а): witnessed identity of the operational sets as
 -- ZTL atoms — the Lean half of the measured stand ZTL/zopsets.py (E21).
 --
@@ -31,9 +31,9 @@
 -- the bottom; after the 2026-07-12 tier pass even vn_inj is axiom-free).
 
 import VR.SetsOp
-import VR.SetsZTL.Kernel
+import VR.ZTL.Kernel
 
-namespace VRCycle.SetsZTL
+namespace VRCycle.ZTL
 
 open VRCycle.SetsOp
 
@@ -314,4 +314,4 @@ theorem earned_register_T_iff {α : Type v} (env : α → V) (fact : α → Prop
 #print axioms earned_register_ne_Z
 #print axioms earned_register_T_iff
 
-end VRCycle.SetsZTL
+end VRCycle.ZTL
