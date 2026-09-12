@@ -1,468 +1,187 @@
--- VRCycle/Continuum/Rational.lean
--- Operational ℚ, BELOW the Classical.choice floor — the DECIDABLE anchor of the operational
--- number spectrum.
+-- VRCycle/Continuum/Rational.lean — the operational rationals `Qop`: the BRIDGE over the witnessed
+-- layer `Numbers/RationalsOp.lean`.
 --
--- Built by hand from ℤ (never mathlib ℚ, which is entirely Tier-3 — Finding CONT-7), so the whole
--- construction stays `[propext, Quot.sound]`, choice-free.  The point (M3): a TOTAL inverse,
--- choice-free → a genuine `Field`, because zero is DECIDABLE on ℚ.  This is exactly where the
--- Markov wall that blocks the operational `Real` dissolves:
---   • operational `Real` (Continuum/Real.lean): inverse only apartness-witnessed (¬(x≈0) gives no
---     modulus — Markov), NOT a total Field choice-free;
---   • operational `Qop` (here): zero is decidable, so the inverse is total and choice-free — a Field.
--- The Field/CommRing boundary across the operational number spectrum is precisely DECIDABILITY OF ZERO.
---
--- Stages: M1 type+setoid+0/1/ofInt | M2 add/neg/mul → CommRing | M3 inv (decidable zero) → Field
---         | M4 le + DecidableEq/LE + trichotomy | M5 contrast-with-Real exhibit (DependsOn).
-
-import Mathlib
+-- Integrity programme, step 1d (2026-09-12).  Until today this file built its own `PreQ` over
+-- Mathlib's `ℤ` and proved the field laws with `ring` — a second ℚ, on `[propext, Quot.sound]`,
+-- and not on VR's own integers.  Now the pre-rationals ARE `QExpr` (integer pairs over VR numbers,
+-- identity `qEq`, every law on `[]`), and this file only takes the quotient and packages it with
+-- the Mathlib-style instances its consumers use (`CommRing`, `Inv`, `DecidableEq`, `LE`/`LT`,
+-- `Nontrivial`) plus the embedding of Mathlib's `ℚ`.  What the quotient costs is exactly
+-- `Quot.sound` (and `propext` for the lifted order, `Classical.choice` for `ofRat`): the bridge's
+-- axioms, not VR's — VR-LOGIC §1, kind 3.
+import VRCycle.Numbers.RationalsOp
+import Mathlib.Algebra.Ring.Defs
+import Mathlib.Logic.Nontrivial.Defs
+import Mathlib.Data.Rat.Defs
 
 namespace VRCycle.Continuum
 
-/-- A pre-rational: integer numerator over a strictly positive integer denominator.
-Value = `num / den`.  Unreduced (no gcd) — equality is handled by the cross-multiplication
-quotient below, keeping every proof in pure `ℤ`. -/
-structure PreQ where
-  num : ℤ
-  den : ℤ
-  den_pos : 0 < den
+open VR VR.Numbers
 
-namespace PreQ
+/-- Pre-rationals: the witnessed layer (`Numbers/RationalsOp.lean`). -/
+abbrev PreQ := QExpr
 
-/-- Cross-multiplication equivalence: `a/b ≈ c/d ⟺ a·d = c·b`. -/
-def equiv (a b : PreQ) : Prop := a.num * b.den = b.num * a.den
+/-- The operational-rational setoid: `qEq`. -/
+instance PreQ.setoid : Setoid QExpr :=
+  ⟨qEq, ⟨qEq_refl, fun h => qEq_symm h, fun h1 h2 => qEq_trans h1 h2⟩⟩
 
-theorem equiv_refl (a : PreQ) : equiv a a := rfl
+instance PreQ.decidableEquiv (a b : QExpr) : Decidable (a ≈ b) := qEq.decidable a b
 
-theorem equiv_symm {a b : PreQ} (h : equiv a b) : equiv b a := h.symm
-
-theorem equiv_trans {a b c : PreQ} (hab : equiv a b) (hbc : equiv b c) : equiv a c := by
-  -- Goal: a.num * c.den = c.num * a.den.  Establish it times b.den, then cancel b.den (> 0).
-  have hbd : b.den ≠ 0 := by have := b.den_pos; omega
-  have key : (a.num * c.den) * b.den = (c.num * a.den) * b.den := by
-    have e1 : (a.num * c.den) * b.den = (a.num * b.den) * c.den := by ring
-    have e2 : (c.num * a.den) * b.den = (c.num * b.den) * a.den := by ring
-    rw [e1, e2, hab, ← hbc]; ring
-  calc a.num * c.den
-      = (a.num * c.den) * b.den / b.den := (Int.mul_ediv_cancel _ hbd).symm
-    _ = (c.num * a.den) * b.den / b.den := by rw [key]
-    _ = c.num * a.den := Int.mul_ediv_cancel _ hbd
-
-/-- The operational-rational setoid (cross-multiplication). -/
-instance setoid : Setoid PreQ := ⟨equiv, ⟨equiv_refl, equiv_symm, equiv_trans⟩⟩
-
-/-- Embed an integer as `z / 1`. -/
-def ofInt (z : ℤ) : PreQ := ⟨z, 1, by omega⟩
-
--- ## Operations (denominators stay positive via `Int.mul_pos`, choice-free)
-
-/-- `a/b + c/d = (a·d + c·b)/(b·d)`. -/
-def add (a b : PreQ) : PreQ :=
-  ⟨a.num * b.den + b.num * a.den, a.den * b.den, Int.mul_pos a.den_pos b.den_pos⟩
-
-/-- `-(a/b) = (-a)/b`. -/
-def neg (a : PreQ) : PreQ := ⟨-a.num, a.den, a.den_pos⟩
-
-/-- `(a/b)·(c/d) = (a·c)/(b·d)`. -/
-def mul (a b : PreQ) : PreQ :=
-  ⟨a.num * b.num, a.den * b.den, Int.mul_pos a.den_pos b.den_pos⟩
-
--- ## Congruence: each operation respects the equivalence (cross-mult identity via `sub_eq_zero`)
-
-theorem add_respects {a a' b b' : PreQ} (ha : equiv a a') (hb : equiv b b') :
-    equiv (add a b) (add a' b') := by
-  change (a.num * b.den + b.num * a.den) * (a'.den * b'.den)
-     = (a'.num * b'.den + b'.num * a'.den) * (a.den * b.den)
-  have ha' : a.num * a'.den = a'.num * a.den := ha
-  have hb' : b.num * b'.den = b'.num * b.den := hb
-  apply sub_eq_zero.mp
-  have key : (a.num * b.den + b.num * a.den) * (a'.den * b'.den)
-           - (a'.num * b'.den + b'.num * a'.den) * (a.den * b.den)
-      = (a.num * a'.den - a'.num * a.den) * (b.den * b'.den)
-      + (b.num * b'.den - b'.num * b.den) * (a.den * a'.den) := by ring
-  rw [key, sub_eq_zero.mpr ha', sub_eq_zero.mpr hb']; ring
-
-theorem neg_respects {a a' : PreQ} (ha : equiv a a') : equiv (neg a) (neg a') := by
-  change (-a.num) * a'.den = (-a'.num) * a.den
-  have ha' : a.num * a'.den = a'.num * a.den := ha
-  apply sub_eq_zero.mp
-  have key : (-a.num) * a'.den - (-a'.num) * a.den = -(a.num * a'.den - a'.num * a.den) := by ring
-  rw [key, sub_eq_zero.mpr ha']; ring
-
-theorem mul_respects {a a' b b' : PreQ} (ha : equiv a a') (hb : equiv b b') :
-    equiv (mul a b) (mul a' b') := by
-  change (a.num * b.num) * (a'.den * b'.den) = (a'.num * b'.num) * (a.den * b.den)
-  have ha' : a.num * a'.den = a'.num * a.den := ha
-  have hb' : b.num * b'.den = b'.num * b.den := hb
-  apply sub_eq_zero.mp
-  have key : (a.num * b.num) * (a'.den * b'.den) - (a'.num * b'.num) * (a.den * b.den)
-      = (a.num * a'.den - a'.num * a.den) * (b.num * b'.den)
-      + (a'.num * a.den) * (b.num * b'.den - b'.num * b.den) := by ring
-  rw [key, sub_eq_zero.mpr ha', sub_eq_zero.mpr hb']; ring
-
--- ## Ring laws at the representative level (pure `ℤ` ring identities, no hypotheses)
-
-theorem add_comm (a b : PreQ) : equiv (add a b) (add b a) := by
-  change (a.num * b.den + b.num * a.den) * (b.den * a.den)
-     = (b.num * a.den + a.num * b.den) * (a.den * b.den)
-  ring
-
-theorem add_assoc (a b c : PreQ) : equiv (add (add a b) c) (add a (add b c)) := by
-  change ((a.num * b.den + b.num * a.den) * c.den + c.num * (a.den * b.den))
-         * (a.den * (b.den * c.den))
-     = (a.num * (b.den * c.den) + (b.num * c.den + c.num * b.den) * a.den)
-         * ((a.den * b.den) * c.den)
-  ring
-
-theorem zero_add (a : PreQ) : equiv (add (ofInt 0) a) a := by
-  change (0 * a.den + a.num * 1) * a.den = a.num * (1 * a.den)
-  ring
-
-theorem add_zero (a : PreQ) : equiv (add a (ofInt 0)) a := by
-  change (a.num * 1 + 0 * a.den) * a.den = a.num * (a.den * 1)
-  ring
-
-theorem neg_add_cancel (a : PreQ) : equiv (add (neg a) a) (ofInt 0) := by
-  change ((-a.num) * a.den + a.num * a.den) * 1 = 0 * (a.den * a.den)
-  ring
-
-theorem mul_comm (a b : PreQ) : equiv (mul a b) (mul b a) := by
-  change (a.num * b.num) * (b.den * a.den) = (b.num * a.num) * (a.den * b.den)
-  ring
-
-theorem mul_assoc (a b c : PreQ) : equiv (mul (mul a b) c) (mul a (mul b c)) := by
-  change ((a.num * b.num) * c.num) * (a.den * (b.den * c.den))
-     = (a.num * (b.num * c.num)) * ((a.den * b.den) * c.den)
-  ring
-
-theorem mul_one (a : PreQ) : equiv (mul a (ofInt 1)) a := by
-  change (a.num * 1) * a.den = a.num * (a.den * 1)
-  ring
-
-theorem mul_add (a b c : PreQ) : equiv (mul a (add b c)) (add (mul a b) (mul a c)) := by
-  change (a.num * (b.num * c.den + c.num * b.den)) * ((a.den * b.den) * (a.den * c.den))
-     = ((a.num * b.num) * (a.den * c.den) + (a.num * c.num) * (a.den * b.den))
-         * (a.den * (b.den * c.den))
-  ring
-
-theorem zero_mul (a : PreQ) : equiv (mul (ofInt 0) a) (ofInt 0) := by
-  change (0 * a.num) * 1 = 0 * (1 * a.den)
-  ring
-
-end PreQ
-
-/-- The operational rationals: `PreQ` up to cross-multiplication, below the choice floor. -/
+/-- The operational rationals: `QExpr` up to `qEq` — the quotient bridge. -/
 def Qop : Type := Quotient PreQ.setoid
 
 namespace Qop
 
+/-- Integer pairs into `Qop`. -/
+def ofIntExpr (e : IntExpr) : Qop := Quotient.mk PreQ.setoid (qofInt e)
+
+/-- Mathlib's `ℤ` as integer pairs (the bridge's convenience, not an act of VR). -/
+def intToPair : Int → IntExpr
+  | .ofNat n => .mk (O n) VRObj.base
+  | .negSucc n => .mk VRObj.base (O (n + 1))
+
 /-- Integer embedding into `Qop`. -/
-def ofInt (z : ℤ) : Qop := Quotient.mk PreQ.setoid (PreQ.ofInt z)
+def ofInt (z : ℤ) : Qop := ofIntExpr (intToPair z)
 
-instance : Zero Qop := ⟨ofInt 0⟩
-instance : One Qop := ⟨ofInt 1⟩
+instance : Zero Qop := ⟨Quotient.mk PreQ.setoid qzero⟩
+instance : One Qop := ⟨Quotient.mk PreQ.setoid qone⟩
 
-/-- `+` on `Qop`, lifted from `PreQ.add`. -/
 def add : Qop → Qop → Qop :=
-  Quotient.lift₂ (fun x y => (⟦PreQ.add x y⟧ : Qop))
-    (fun _ _ _ _ hx hy => Quotient.sound (PreQ.add_respects hx hy))
-
-/-- `-` on `Qop`, lifted from `PreQ.neg`. -/
+  Quotient.lift₂ (fun x y => (⟦qadd x y⟧ : Qop))
+    (fun _ _ _ _ hx hy => Quotient.sound (qadd_respects hx hy))
 def neg : Qop → Qop :=
-  Quotient.lift (fun x => (⟦PreQ.neg x⟧ : Qop)) (fun _ _ h => Quotient.sound (PreQ.neg_respects h))
-
-/-- `×` on `Qop`, lifted from `PreQ.mul`. -/
+  Quotient.lift (fun x => (⟦qneg x⟧ : Qop)) (fun _ _ h => Quotient.sound (qneg_respects h))
 def mul : Qop → Qop → Qop :=
-  Quotient.lift₂ (fun x y => (⟦PreQ.mul x y⟧ : Qop))
-    (fun _ _ _ _ hx hy => Quotient.sound (PreQ.mul_respects hx hy))
+  Quotient.lift₂ (fun x y => (⟦qmul x y⟧ : Qop))
+    (fun _ _ _ _ hx hy => Quotient.sound (qmul_respects hx hy))
+/-- Total reciprocal, lifted from `qinv'` (`0⁻¹ = 0`). -/
+def inv : Qop → Qop :=
+  Quotient.lift (fun x => (⟦qinv' x⟧ : Qop)) (fun _ _ h => Quotient.sound (qinv'_respects h))
 
 instance : Add Qop := ⟨add⟩
 instance : Neg Qop := ⟨neg⟩
 instance : Mul Qop := ⟨mul⟩
+instance : Inv Qop := ⟨inv⟩
 
-end Qop
+theorem add_assoc (a b c : Qop) : a + b + c = a + (b + c) :=
+  Quotient.inductionOn₃ a b c (fun x y z => Quotient.sound (qadd_assoc x y z))
+theorem zero_add (a : Qop) : 0 + a = a :=
+  Quotient.inductionOn a (fun x => Quotient.sound (qzero_add x))
+theorem add_zero (a : Qop) : a + 0 = a :=
+  Quotient.inductionOn a (fun x => Quotient.sound (qadd_zero x))
+theorem neg_add_cancel (a : Qop) : -a + a = 0 :=
+  Quotient.inductionOn a (fun x => Quotient.sound (qEq_trans (qadd_comm _ _) (qadd_neg x)))
+theorem add_comm (a b : Qop) : a + b = b + a :=
+  Quotient.inductionOn₂ a b (fun x y => Quotient.sound (qadd_comm x y))
+theorem mul_assoc (a b c : Qop) : a * b * c = a * (b * c) :=
+  Quotient.inductionOn₃ a b c (fun x y z => Quotient.sound (qmul_assoc x y z))
+theorem mul_one (a : Qop) : a * 1 = a :=
+  Quotient.inductionOn a (fun x => Quotient.sound (qmul_one x))
+theorem one_mul (a : Qop) : 1 * a = a :=
+  Quotient.inductionOn a (fun x => Quotient.sound (qone_mul x))
+theorem mul_comm (a b : Qop) : a * b = b * a :=
+  Quotient.inductionOn₂ a b (fun x y => Quotient.sound (qmul_comm x y))
+theorem left_distrib (a b c : Qop) : a * (b + c) = a * b + a * c :=
+  Quotient.inductionOn₃ a b c (fun x y z => Quotient.sound (qmul_add x y z))
+theorem right_distrib (a b c : Qop) : (a + b) * c = a * c + b * c :=
+  Quotient.inductionOn₃ a b c (fun x y z => Quotient.sound (qadd_mul x y z))
+theorem zero_mul (a : Qop) : 0 * a = 0 :=
+  Quotient.inductionOn a (fun x => Quotient.sound (qzero_mul x))
+theorem mul_zero (a : Qop) : a * 0 = 0 :=
+  Quotient.inductionOn a (fun x => Quotient.sound (qmul_zero x))
 
--- The ring laws, lifted from `PreQ` to `Qop` (`Quotient.inductionOn` + `Quotient.sound` of the
--- corresponding `PreQ` lemma).  Each inherits `[propext, Quot.sound]`, choice-free.  Named with the
--- `Qop.` prefix at the enclosing-namespace level to avoid clashing with root `add_comm`, etc.
-
-theorem Qop.add_assoc (a b c : Qop) : a + b + c = a + (b + c) :=
-  Quotient.inductionOn₃ a b c (fun x y z => Quotient.sound (PreQ.add_assoc x y z))
-
-theorem Qop.zero_add (a : Qop) : 0 + a = a :=
-  Quotient.inductionOn a (fun x => Quotient.sound (PreQ.zero_add x))
-
-theorem Qop.add_zero (a : Qop) : a + 0 = a :=
-  Quotient.inductionOn a (fun x => Quotient.sound (PreQ.add_zero x))
-
-theorem Qop.neg_add_cancel (a : Qop) : -a + a = 0 :=
-  Quotient.inductionOn a (fun x => Quotient.sound (PreQ.neg_add_cancel x))
-
-theorem Qop.add_comm (a b : Qop) : a + b = b + a :=
-  Quotient.inductionOn₂ a b (fun x y => Quotient.sound (PreQ.add_comm x y))
-
-theorem Qop.mul_assoc (a b c : Qop) : a * b * c = a * (b * c) :=
-  Quotient.inductionOn₃ a b c (fun x y z => Quotient.sound (PreQ.mul_assoc x y z))
-
-theorem Qop.mul_one (a : Qop) : a * 1 = a :=
-  Quotient.inductionOn a (fun x => Quotient.sound (PreQ.mul_one x))
-
-theorem Qop.mul_comm (a b : Qop) : a * b = b * a :=
-  Quotient.inductionOn₂ a b (fun x y => Quotient.sound (PreQ.mul_comm x y))
-
-theorem Qop.one_mul (a : Qop) : 1 * a = a := by rw [Qop.mul_comm]; exact Qop.mul_one a
-
-theorem Qop.left_distrib (a b c : Qop) : a * (b + c) = a * b + a * c :=
-  Quotient.inductionOn₃ a b c (fun x y z => Quotient.sound (PreQ.mul_add x y z))
-
-theorem Qop.right_distrib (a b c : Qop) : (a + b) * c = a * c + b * c := by
-  rw [Qop.mul_comm, Qop.left_distrib, Qop.mul_comm c a, Qop.mul_comm c b]
-
-theorem Qop.zero_mul (a : Qop) : 0 * a = 0 :=
-  Quotient.inductionOn a (fun x => Quotient.sound (PreQ.zero_mul x))
-
-theorem Qop.mul_zero (a : Qop) : a * 0 = 0 := by rw [Qop.mul_comm]; exact Qop.zero_mul a
-
-/-- **The operational rationals form a commutative ring** — `+`, `−`, `×`, `0`, `1` with all ring
-laws, choice-free `[propext, Quot.sound]`, entirely below the ℚ `Classical.choice` floor (built from
-ℤ, never mathlib ℚ). -/
-instance : CommRing Qop where
-  add_assoc := Qop.add_assoc
-  zero_add := Qop.zero_add
-  add_zero := Qop.add_zero
-  neg_add_cancel := Qop.neg_add_cancel
-  add_comm := Qop.add_comm
-  mul_assoc := Qop.mul_assoc
-  one_mul := Qop.one_mul
-  mul_one := Qop.mul_one
-  left_distrib := Qop.left_distrib
-  right_distrib := Qop.right_distrib
-  zero_mul := Qop.zero_mul
-  mul_zero := Qop.mul_zero
-  mul_comm := Qop.mul_comm
+/-- **The operational rationals form a commutative ring** — every law lifted from the witnessed
+layer; the quotient adds `Quot.sound` and nothing else. -/
+instance instCommRing : CommRing Qop where
+  add_assoc := add_assoc
+  zero_add := zero_add
+  add_zero := add_zero
+  neg_add_cancel := neg_add_cancel
+  add_comm := add_comm
+  mul_assoc := mul_assoc
+  one_mul := one_mul
+  mul_one := mul_one
+  left_distrib := left_distrib
+  right_distrib := right_distrib
+  zero_mul := zero_mul
+  mul_zero := mul_zero
+  mul_comm := mul_comm
   nsmul := nsmulRec
   zsmul := zsmulRec
   npow := npowRec
 
--- ## M3 — the TOTAL inverse via decidable zero (where the Markov wall dissolves)
---
--- `1/(num/den) = den/num`.  To keep the denominator positive WITHOUT a sign case-split (which would
--- drag choice-laden order lemmas), use the SQUARE denominator: `inv (num/den) = (den·num)/(num²)`,
--- value `den/num`, denominator `num² > 0 ⟺ num ≠ 0`.  Zero is DECIDABLE on ℤ, so the only split is
--- `num = 0` (→ 0) vs `num ≠ 0` — total, and `respects` reduces to the single cross-mult identity.
--- This is exactly what operational `Real` CANNOT do (¬(x≈0) gives no modulus — Markov).
-
-/-- Total reciprocal `(num/den)⁻¹ = (den·num)/num²` (and `0⁻¹ = 0`); choice-free. -/
-def PreQ.inv (a : PreQ) : PreQ :=
-  if h : a.num = 0 then ⟨0, 1, by omega⟩
-  else ⟨a.den * a.num, a.num * a.num, by
-    -- 0 < num²  (choice-free: sign split via `Int.lt_or_le`, then `Int.mul_pos`)
-    rcases Int.lt_or_le a.num 0 with hn | hp
-    · have hpos : 0 < -a.num := by omega
-      have hp2 : 0 < (-a.num) * (-a.num) := Int.mul_pos hpos hpos
-      have e : (-a.num) * (-a.num) = a.num * a.num := by ring
-      rwa [e] at hp2
-    · exact Int.mul_pos (by omega) (by omega)⟩
-
-theorem PreQ.inv_respects {a a' : PreQ} (hh : PreQ.equiv a a') :
-    PreQ.equiv (PreQ.inv a) (PreQ.inv a') := by
-  have he : a.num * a'.den = a'.num * a.den := hh
-  unfold PreQ.inv
-  by_cases h0 : a.num = 0
-  · have h0' : a'.num = 0 := by
-      have hd : a.den ≠ 0 := by have := a.den_pos; omega
-      have hz : a'.num * a.den = 0 := by rw [← he, h0]; ring
-      have hc : a'.num * a.den / a.den = a'.num := Int.mul_ediv_cancel _ hd
-      rw [hz, Int.zero_ediv] at hc; omega
-    simp only [dif_pos h0, dif_pos h0', PreQ.equiv]
-  · have h0' : a'.num ≠ 0 := by
-      intro hc
-      apply h0
-      have hd : a'.den ≠ 0 := by have := a'.den_pos; omega
-      have hz : a.num * a'.den = 0 := by rw [he, hc]; ring
-      have hcc : a.num * a'.den / a'.den = a.num := Int.mul_ediv_cancel _ hd
-      rw [hz, Int.zero_ediv] at hcc; omega
-    rw [dif_neg h0, dif_neg h0']
-    change (a.den * a.num) * (a'.num * a'.num) = (a'.den * a'.num) * (a.num * a.num)
-    apply sub_eq_zero.mp
-    have key : (a.den * a.num) * (a'.num * a'.num) - (a'.den * a'.num) * (a.num * a.num)
-        = (a'.num * a.den - a.num * a'.den) * (a.num * a'.num) := by ring
-    rw [key, sub_eq_zero.mpr he.symm]; ring
-
-/-- The reciprocal cancels for a nonzero representative: `(num/den)·(num/den)⁻¹ ≈ 1`. -/
-theorem PreQ.mul_inv_cancel {x : PreQ} (h : x.num ≠ 0) :
-    PreQ.equiv (PreQ.mul x (PreQ.inv x)) (PreQ.ofInt 1) := by
-  unfold PreQ.inv; rw [dif_neg h]
-  change (x.num * (x.den * x.num)) * 1 = 1 * (x.den * (x.num * x.num))
-  ring
-
-/-- `⁻¹` on `Qop`, lifted from `PreQ.inv`. -/
-def Qop.inv : Qop → Qop :=
-  Quotient.lift (fun x => (⟦PreQ.inv x⟧ : Qop)) (fun _ _ h => Quotient.sound (PreQ.inv_respects h))
-
-instance : Inv Qop := ⟨Qop.inv⟩
-
-/-- **The reciprocal is a genuine inverse on `Qop`** — total, and `a · a⁻¹ = 1` for every `a ≠ 0`,
-choice-free `[propext, Quot.sound]`.  This is the payoff: where operational `Real` has only an
-apartness-witnessed inverse (Markov), `Qop` has a total one, because zero is decidable. -/
-theorem Qop.mul_inv_cancel : ∀ a : Qop, a ≠ 0 → a * a⁻¹ = 1 := by
+/-- **The reciprocal is a genuine inverse on `Qop`** — total, `a · a⁻¹ = 1` for every `a ≠ 0`
+(zero is decidable at this pole of the spectrum; operational `Real` has only a witnessed inverse). -/
+theorem mul_inv_cancel : ∀ a : Qop, a ≠ 0 → a * a⁻¹ = 1 := by
   refine Quotient.ind ?_
   intro x h
-  have hx : x.num ≠ 0 := by
-    intro hc
-    exact h (Quotient.sound (show PreQ.equiv x (PreQ.ofInt 0) by
-      change x.num * 1 = 0 * x.den; rw [hc]; ring))
-  exact Quotient.sound (PreQ.mul_inv_cancel hx)
+  have hx : ¬ qEq x qzero := fun e => h (Quotient.sound e)
+  exact Quotient.sound (qmul_inv'_cancel hx)
 
-/-- `0⁻¹ = 0` on `Qop` (the convention, here a theorem). -/
-theorem Qop.inv_zero : (0 : Qop)⁻¹ = 0 := rfl
+/-- `0⁻¹ = 0` on `Qop`. -/
+theorem inv_zero : (0 : Qop)⁻¹ = 0 := Quotient.sound qinv'_zero
 
--- ## M4 — the DECIDABLE pole (what operational `Real` lacks)
---
--- On ℚ, equality is an ℤ equation, hence DECIDABLE — so `DecidableEq Qop`.  Operational `Real`
--- provably cannot have this (equality of reals is undecidable: deciding `x = 0` is Markov/worse).
--- This is the sharpest face of "ℚ is the decidable anchor of the operational number spectrum".
-
-/-- The cross-multiplication equivalence is decidable — it is just an equation in `ℤ`. -/
-instance PreQ.decidableEquiv (a b : PreQ) : Decidable (a ≈ b) :=
-  decidable_of_iff (a.num * b.den = b.num * a.den) Iff.rfl
-
-/-- **Equality on `Qop` is decidable** — the decidable pole of the operational spectrum, the one
-thing operational `Real` cannot have.  Choice-free. -/
+/-- **Equality on `Qop` is decidable** — the decidable pole of the operational spectrum. -/
 instance : DecidableEq Qop := inferInstanceAs (DecidableEq (Quotient PreQ.setoid))
 
--- ### Order — decidable `≤`, `<`, and full trichotomy (which operational `Real` lacks)
+theorem qle_iff {x x' y y' : QExpr} (hx : qEq x x') (hy : qEq y y') : qle x y ↔ qle x' y' :=
+  ⟨qle_respects hx hy, qle_respects (qEq_symm hx) (qEq_symm hy)⟩
+theorem qlt_iff {x x' y y' : QExpr} (hx : qEq x x') (hy : qEq y y') : qlt x y ↔ qlt x' y' :=
+  ⟨qlt_respects hx hy, qlt_respects (qEq_symm hx) (qEq_symm hy)⟩
 
-/-- `a/b ≤ c/d ⟺ a·d ≤ c·b` (denominators positive). -/
-def PreQ.le (a b : PreQ) : Prop := a.num * b.den ≤ b.num * a.den
+/-- `≤` on `Qop`, lifted (the lift of a `Prop` costs `propext` — the bridge's). -/
+def le : Qop → Qop → Prop :=
+  Quotient.lift₂ qle (fun _ _ _ _ ha hb => propext (qle_iff ha hb))
+def lt : Qop → Qop → Prop :=
+  Quotient.lift₂ qlt (fun _ _ _ _ ha hb => propext (qlt_iff ha hb))
 
-/-- `a/b < c/d ⟺ a·d < c·b`. -/
-def PreQ.lt (a b : PreQ) : Prop := a.num * b.den < b.num * a.den
+instance : LE Qop := ⟨le⟩
+instance : LT Qop := ⟨lt⟩
 
-/-- The cross identity: `(L−R)·(b'-denoms) = (a-denoms)·(L'−R')`, the algebraic heart of order
-congruence (sign of `L−R` transports through positive denominators). -/
-theorem PreQ.cross_identity {a a' b b' : PreQ}
-    (ha : a.num * a'.den = a'.num * a.den) (hb : b.num * b'.den = b'.num * b.den) :
-    (a.num * b.den - b.num * a.den) * (a'.den * b'.den)
-  = (a.den * b.den) * (a'.num * b'.den - b'.num * a'.den) :=
-  calc (a.num * b.den - b.num * a.den) * (a'.den * b'.den)
-      = (a.num * a'.den) * (b.den * b'.den) - (b.num * b'.den) * (a.den * a'.den) := by ring
-    _ = (a'.num * a.den) * (b.den * b'.den) - (b'.num * b.den) * (a.den * a'.den) := by rw [ha, hb]
-    _ = (a.den * b.den) * (a'.num * b'.den - b'.num * a'.den) := by ring
-
-/-- Sign transport (≤): from `D·P = Q·D'` with `P,Q > 0`, `D ≤ 0` forces `D' ≤ 0`.  Choice-free. -/
-theorem PreQ.le_of_cross {D P Q D' : ℤ} (hid : D * P = Q * D') (hP : 0 < P) (hQ : 0 < Q)
-    (hD : D ≤ 0) : D' ≤ 0 := by
-  have hDP : D * P ≤ 0 := by
-    have hpos : 0 ≤ (-D) * P := Int.mul_nonneg (by omega) (by omega)
-    have e : (-D) * P = -(D * P) := by ring
-    rw [e] at hpos; omega
-  rw [hid] at hDP
-  rcases Int.lt_or_le 0 D' with h | h
-  · exfalso; have h2 : 0 < Q * D' := Int.mul_pos hQ h; omega
-  · exact h
-
-/-- Sign transport (<): from `D·P = Q·D'` with `P,Q > 0`, `D < 0` forces `D' < 0`.  Choice-free. -/
-theorem PreQ.lt_of_cross {D P Q D' : ℤ} (hid : D * P = Q * D') (hP : 0 < P) (hQ : 0 < Q)
-    (hD : D < 0) : D' < 0 := by
-  have hDP : D * P < 0 := by
-    have hpos : 0 < (-D) * P := Int.mul_pos (by omega) hP
-    have e : (-D) * P = -(D * P) := by ring
-    rw [e] at hpos; omega
-  rw [hid] at hDP
-  rcases Int.lt_or_le D' 0 with h | h
-  · exact h
-  · exfalso; have h2 : 0 ≤ Q * D' := Int.mul_nonneg (by omega) h; omega
-
-theorem PreQ.le_respects {a a' b b' : PreQ} (ha : PreQ.equiv a a') (hb : PreQ.equiv b b') :
-    PreQ.le a b ↔ PreQ.le a' b' := by
-  have hP : (0 : ℤ) < a'.den * b'.den := Int.mul_pos a'.den_pos b'.den_pos
-  have hQ : (0 : ℤ) < a.den * b.den := Int.mul_pos a.den_pos b.den_pos
-  constructor
-  · intro hle
-    have := PreQ.le_of_cross (PreQ.cross_identity ha hb) hP hQ (by change _ ≤ _ at hle; omega)
-    change _ ≤ _; omega
-  · intro hle
-    have := PreQ.le_of_cross (PreQ.cross_identity (PreQ.equiv_symm ha) (PreQ.equiv_symm hb)) hQ hP
-      (by change _ ≤ _ at hle; omega)
-    change _ ≤ _; omega
-
-theorem PreQ.lt_respects {a a' b b' : PreQ} (ha : PreQ.equiv a a') (hb : PreQ.equiv b b') :
-    PreQ.lt a b ↔ PreQ.lt a' b' := by
-  have hP : (0 : ℤ) < a'.den * b'.den := Int.mul_pos a'.den_pos b'.den_pos
-  have hQ : (0 : ℤ) < a.den * b.den := Int.mul_pos a.den_pos b.den_pos
-  constructor
-  · intro hlt
-    have := PreQ.lt_of_cross (PreQ.cross_identity ha hb) hP hQ (by change _ < _ at hlt; omega)
-    change _ < _; omega
-  · intro hlt
-    have := PreQ.lt_of_cross (PreQ.cross_identity (PreQ.equiv_symm ha) (PreQ.equiv_symm hb)) hQ hP
-      (by change _ < _ at hlt; omega)
-    change _ < _; omega
-
-/-- `≤` on `Qop`, lifted (well-defined by `PreQ.le_respects`). -/
-def Qop.le : Qop → Qop → Prop :=
-  Quotient.lift₂ PreQ.le (fun _ _ _ _ ha hb => propext (PreQ.le_respects ha hb))
-
-/-- `<` on `Qop`, lifted (well-defined by `PreQ.lt_respects`). -/
-def Qop.lt : Qop → Qop → Prop :=
-  Quotient.lift₂ PreQ.lt (fun _ _ _ _ ha hb => propext (PreQ.lt_respects ha hb))
-
-instance : LE Qop := ⟨Qop.le⟩
-instance : LT Qop := ⟨Qop.lt⟩
-
-/-- **`≤` on `Qop` is decidable** — an ℤ inequality. -/
+/-- **`≤` on `Qop` is decidable.** -/
 instance : DecidableLE Qop := fun a b =>
-  Quotient.recOnSubsingleton₂ a b fun x y =>
-    decidable_of_iff (x.num * y.den ≤ y.num * x.den) Iff.rfl
+  Quotient.recOnSubsingleton₂ a b fun x y => qle.decidable x y
+instance : DecidableLT Qop := fun a b =>
+  Quotient.recOnSubsingleton₂ a b fun x y => qlt.decidable x y
 
-/-- **Full trichotomy on `Qop`** — `a < b ∨ a = b ∨ b < a` for every pair, choice-free.  This is
-exactly what operational `Real` cannot have (no decidable order; apartness only). -/
-theorem Qop.lt_trichotomy (a b : Qop) : a < b ∨ a = b ∨ b < a := by
+/-- **Full trichotomy on `Qop`** — what operational `Real` cannot have. -/
+theorem lt_trichotomy (a b : Qop) : a < b ∨ a = b ∨ b < a := by
   refine Quotient.inductionOn₂ a b (fun x y => ?_)
-  rcases (by omega : x.num * y.den < y.num * x.den ∨ x.num * y.den = y.num * x.den
-      ∨ y.num * x.den < x.num * y.den) with h | h | h
+  rcases qlt_trichotomy x y with h | h | h
   · exact Or.inl h
   · exact Or.inr (Or.inl (Quotient.sound h))
   · exact Or.inr (Or.inr h)
 
--- ### M5 — the Field typeclass test: CONTENT below the floor, PACKAGING above it
---
--- Qop IS a field in CONTENT: total inverse + `mul_inv_cancel` + `inv_zero` + `0 ≠ 1`, all
--- `[propext, Quot.sound]`, choice-free (M3).  But registering it as a mathlib `Field` is BLOCKED
--- below the floor: `Field` extends `DivisionRing extends RatCast`, forcing `ratCast : ℚ → Qop`.
--- Any such map reads mathlib `ℚ` (`q.num`/`q.den`), entirely Tier-3 (CONT-7), so it pulls
--- `Classical.choice`.  Witnessed below: `Qop.mul_inv_cancel` is choice-free; `Qop.ofRat` (= the
--- forced `ratCast`) is not.  The doing/being thesis at the TYPECLASS level: the field's DOING (its
--- operations) is choice-free; the `Field` LABEL (its packaging/being) drags in choice.  See
--- [[project_vr_no_ontology_reframe]].
+theorem zero_ne_one : (0 : Qop) ≠ 1 := fun h => qzero_ne_one (Quotient.exact h)
 
-/-- `0 ≠ 1` in `Qop`. -/
-theorem Qop.zero_ne_one : (0 : Qop) ≠ 1 := by
-  intro h
-  have he : PreQ.equiv (PreQ.ofInt 0) (PreQ.ofInt 1) := Quotient.exact h
-  have : (0 : ℤ) * 1 = 1 * 1 := he
-  omega
+instance : Nontrivial Qop := ⟨⟨0, 1, zero_ne_one⟩⟩
 
-instance : Nontrivial Qop := ⟨⟨0, 1, Qop.zero_ne_one⟩⟩
+theorem mul_self_nonneg (a : Qop) : 0 ≤ a * a :=
+  Quotient.inductionOn a (fun x => qmul_self_nonneg x)
 
-/-- Embedding mathlib `ℚ` into `Qop` — this is exactly the `ratCast` any `Field Qop` instance is
-forced to carry.  Reads `q.num`/`q.den` from mathlib `ℚ` (Tier-3, CONT-7). -/
-def Qop.ofRat (q : ℚ) : Qop := ⟦⟨q.num, (q.den : ℤ), by exact_mod_cast q.den_pos⟩⟧
+theorem mul_self_pos {a : Qop} (h : a ≠ 0) : 0 < a * a := by
+  revert h
+  refine Quotient.inductionOn a (fun x h => ?_)
+  exact qmul_self_pos (fun e => h (Quotient.sound e))
+
+theorem add_pos_of_pos_of_nonneg {A B : Qop} (hA : 0 < A) (hB : 0 ≤ B) : 0 < A + B := by
+  revert hA hB
+  refine Quotient.inductionOn₂ A B (fun x y hA hB => ?_)
+  exact qadd_pos_of_pos_of_nonneg hA hB
+
+/-- Embedding Mathlib's `ℚ` — the `ratCast` any `Field Qop` would be forced to carry.  Reads
+`q.num`/`q.den` from Mathlib (`Classical.choice` through Mathlib's `ℚ`): kind 3, the limit. -/
+def ofRat (q : ℚ) : Qop :=
+  Quotient.mk PreQ.setoid ⟨intToPair q.num, IntExpr.mk (O q.den) VRObj.base, by
+    obtain ⟨k, hk⟩ : ∃ k, q.den = k + 1 := ⟨q.den - 1, (Nat.succ_pred_eq_of_pos q.den_pos).symm⟩
+    rw [hk]
+    exact (intPos_iff _).mpr ⟨O k, intEq_refl _⟩⟩
+
+end Qop
 
 end VRCycle.Continuum
 
--- M5 finding: the field CONTENT is choice-free, but the mathlib packaging's `ratCast` is not.
-#print axioms VRCycle.Continuum.Qop.mul_inv_cancel  -- field content: choice-free
-#print axioms VRCycle.Continuum.Qop.ofRat           -- ratCast (forced by Field): pulls choice?
-
--- Axiom check (expected: [propext, Quot.sound], choice-free — below the floor)
-#print axioms VRCycle.Continuum.PreQ.equiv_trans
-#print axioms VRCycle.Continuum.Qop.ofInt
-#print axioms VRCycle.Continuum.Qop.mul_assoc
-#print axioms VRCycle.Continuum.Qop.left_distrib
-#print axioms VRCycle.Continuum.PreQ.inv
-#print axioms VRCycle.Continuum.PreQ.inv_respects
+#print axioms VRCycle.Continuum.Qop.instCommRing
 #print axioms VRCycle.Continuum.Qop.mul_inv_cancel
-#print axioms VRCycle.Continuum.Qop.inv_zero
 #print axioms VRCycle.Continuum.Qop.lt_trichotomy
-#print axioms VRCycle.Continuum.PreQ.le_respects
+#print axioms VRCycle.Continuum.Qop.ofRat

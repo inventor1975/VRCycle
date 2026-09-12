@@ -37,8 +37,6 @@ def qEq (x y : QExpr) : Prop := intEq (imul x.num y.den) (imul y.num x.den)
 theorem qEq_refl (x : QExpr) : qEq x x := intEq_refl _
 theorem qEq_symm {x y : QExpr} (h : qEq x y) : qEq y x := intEq_symm _ _ h
 
-instance : Trans intEq intEq intEq := ⟨fun h1 h2 => intEq_trans _ _ _ h1 h2⟩
-
 theorem imul_congr_left {e e' f : IntExpr} (h : e ≈ᵢ e') : imul e f ≈ᵢ imul e' f :=
   imul_respects _ _ _ _ h (intEq_refl f)
 theorem imul_congr_right {e f f' : IntExpr} (h : f ≈ᵢ f') : imul e f ≈ᵢ imul e f' :=
@@ -333,6 +331,60 @@ theorem qadd_pos {x y : QExpr} (hx : qlt qzero x) (hy : qlt qzero y) : qlt qzero
   (qpos_iff _).mpr (intPos_add (intPos_mul ((qpos_iff x).mp hx) y.den_pos)
     (intPos_mul ((qpos_iff y).mp hy) x.den_pos))
 
+instance qEq.decidable (x y : QExpr) : Decidable (qEq x y) := intEq.decidable _ _
+
+theorem qEq_zero_iff (x : QExpr) : qEq x qzero ↔ x.num ≈ᵢ zeroI := by
+  change imul x.num oneI ≈ᵢ imul zeroI x.den ↔ x.num ≈ᵢ zeroI
+  constructor
+  · intro h
+    exact intEq_trans _ _ _ (intEq_symm _ _ (imul_one _)) (intEq_trans _ _ _ h (zero_imul _))
+  · intro h
+    exact intEq_trans _ _ _ (imul_one _) (intEq_trans _ _ _ h (intEq_symm _ _ (zero_imul _)))
+
+/-- Total inverse: `0⁻¹ = 0`, otherwise `qinv`. -/
+def qinv' (x : QExpr) : QExpr :=
+  if h : x.num ≈ᵢ zeroI then qzero else qinv x h
+
+theorem qinv'_respects {x x' : QExpr} (hx : qEq x x') : qEq (qinv' x) (qinv' x') := by
+  unfold qinv'
+  by_cases h : x.num ≈ᵢ zeroI
+  · have h' : x'.num ≈ᵢ zeroI := by
+      by_contra h''
+      exact num_nz_respects (qEq_symm hx) h'' h
+    rw [dif_pos h, dif_pos h']; exact qEq_refl _
+  · have h' : ¬ x'.num ≈ᵢ zeroI := num_nz_respects hx h
+    rw [dif_neg h, dif_neg h']; exact qinv_respects hx h
+
+theorem qmul_inv'_cancel {x : QExpr} (h : ¬ qEq x qzero) : qEq (qmul x (qinv' x)) qone := by
+  have h0 : ¬ x.num ≈ᵢ zeroI := fun e => h ((qEq_zero_iff x).mpr e)
+  unfold qinv'
+  rw [dif_neg h0]
+  exact qmul_inv_cancel x h0
+
+theorem qinv'_zero : qEq (qinv' qzero) qzero := by
+  unfold qinv'
+  change qEq (if h : zeroI ≈ᵢ zeroI then qzero else qinv qzero h) qzero
+  rw [dif_pos (intEq_refl zeroI)]; exact qEq_refl _
+
+theorem qle_of_qlt {x y : QExpr} (h : qlt x y) : qle x y := (qlt_iff_le_not_le.mp h).1
+
+theorem qnonneg_iff (x : QExpr) : qle qzero x ↔ zeroI ≤ᵢ x.num := by
+  change intLe (imul zeroI x.den) (imul x.num oneI) ↔ intLe zeroI x.num
+  constructor
+  · intro h; exact intLe_respects (zero_imul _) (imul_one _) h
+  · intro h; exact intLe_respects (intEq_symm _ _ (zero_imul _)) (intEq_symm _ _ (imul_one _)) h
+
+theorem qmul_self_nonneg (x : QExpr) : qle qzero (qmul x x) :=
+  (qnonneg_iff _).mpr (intNonneg_mul_self x.num)
+
+theorem qmul_self_pos {x : QExpr} (h : ¬ qEq x qzero) : qlt qzero (qmul x x) :=
+  (qpos_iff _).mpr (intPos_mul_self (fun e => h ((qEq_zero_iff x).mpr e)))
+
+theorem qadd_pos_of_pos_of_nonneg {x y : QExpr} (hx : qlt qzero x) (hy : qle qzero y) :
+    qlt qzero (qadd x y) :=
+  (qpos_iff _).mpr (intPos_add_nonneg (intPos_mul ((qpos_iff x).mp hx) y.den_pos)
+    (intNonneg_mul ((qnonneg_iff y).mp hy) (intNonneg_of_pos x.den_pos)))
+
 /-- Pre-rationals as a commutative ring up to `qEq`, for `csr_ring` at the next floor. -/
 def QExpr.csr : VR.CSR.CSR QExpr where
   r := qEq
@@ -373,6 +425,9 @@ macro_rules
 #print axioms qadd_respects
 #print axioms qmul_respects
 #print axioms qinv_respects
+#print axioms qmul_inv'_cancel
+#print axioms qmul_self_pos
+#print axioms qadd_pos_of_pos_of_nonneg
 #print axioms qadd_assoc
 #print axioms qmul_assoc
 #print axioms qmul_add

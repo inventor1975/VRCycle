@@ -7,11 +7,17 @@
 --
 --   node            DecidableEq   order             inverse                 axioms
 --   ─────────────────────────────────────────────────────────────────────────────────────────
---   ℤ_op            ✓             ✓                 —                       below the floor
---   ℚ_op  (Qop)     ✓             ✓ trichotomy      ✓ TOTAL                 [propext, Quot.sound]
---   ℂ_op  (GaussQ)  ✓             ✗ (ℂ unorderable, ✓ TOTAL                 [propext, Quot.sound]
---                                   a CLASSICAL fact)
+--   ℤ_op            ✓             ✓                 —                       [] (IntegersOp/Ord)
+--   ℚ_op  (Qop)     ✓             ✓ trichotomy      ✓ TOTAL                 witnessed layer []
+--                                                                           (RationalsOp);
+--                                                                           quotient bridge
+--                                                                           [Quot.sound]
+--   ℂ_op  (GaussQ)  ✓             ✗ (ℂ unorderable, ✓ TOTAL                 witnessed layer []
+--                                   a CLASSICAL fact)                       (GaussE); bridge
+--                                                                           [Quot.sound]
 --   ℝ_op  (Real)    ✗ (Markov)    ✗ apartness       witnessed (`Pre.invPos`) [propext, Quot.sound]
+--                                                                           (still over Mathlib ℤ —
+--                                                                           integrity step 1e)
 --   Ω               —             —                 —                       silhouette only
 --
 -- BOUNDARY 1 — the Markov line (decidability of zero):  ℚ/ℂ have a TOTAL inverse, choice-free,
@@ -19,9 +25,10 @@
 --   reciprocal `Pre.invPos` must take an explicit positivity/apartness witness.
 --
 -- BOUNDARY 2 — the typeclass line (content vs packaging):  the field CONTENT (`mul_inv_cancel`) is
---   choice-free, but the mathlib `Field` typeclass forces `ratCast : ℚ → ·`, which reads mathlib ℚ
---   (Tier-3) and pulls `Classical.choice`.  The DOING (operations) is operational; the `Field` LABEL
---   (packaging/being) is not — the doing/being thesis at the typeclass level.
+--   choice-free (on `[]` in the witnessed layer, `[Quot.sound]` across the bridge), but the mathlib
+--   `Field` typeclass forces `ratCast : ℚ → ·`.  Since 2026-09-12 `Qop.ofRat` only READS `q.num`/
+--   `q.den` from Mathlib's `ℚ` structure and is itself axiom-free; what the `Field` label would pull
+--   is Mathlib's `ℚ` arithmetic (`Rat.add` carries `Classical.choice`) — the label, not the doing.
 --
 -- ℂ (GaussQ) is a COMPLETENESS node: it INHERITS its base `Qop`'s operational character and opens no
 -- new operational boundary (its lack of order is classical algebra, not operationality).
@@ -37,7 +44,7 @@ open VRCycle.Continuum
 
 #assert_not_depends_on Qop.mul_inv_cancel on Classical.choice
 #assert_not_depends_on GaussQ.mul_inv_cancel on Classical.choice
-#assert_depends_on Qop.ofRat on Classical.choice
+#assert_not_depends_on Qop.ofRat on Classical.choice   -- reading `q.num`/`q.den` is pure data
 
 -- The whole content/packaging table in one citable command:
 #dependency_matrix [Qop.mul_inv_cancel, GaussQ.mul_inv_cancel, Qop.lt_trichotomy, Qop.ofRat]
@@ -62,4 +69,6 @@ open VRCycle.Continuum
 #print axioms Qop.lt_trichotomy        -- ℚ trichotomy (ℝ lacks it)
 #print axioms Qop.mul_inv_cancel       -- ℚ total inverse
 #print axioms GaussQ.mul_inv_cancel    -- ℂ total inverse
-#print axioms Qop.ofRat                -- ratCast forced by `Field`: pulls choice
+#print axioms Qop.ofRat                -- reads Mathlib ℚ's fields: axiom-free since 2026-09-12
+#print axioms VR.Numbers.qmul_inv_cancel       -- ℚ inverse, witnessed layer: []
+#print axioms VRCycle.Continuum.gmul_inv_cancel -- ℂ inverse, witnessed layer: []

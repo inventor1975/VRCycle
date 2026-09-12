@@ -295,6 +295,84 @@ theorem intLt_trichotomy (e f : IntExpr) : e <ᵢ f ∨ e ≈ᵢ f ∨ f <ᵢ e 
     · exact absurd h h1
     · exact Or.inr (Or.inr (intLt_iff_le_not_le.mpr ⟨h, h1⟩))
 
+-- ============================================================
+-- §3. Non-negatives, squares — what the rational and Gaussian layers need
+-- ============================================================
+
+/-- Non-negative pairs are exactly those `≈ (n, 0)`. -/
+theorem intNonneg_iff : ∀ e : IntExpr, zeroI ≤ᵢ e ↔ ∃ n : VRObj, e ≈ᵢ .mk n VRObj.base
+  | .mk a b => by
+      constructor
+      · intro h
+        change vle (vadd VRObj.base b) (vadd VRObj.base a) at h
+        obtain ⟨n, hn⟩ := h
+        refine ⟨n, ?_⟩
+        change vadd a VRObj.base = vadd b n
+        have ha : a = vadd b n := by
+          have h' := hn
+          rw [vadd_zero_left, vadd_zero_left] at h'
+          exact h'.symm
+        rw [ha]; vr_ring
+      · rintro ⟨n, hn⟩
+        change vadd a VRObj.base = vadd b n at hn
+        change vle (vadd VRObj.base b) (vadd VRObj.base a)
+        refine ⟨n, ?_⟩
+        have ha : a = vadd b n := hn
+        rw [ha]; vr_ring
+
+theorem intNonneg_of_pos {e : IntExpr} (h : intPos e) : zeroI ≤ᵢ e := by
+  obtain ⟨n, hn⟩ := (intPos_iff e).mp h
+  exact (intNonneg_iff e).mpr ⟨VRObj.succ n, hn⟩
+
+theorem intNonneg_mul {e f : IntExpr} (he : zeroI ≤ᵢ e) (hf : zeroI ≤ᵢ f) : zeroI ≤ᵢ imul e f := by
+  obtain ⟨n, hn⟩ := (intNonneg_iff e).mp he
+  obtain ⟨m, hm⟩ := (intNonneg_iff f).mp hf
+  exact (intNonneg_iff _).mpr ⟨vmul n m,
+    intEq_trans _ _ _ (imul_respects _ _ _ _ hn hm) (imul_pos_pos _ _)⟩
+
+theorem intNonneg_add {e f : IntExpr} (he : zeroI ≤ᵢ e) (hf : zeroI ≤ᵢ f) : zeroI ≤ᵢ iadd e f := by
+  obtain ⟨n, hn⟩ := (intNonneg_iff e).mp he
+  obtain ⟨m, hm⟩ := (intNonneg_iff f).mp hf
+  exact (intNonneg_iff _).mpr ⟨vadd n m,
+    intEq_trans _ _ _ (iadd_respects _ _ _ _ hn hm) (by int_ring_pairs)⟩
+
+theorem intPos_add_nonneg {e f : IntExpr} (he : intPos e) (hf : zeroI ≤ᵢ f) : intPos (iadd e f) := by
+  obtain ⟨n, hn⟩ := (intPos_iff e).mp he
+  obtain ⟨m, hm⟩ := (intNonneg_iff f).mp hf
+  exact (intPos_iff _).mpr ⟨vadd n m,
+    intEq_trans _ _ _ (iadd_respects _ _ _ _ hn hm) (by int_ring_pairs)⟩
+
+theorem intNonneg_neg_of_le_zero {e : IntExpr} (h : e ≤ᵢ zeroI) : zeroI ≤ᵢ ineg e := by
+  have h1 := intLe_add_right (ineg e) h
+  refine intLe_respects ?_ (zero_iadd _) h1
+  exact iadd_ineg e
+
+/-- A square is non-negative. -/
+theorem intNonneg_mul_self (e : IntExpr) : zeroI ≤ᵢ imul e e := by
+  rcases intLe_total zeroI e with h | h
+  · exact intNonneg_mul h h
+  · have hn := intNonneg_neg_of_le_zero h
+    exact intLe_respects (intEq_refl _) (by int_ring) (intNonneg_mul hn hn)
+
+theorem intPos_neg_of_lt_zero' {e : IntExpr} (h : intLt e zeroI) : intPos (ineg e) := by
+  have h1 := intLe_add_right (ineg e) h
+  change intLe (iadd zeroI oneI) (ineg e)
+  refine intLe_respects ?_ (zero_iadd _) h1
+  calc iadd (iadd e oneI) (ineg e)
+      ≈ᵢ iadd oneI (iadd e (ineg e)) := by int_ring
+    _ ≈ᵢ iadd oneI zeroI := iadd_respects _ _ _ _ (intEq_refl _) (iadd_ineg e)
+    _ ≈ᵢ iadd zeroI oneI := by int_ring
+
+/-- A non-zero square is positive. -/
+theorem intPos_mul_self {e : IntExpr} (h : ¬ e ≈ᵢ zeroI) : intPos (imul e e) := by
+  rcases intLt_trichotomy e zeroI with hlt | heq | hgt
+  · have hn := intPos_neg_of_lt_zero' hlt
+    exact intPos_respects (by int_ring) (intPos_mul hn hn)
+  · exact absurd heq h
+  · exact intPos_mul hgt hgt
+
+theorem intLe_of_lt {e f : IntExpr} (h : e <ᵢ f) : e ≤ᵢ f := (intLt_iff_le_not_le.mp h).1
+
 #print axioms vle_total
 #print axioms vle.decidable
 #print axioms intLe_trans
@@ -303,5 +381,7 @@ theorem intLt_trichotomy (e f : IntExpr) : e <ᵢ f ∨ e ≈ᵢ f ∨ f <ᵢ e 
 #print axioms intLe_of_mul_le_mul_right
 #print axioms intPos_mul
 #print axioms intLt_trichotomy
+#print axioms intPos_mul_self
+#print axioms intNonneg_mul_self
 
 end VR.Numbers

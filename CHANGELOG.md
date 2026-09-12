@@ -37,8 +37,19 @@ apparatus with witnessed identity. Step 1 is the number floor.
   property (`num_pos_respects`); `qle`/`qlt` by cross-multiplication — congruence, transitivity by
   cancellation of a positive factor, totality, trichotomy, decidability, compatibility with `qadd`,
   positivity of sums and products (`qpos_iff`). 46 audited theorems, all on `[]`.
-  Next: the continuum's `Rational`/`GaussianRational` rebuilt on `QExpr` (witnessed, `rat_ring`),
-  then ℝ_VR (the Cauchy layer, the large part), then `Real`.
+* **Step 1d — the continuum's ℚ and ℂ moved onto VR's own numbers.** `Continuum/Rational.lean` no
+  longer builds a second ℚ over Mathlib's `ℤ`: `PreQ := QExpr`, and `Qop` is the quotient BRIDGE
+  over the witnessed layer — every law lifted, so `CommRing Qop` and `Qop.mul_inv_cancel` are on
+  `[Quot.sound]` (were `[propext, Quot.sound]`), the lifted order on `[propext, Quot.sound]`
+  (`propext` is the price of lifting a `Prop`), and `Qop.ofRat` is axiom-free (it only reads
+  `q.num`/`q.den`; `Classical.choice` has left the module entirely — it came from `Rat.add`).
+  `Continuum/GaussianRational.lean` likewise: witnessed `GaussE` (pairs of pre-rationals, `gEq`
+  componentwise, `g_ring` = `rat_ring` per component, `|z|² > 0` for `z ≉ 0`, total inverse
+  `z̄/|z|²`, `gmul_inv_cancel` on `[]`) and the quotient bridge `GaussQ` (`CommRing`, `Inv`,
+  `DecidableEq`, `mul_inv_cancel` on `[Quot.sound]`). `Spectrum.lean` table and guards updated
+  (`Qop.ofRat` now asserted choice-free). Full build green.
+  Next: ℝ_VR — the Cauchy layer over ℚ_VR (the large part; `Real.lean`/`UnitInterval.lean` are
+  still over Mathlib's `ℤ`), then `Real` as its bridge.
 
 ## Empty-list sweep, waves 4–8 — 2026-09-12
 
