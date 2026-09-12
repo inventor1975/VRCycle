@@ -70,6 +70,15 @@ apparatus with witnessed identity. Step 1 is the number floor.
   `intval α n / 2^n` — on `[]`**. Removed with the old file, to be rebuilt on the witnessed layer
   (step 1f): the order `le`/`lt`, apartness, the witnessed inverse `invPos`.
 
+* **Step 1f — order, apartness, reciprocal of ℝ_op on the witnessed layer** (`RealsOp` §6):
+  `rle` (eventually `x_n − y_n ≤ ε_k`, every `k`), `rlt` (eventually `y_n − x_n ≥ ε_k`, some `k` — a
+  witnessed separation), `rapart`; preorder, antisymmetry up to `rEq`, congruences, irreflexivity
+  of `<`; `PosWitness x k N` (`ε_k ≤ x_n` from `N` on) and **`rinvPos`**: the reciprocal of a
+  positive pre-real is the termwise `qinv'` — no Euclidean division at all in this design —
+  Cauchy through `|1/x_m − 1/x_n| = |x_n − x_m|·(1/x_m)(1/x_n)` and `1/x ≤ 2^k` (`qinv'_bound`);
+  `rinvPos_mul : x · (1/x) ≈ 1`. All on `[]`. Lifted to `Real` (`≤`, `<`, `apart`, `le_antisymm`)
+  on `[propext, Quot.sound]` (the `Prop` lift); `Pre.invPos` is an alias on `[]`.
+
 **Step 1 stands.** The number floor ℤ → ℚ → ℂ → ℝ is now VR's own from `VR.lean` up: witnessed
 layers on `[]` (`IntegersOp`/`IntegersOrd`, `RationalsOp`, `GaussE`, `RealsOp`), quotient bridges
 on `[Quot.sound]` (`Qop`, `GaussQ`, `Real`), `Classical.choice` gone from the continuum's ℚ/ℂ/ℝ.

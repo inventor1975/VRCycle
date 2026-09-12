@@ -18,6 +18,9 @@ open VR
 
 set_option genInjectivity false
 
+instance : Trans qEq qEq qEq := ⟨fun h1 h2 => qEq_trans h1 h2⟩
+scoped infix:50 " ≈q " => qEq
+
 -- ============================================================
 -- §1. Precisions `ε_k = 1/2^k`, closeness
 -- ============================================================
@@ -459,6 +462,238 @@ def RExpr.cr : VR.CSR.CR RExpr where
   neg_zero := rEq_of_seq (fun _ => by change qEq (qneg qzero) qzero; rat_ring)
   add_neg := radd_neg
 
+-- ============================================================
+-- §6. Order, apartness, and the reciprocal of a positive real
+-- ============================================================
+
+/-- `x ≤ y`: `x_n − y_n ≤ ε_k` eventually, for every `k`. -/
+def rle (x y : RExpr) : Prop := ∀ k : Nat, ∃ N : Nat, ∀ n : Nat, N ≤ n → qle (qsub (x.seq n) (y.seq n)) (qeps k)
+/-- `x < y`: `y_n − x_n ≥ ε_k` eventually, for some `k` — a positive separation with a witness. -/
+def rlt (x y : RExpr) : Prop := ∃ k N : Nat, ∀ n : Nat, N ≤ n → qle (qeps k) (qsub (y.seq n) (x.seq n))
+/-- Apartness: separated one way or the other. -/
+def rapart (x y : RExpr) : Prop := rlt x y ∨ rlt y x
+
+theorem rle_refl (x : RExpr) : rle x x := fun k => ⟨0, fun n _ => by
+  have h : qEq (qsub (x.seq n) (x.seq n)) qzero := by unfold qsub; exact qadd_neg _
+  have he := qeps_nonneg k
+  rat_linarith⟩
+
+theorem rle_trans {x y z : RExpr} (hxy : rle x y) (hyz : rle y z) : rle x z := by
+  intro k
+  obtain ⟨N1, h1⟩ := hxy (k + 1)
+  obtain ⟨N2, h2⟩ := hyz (k + 1)
+  refine ⟨N1 + N2, fun n hn => ?_⟩
+  have ha := h1 n (Nat.le_trans (Nat.le_add_right N1 N2) hn)
+  have hb := h2 n (Nat.le_trans (Nat.le_add_left N2 N1) hn)
+  have he := qeps_succ_add k
+  have hs : qEq (qsub (x.seq n) (z.seq n)) (qadd (qsub (x.seq n) (y.seq n)) (qsub (y.seq n) (z.seq n))) := by
+    unfold qsub; rat_ring
+  rat_linarith
+
+theorem rle_of_rEq {x y : RExpr} (h : rEq x y) : rle x y := fun k => by
+  obtain ⟨N, hN⟩ := h k
+  exact ⟨N, fun n hn => (hN n hn).1⟩
+
+theorem rle_antisymm {x y : RExpr} (hxy : rle x y) (hyx : rle y x) : rEq x y := by
+  intro k
+  obtain ⟨N1, h1⟩ := hxy k
+  obtain ⟨N2, h2⟩ := hyx k
+  refine ⟨N1 + N2, fun n hn => ?_⟩
+  have ha := h1 n (Nat.le_trans (Nat.le_add_right N1 N2) hn)
+  have hb := h2 n (Nat.le_trans (Nat.le_add_left N2 N1) hn)
+  have hs : qEq (qsub (y.seq n) (x.seq n)) (qneg (qsub (x.seq n) (y.seq n))) := by
+    unfold qsub; rat_ring
+  constructor <;> rat_linarith
+
+theorem rle_respects {x x' y y' : RExpr} (hx : rEq x x') (hy : rEq y y') (h : rle x y) : rle x' y' :=
+  rle_trans (rle_of_rEq (rEq_symm hx)) (rle_trans h (rle_of_rEq hy))
+
+theorem rlt_irrefl (x : RExpr) : ¬ rlt x x := by
+  rintro ⟨k, N, h⟩
+  have hb := h N (Nat.le_refl N)
+  have h0 : qEq (qsub (x.seq N) (x.seq N)) qzero := by unfold qsub; exact qadd_neg _
+  have hle : qle qone qzero := by
+    -- ε_k ≤ 0 contradicts ε_k > 0: derive 1 ≤ 0 through 2^k·ε_k ≈ 1
+    have hm : qEq (qmul (qofInt (pow2 k)) (qeps k)) qone := by
+      have := qpow2_mul_eps k 0
+      rw [Nat.zero_add] at this
+      exact qEq_trans this qeps_zero
+    have hp : qle qzero (qofInt (pow2 k)) := qofInt_le (pow2_nonneg k)
+    have hprod : qle qzero (qmul (qofInt (pow2 k)) (qneg (qeps k))) :=
+      qmul_nonneg hp (by rat_linarith)
+    have hneg : qEq (qmul (qofInt (pow2 k)) (qneg (qeps k)))
+        (qneg (qmul (qofInt (pow2 k)) (qeps k))) := by
+      rat_ring
+    rat_linarith
+  exact (qlt_iff_le_not_le.mp qone_pos).2 hle
+
+theorem rle_of_rlt {x y : RExpr} (h : rlt x y) : rle x y := by
+  obtain ⟨k, N, hN⟩ := h
+  intro k'
+  refine ⟨N, fun n hn => ?_⟩
+  have hb := hN n hn
+  have he := qeps_nonneg k
+  have he' := qeps_nonneg k'
+  have hs : qEq (qsub (x.seq n) (y.seq n)) (qneg (qsub (y.seq n) (x.seq n))) := by
+    unfold qsub; rat_ring
+  rat_linarith
+
+theorem rlt_respects {x x' y y' : RExpr} (hx : rEq x x') (hy : rEq y y') (h : rlt x y) : rlt x' y' := by
+  obtain ⟨k, N, hN⟩ := h
+  obtain ⟨N1, h1⟩ := hx (k + 2)
+  obtain ⟨N2, h2⟩ := hy (k + 2)
+  refine ⟨k + 1, N + N1 + N2, fun n hn => ?_⟩
+  have hn0 : N ≤ n := Nat.le_trans (Nat.le_add_right _ _) (Nat.le_trans (Nat.le_add_right _ _) hn)
+  have hn1 : N1 ≤ n := Nat.le_trans (Nat.le_add_left _ _) (Nat.le_trans (Nat.le_add_right _ _) hn)
+  have hn2 : N2 ≤ n := Nat.le_trans (Nat.le_add_left _ _) hn
+  have hb := hN n hn0
+  obtain ⟨a1, a2⟩ := h1 n hn1
+  obtain ⟨b1, b2⟩ := h2 n hn2
+  have he1 := qeps_succ_add k
+  have he2 := qeps_succ_add (k + 1)
+  have hs : qEq (qsub (y'.seq n) (x'.seq n))
+      (qadd (qsub (y.seq n) (x.seq n)) (qadd (qneg (qsub (y.seq n) (y'.seq n))) (qsub (x.seq n) (x'.seq n)))) := by
+    unfold qsub; rat_ring
+  rat_linarith
+
+theorem rapart_symm {x y : RExpr} (h : rapart x y) : rapart y x := h.symm
+
+theorem rapart_irrefl (x : RExpr) : ¬ rapart x x := fun h => h.elim (rlt_irrefl x) (rlt_irrefl x)
+
+/-- Positivity witness: `ε_k ≤ x_n` for all `n ≥ N`. -/
+def PosWitness (x : RExpr) (k N : Nat) : Prop := ∀ n : Nat, N ≤ n → qle (qeps k) (x.seq n)
+
+theorem rlt_zero_iff (x : RExpr) : rlt rzero x ↔ ∃ k N, PosWitness x k N := by
+  constructor
+  · rintro ⟨k, N, h⟩
+    refine ⟨k, N, fun n hn => ?_⟩
+    have hb := h n hn
+    change qle (qeps k) (qsub (x.seq n) qzero) at hb
+    have hs : qEq (qsub (x.seq n) qzero) (x.seq n) := by unfold qsub; rat_ring
+    rat_linarith
+  · rintro ⟨k, N, h⟩
+    refine ⟨k, N, fun n hn => ?_⟩
+    have hb := h n hn
+    change qle (qeps k) (qsub (x.seq n) qzero)
+    have hs : qEq (qsub (x.seq n) qzero) (x.seq n) := by unfold qsub; rat_ring
+    rat_linarith
+
+-- inversion of pre-rationals bounded below by ε_k
+theorem qmul_le_mul_of_nonneg {a b c : QExpr} (h : qle a b) (hc : qle qzero c) :
+    qle (qmul a c) (qmul b c) := by
+  have hp : qle qzero (qmul (qsub b a) c) := qmul_nonneg (by unfold qsub; rat_linarith) hc
+  have he : qEq (qmul (qsub b a) c) (qadd (qmul b c) (qneg (qmul a c))) := by unfold qsub; rat_ring
+  rat_linarith
+
+theorem ne_zero_of_eps_le {x : QExpr} {k : Nat} (h : qle (qeps k) x) : ¬ qEq x qzero := by
+  intro h0
+  have hle : qle (qeps k) qzero := qle_respects (qEq_refl _) h0 h
+  exact (qlt_iff_le_not_le.mp (qeps_pos k)).2 hle
+
+theorem qinv'_nonneg_of_pos {x : QExpr} (h : qlt qzero x) : qle qzero (qinv' x) := by
+  have hn : intPos x.num := (qpos_iff x).mp h
+  have h0 : ¬ x.num ≈ᵢ zeroI := ne_zero_of_intPos hn
+  unfold qinv' qinv
+  rw [dif_neg h0, dif_pos hn]
+  change intLe (imul zeroI x.num) (imul x.den oneI)
+  exact intLe_respects (intEq_symm _ _ (zero_imul _)) (intEq_symm _ _ (imul_one _))
+    (intNonneg_of_pos x.den_pos)
+
+/-- `ε_k ≤ x` gives `0 ≤ 1/x ≤ 2^k`. -/
+theorem qinv'_bound {x : QExpr} {k : Nat} (h : qle (qeps k) x) :
+    qle qzero (qinv' x) ∧ qle (qinv' x) (qofInt (pow2 k)) := by
+  have hpos : qlt qzero x := qlt_iff_le_not_le.mpr ⟨qle_trans (qeps_nonneg k) h, fun hle =>
+    (qlt_iff_le_not_le.mp (qeps_pos k)).2 (qle_trans h hle)⟩
+  have hi0 := qinv'_nonneg_of_pos hpos
+  have hc := qmul_inv'_cancel (ne_zero_of_eps_le h)
+  refine ⟨hi0, ?_⟩
+  -- ε_k · inv ≤ x · inv ≈ 1, then multiply by 2^k: (2^k ε_k) inv ≤ 2^k
+  have h1 : qle (qmul (qeps k) (qinv' x)) (qmul x (qinv' x)) := qmul_le_mul_of_nonneg h hi0
+  have hp : qle qzero (qofInt (pow2 k)) := qofInt_le (pow2_nonneg k)
+  have h2 : qle (qmul (qmul (qeps k) (qinv' x)) (qofInt (pow2 k))) (qmul (qmul x (qinv' x)) (qofInt (pow2 k))) :=
+    qmul_le_mul_of_nonneg h1 hp
+  have hm : qEq (qmul (qofInt (pow2 k)) (qeps k)) qone := by
+    have := qpow2_mul_eps k 0
+    rw [Nat.zero_add] at this
+    exact qEq_trans this qeps_zero
+  have hr : qEq (qmul (qmul (qeps k) (qinv' x)) (qofInt (pow2 k)))
+      (qmul (qmul (qofInt (pow2 k)) (qeps k)) (qinv' x)) := by rat_ring
+  have hr2 : qEq (qmul (qmul x (qinv' x)) (qofInt (pow2 k))) (qmul (qofInt (pow2 k)) (qmul x (qinv' x))) := by
+    rat_ring
+  have hr3 : qle (qmul (qofInt (pow2 k)) (qmul x (qinv' x))) (qmul (qofInt (pow2 k)) qone) := by
+    have := qmul_le_mul_of_nonneg (qle_of_qEq hc) hp
+    exact qle_respects (qmul_comm _ _) (qmul_comm _ _) this
+  have hr4 : qEq (qmul (qofInt (pow2 k)) qone) (qofInt (pow2 k)) := qmul_one _
+  have hr5 : qEq (qmul (qmul (qofInt (pow2 k)) (qeps k)) (qinv' x)) (qmul qone (qinv' x)) :=
+    qmul_respects hm (qEq_refl _)
+  have hr6 : qEq (qmul qone (qinv' x)) (qinv' x) := qone_mul _
+  rat_linarith
+
+/-- **Reciprocal of a positive pre-real**, termwise (`qinv'`), given a positivity witness. -/
+def rinvPos (x : RExpr) (k N : Nat) (hw : PosWitness x k N) : RExpr :=
+  ⟨fun n => qinv' (x.seq n), fun k' => by
+    -- |1/x_m − 1/x_n| = |x_n − x_m| · (1/x_m)(1/x_n) ≤ ε_{k'+2k} · 2^k · 2^k = ε_{k'}
+    obtain ⟨Nc, hc⟩ := x.cauchy (k' + (k + k))
+    refine ⟨N + Nc, fun m n hm hn => ?_⟩
+    have hmN : N ≤ m := Nat.le_trans (Nat.le_add_right _ _) hm
+    have hnN : N ≤ n := Nat.le_trans (Nat.le_add_right _ _) hn
+    have hmC : Nc ≤ m := Nat.le_trans (Nat.le_add_left _ _) hm
+    have hnC : Nc ≤ n := Nat.le_trans (Nat.le_add_left _ _) hn
+    obtain ⟨im0, im1⟩ := qinv'_bound (hw m hmN)
+    obtain ⟨in0, in1⟩ := qinv'_bound (hw n hnN)
+    have hcm := qmul_inv'_cancel (ne_zero_of_eps_le (hw m hmN))
+    have hcn := qmul_inv'_cancel (ne_zero_of_eps_le (hw n hnN))
+    obtain ⟨d1, d2⟩ := hc m n hmC hnC
+    -- 1/x_m − 1/x_n ≈ (x_n − x_m)·(1/x_m)·(1/x_n)   (using the two cancellations)
+    have hid : qEq (qsub (qinv' (x.seq m)) (qinv' (x.seq n)))
+        (qmul (qsub (x.seq n) (x.seq m)) (qmul (qinv' (x.seq m)) (qinv' (x.seq n)))) := by
+      have e1 : qEq (qinv' (x.seq m)) (qmul (qinv' (x.seq m)) (qmul (x.seq n) (qinv' (x.seq n)))) :=
+        qEq_symm (qEq_trans (qmul_respects (qEq_refl _) hcn) (qmul_one _))
+      have e2 : qEq (qinv' (x.seq n)) (qmul (qinv' (x.seq n)) (qmul (x.seq m) (qinv' (x.seq m)))) :=
+        qEq_symm (qEq_trans (qmul_respects (qEq_refl _) hcm) (qmul_one _))
+      have e3 : qEq (qsub (qinv' (x.seq m)) (qinv' (x.seq n)))
+          (qsub (qmul (qinv' (x.seq m)) (qmul (x.seq n) (qinv' (x.seq n))))
+                (qmul (qinv' (x.seq n)) (qmul (x.seq m) (qinv' (x.seq m))))) := by
+        unfold qsub; exact qadd_respects e1 (qneg_respects e2)
+      refine qEq_trans e3 ?_
+      unfold qsub; rat_ring
+    -- the product of the two inverses is between 0 and 2^k·2^k
+    have hP : qclose (qmul (qinv' (x.seq m)) (qinv' (x.seq n))) qzero (qmul (qofInt (pow2 k)) (qofInt (pow2 k))) := by
+      have hz1 : qEq (qsub (qinv' (x.seq m)) qzero) (qinv' (x.seq m)) := by unfold qsub; rat_ring
+      have hz2 : qEq (qsub (qinv' (x.seq n)) qzero) (qinv' (x.seq n)) := by unfold qsub; rat_ring
+      have hp := qofInt_le (pow2_nonneg k)
+      exact qmul_abs_bound ⟨by rat_linarith, by rat_linarith⟩ ⟨by rat_linarith, by rat_linarith⟩
+    have hD : qclose (qsub (x.seq n) (x.seq m)) qzero (qeps (k' + (k + k))) := by
+      have hz : qEq (qsub (qsub (x.seq n) (x.seq m)) qzero) (qsub (x.seq n) (x.seq m)) := by
+        unfold qsub; rat_ring
+      have hs : qEq (qsub (x.seq n) (x.seq m)) (qneg (qsub (x.seq m) (x.seq n))) := by unfold qsub; rat_ring
+      exact ⟨by rat_linarith, by rat_linarith⟩
+    have hprod := qmul_abs_bound hD hP
+    -- ε_{k'+2k} · 2^k · 2^k ≈ ε_{k'}
+    have hm1 : qEq (qmul (qofInt (pow2 k)) (qeps ((k' + k) + k))) (qeps (k' + k)) := qpow2_mul_eps k (k' + k)
+    have hm2 : qEq (qmul (qofInt (pow2 k)) (qeps (k' + k))) (qeps k') := qpow2_mul_eps k k'
+    have hidx : k' + (k + k) = (k' + k) + k := (Nat.add_assoc k' k k).symm
+    rw [hidx] at hprod
+    have hE : qEq (qmul (qeps ((k' + k) + k)) (qmul (qofInt (pow2 k)) (qofInt (pow2 k)))) (qeps k') := by
+      calc qmul (qeps ((k' + k) + k)) (qmul (qofInt (pow2 k)) (qofInt (pow2 k)))
+          ≈q qmul (qofInt (pow2 k)) (qmul (qofInt (pow2 k)) (qeps ((k' + k) + k))) := by rat_ring
+        _ ≈q qmul (qofInt (pow2 k)) (qeps (k' + k)) := qmul_respects (qEq_refl _) hm1
+        _ ≈q qeps k' := hm2
+    obtain ⟨p1, p2⟩ := hprod
+    have hz : qEq (qsub (qmul (qsub (x.seq n) (x.seq m)) (qmul (qinv' (x.seq m)) (qinv' (x.seq n)))) qzero)
+        (qmul (qsub (x.seq n) (x.seq m)) (qmul (qinv' (x.seq m)) (qinv' (x.seq n)))) := by
+      unfold qsub; rat_ring
+    constructor <;> rat_linarith⟩
+
+/-- The reciprocal cancels: `x · (1/x) ≈ 1`. -/
+theorem rinvPos_mul (x : RExpr) (k N : Nat) (hw : PosWitness x k N) :
+    rEq (rmul x (rinvPos x k N hw)) rone := by
+  intro k'
+  refine ⟨N, fun n hn => ?_⟩
+  have hc := qmul_inv'_cancel (ne_zero_of_eps_le (hw n hn))
+  change qclose (qmul (x.seq n) (qinv' (x.seq n))) qone (qeps k')
+  exact qclose_respects (qEq_symm hc) (qEq_refl _) (qEq_refl _) (qclose_refl _ _ (qeps_nonneg k'))
+
 #print axioms rEq_trans
 #print axioms radd_respects
 #print axioms rbounded
@@ -466,5 +701,9 @@ def RExpr.cr : VR.CSR.CR RExpr where
 #print axioms rmul_assoc
 #print axioms rzero_ne_one
 #print axioms RExpr.cr
+#print axioms rle_antisymm
+#print axioms rlt_respects
+#print axioms rinvPos
+#print axioms rinvPos_mul
 
 end VR.Numbers

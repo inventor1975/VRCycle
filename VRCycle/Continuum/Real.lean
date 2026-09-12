@@ -8,8 +8,9 @@
 -- the `[0,1]` point of a branch: `Real.ofBranch α` is the sequence `intval α n / 2^n`, Cauchy by
 -- the binary-prefix bound of `UnitInterval.lean`.  The quotient costs exactly `Quot.sound`.
 --
--- Not yet rebuilt on the witnessed layer (they lived here over `ℤ`): the order `le`/`lt`,
--- apartness, and the witnessed inverse `invPos` — integrity step 1f.
+-- The order `le`/`lt`, apartness and the reciprocal of a positive real (`Pre.invPos`, with an
+-- explicit positivity witness — Markov's line: no modulus, no inverse) live in the witnessed layer
+-- (`RealsOp` §6) and are lifted here.
 import VRCycle.Continuum.UnitInterval
 import VRCycle.Numbers.RealsOp
 import Mathlib.Algebra.Ring.Defs
@@ -147,7 +148,42 @@ instance instCommRing : CommRing Real where
 
 theorem zero_ne_one : (0 : Real) ≠ 1 := fun h => rzero_ne_one (Quotient.exact h)
 
+-- ============================================================
+-- §3. Order and apartness, lifted (lifting a `Prop` costs `propext` — the bridge's)
+-- ============================================================
+
+theorem rle_iff {x x' y y' : RExpr} (hx : rEq x x') (hy : rEq y y') : rle x y ↔ rle x' y' :=
+  ⟨rle_respects hx hy, rle_respects (rEq_symm hx) (rEq_symm hy)⟩
+theorem rlt_iff {x x' y y' : RExpr} (hx : rEq x x') (hy : rEq y y') : rlt x y ↔ rlt x' y' :=
+  ⟨rlt_respects hx hy, rlt_respects (rEq_symm hx) (rEq_symm hy)⟩
+
+def le : Real → Real → Prop := Quotient.lift₂ rle (fun _ _ _ _ ha hb => propext (rle_iff ha hb))
+def lt : Real → Real → Prop := Quotient.lift₂ rlt (fun _ _ _ _ ha hb => propext (rlt_iff ha hb))
+/-- Apartness `x # y`: positive separation one way or the other. -/
+def apart (a b : Real) : Prop := lt a b ∨ lt b a
+
+instance : LE Real := ⟨le⟩
+instance : LT Real := ⟨lt⟩
+
+theorem le_refl (a : Real) : a ≤ a := Quotient.inductionOn a rle_refl
+theorem le_trans {a b c : Real} (h1 : a ≤ b) (h2 : b ≤ c) : a ≤ c := by
+  revert h1 h2
+  exact Quotient.inductionOn₃ a b c (fun x y z h1 h2 => rle_trans h1 h2)
+theorem le_antisymm {a b : Real} (h1 : a ≤ b) (h2 : b ≤ a) : a = b := by
+  revert h1 h2
+  exact Quotient.inductionOn₂ a b (fun x y h1 h2 => Quotient.sound (rle_antisymm h1 h2))
+theorem lt_irrefl (a : Real) : ¬ a < a := Quotient.inductionOn a rlt_irrefl
+theorem le_of_lt {a b : Real} (h : a < b) : a ≤ b := by
+  revert h
+  exact Quotient.inductionOn₂ a b (fun x y h => rle_of_rlt h)
+theorem apart_irrefl (a : Real) : ¬ apart a a := fun h => h.elim (lt_irrefl a) (lt_irrefl a)
+
 end Real
+
+/-- The reciprocal of a positive pre-real, given its positivity witness (`RealsOp.rinvPos`). -/
+abbrev Pre.invPos (x : Pre) (k N : Nat) (hw : PosWitness x k N) : Pre := rinvPos x k N hw
+theorem Pre.invPos_mul (x : Pre) (k N : Nat) (hw : PosWitness x k N) :
+    rEq (rmul x (Pre.invPos x k N hw)) rone := rinvPos_mul x k N hw
 
 end VRCycle.Continuum
 
@@ -156,3 +192,5 @@ end VRCycle.Continuum
 #print axioms VRCycle.Continuum.Real.instCommRing
 #print axioms VRCycle.Continuum.Real.mul_assoc
 #print axioms VRCycle.Continuum.Real.zero_ne_one
+#print axioms VRCycle.Continuum.Real.le_antisymm
+#print axioms VRCycle.Continuum.Pre.invPos_mul
