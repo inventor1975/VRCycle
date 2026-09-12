@@ -12,6 +12,27 @@
 
 namespace VR.Forms.ConservativityComprehension
 
+-- Empty-list sweep (2026-09-12): no auto-generated `injEq` lemmas (they carry `propext`);
+-- constructor injectivity, where needed, is obtained by `cases`.
+set_option genInjectivity false
+
+-- Hand Nat arithmetic on `[]` — replaces `omega` (which pulls `propext` through Int simp lemmas).
+namespace NatAux
+theorem not_lt_of_le {a b : Nat} (h : a ≤ b) : ¬ b < a :=
+  fun e => Nat.lt_irrefl b (Nat.lt_of_lt_of_le e h)
+theorem lt_succ_of_lt {a b : Nat} (h : a < b) : a < b + 1 :=
+  Nat.lt_succ_of_le (Nat.le_of_lt h)
+theorem sub_one_add_one {n : Nat} (h : 0 < n) : n - 1 + 1 = n :=
+  Nat.succ_pred_eq_of_pos h
+theorem le_sub_one_of_lt {a n : Nat} (h : a < n) : a ≤ n - 1 :=
+  Nat.le_of_succ_le_succ (show a + 1 ≤ n - 1 + 1 by
+    rw [sub_one_add_one (Nat.lt_of_le_of_lt (Nat.zero_le a) h)]; exact h)
+theorem lt_sub_one_of_succ_lt {a n : Nat} (h : a + 1 < n) : a < n - 1 :=
+  Nat.lt_of_succ_lt_succ (show a + 1 < n - 1 + 1 by
+    rw [sub_one_add_one (Nat.lt_of_le_of_lt (Nat.zero_le _) h)]; exact h)
+end NatAux
+
+
 -- ============================================================
 -- §1. Mutually recursive terms and formulas (de Bruijn)
 -- ============================================================
@@ -77,9 +98,12 @@ theorem Tm.subst_lift (k : Nat) (w : Tm) (u : Tm) :
   | .var n =>
     simp only [Tm.lift, Tm.subst]
     by_cases h : n < k
-    · rw [if_pos h, if_neg (show ¬ (n = k) by omega), if_neg (show ¬ (k < n) by omega)]
-    · rw [if_neg h, if_neg (show ¬ (n + 1 = k) by omega), if_pos (show k < n + 1 by omega),
-        Nat.add_sub_cancel]
+    · rw [if_pos h, if_neg (Nat.ne_of_lt h), if_neg (NatAux.not_lt_of_le (Nat.le_of_lt h))]
+    · have hk : k ≤ n := Nat.le_of_not_lt h
+      rw [if_neg h, if_neg (fun (e : n + 1 = k) =>
+          Nat.not_succ_le_self n (by rw [← e] at hk; exact hk)),
+        if_pos (Nat.lt_succ_of_le hk)]
+      rfl
   | .setOf φ =>
     simp only [Tm.lift, Tm.subst]
     rw [Fml.subst_lift (k + 1) (Tm.lift 0 w) φ]
@@ -87,12 +111,14 @@ theorem Fml.subst_lift (k : Nat) (w : Tm) (φ : Fml) :
     Fml.subst k w (Fml.lift k φ) = φ := by
   match φ with
   | .mem a b =>
-    simp only [Fml.lift, Fml.subst, Tm.subst_lift]
+    show Fml.mem (Tm.subst k w (Tm.lift k a)) (Tm.subst k w (Tm.lift k b)) = Fml.mem a b
+    rw [Tm.subst_lift k w a, Tm.subst_lift k w b]
   | .bot => rfl
   | .imp p q =>
-    simp only [Fml.lift, Fml.subst, Fml.subst_lift]
+    show Fml.imp (Fml.subst k w (Fml.lift k p)) (Fml.subst k w (Fml.lift k q)) = Fml.imp p q
+    rw [Fml.subst_lift k w p, Fml.subst_lift k w q]
   | .all p =>
-    simp only [Fml.lift, Fml.subst]
+    show Fml.all (Fml.subst (k + 1) (Tm.lift 0 w) (Fml.lift (k + 1) p)) = Fml.all p
     rw [Fml.subst_lift (k + 1) (Tm.lift 0 w) p]
 end
 
@@ -108,26 +134,34 @@ theorem Tm.lift_lift (c d : Nat) (h : d ≤ c) (u : Tm) :
     Tm.lift (c + 1) (Tm.lift d u) = Tm.lift d (Tm.lift c u) := by
   match u with
   | .var n =>
-    by_cases h1 : n < d
-    · simp only [Tm.lift, if_pos h1, if_pos (show n < c by omega), if_pos (show n < c + 1 by omega)]
-    · by_cases h2 : n < c
-      · simp only [Tm.lift, if_neg h1, if_pos h2, if_pos (show n + 1 < c + 1 by omega)]
-      · simp only [Tm.lift, if_neg h1, if_neg h2,
-          if_neg (show ¬ n + 1 < c + 1 by omega), if_neg (show ¬ n + 1 < d by omega)]
-  | .setOf φ =>
     simp only [Tm.lift]
-    rw [Fml.lift_lift (c + 1) (d + 1) (by omega) φ]
+    by_cases h1 : n < d
+    · have h1c : n < c := Nat.lt_of_lt_of_le h1 h
+      rw [if_pos h1, if_pos h1c, if_pos (NatAux.lt_succ_of_lt h1c), if_pos h1]
+    · by_cases h2 : n < c
+      · rw [if_neg h1, if_pos h2, if_pos (Nat.succ_lt_succ h2), if_neg h1]
+      · rw [if_neg h1, if_neg h2, if_neg (fun e => h2 (Nat.lt_of_succ_lt_succ e)),
+          if_neg (fun e => h1 (Nat.lt_of_le_of_lt (Nat.le_succ n) e))]
+  | .setOf φ =>
+    show Tm.setOf (Fml.lift (c + 1 + 1) (Fml.lift (d + 1) φ))
+        = Tm.setOf (Fml.lift (d + 1) (Fml.lift (c + 1) φ))
+    rw [Fml.lift_lift (c + 1) (d + 1) (Nat.succ_le_succ h) φ]
 theorem Fml.lift_lift (c d : Nat) (h : d ≤ c) (φ : Fml) :
     Fml.lift (c + 1) (Fml.lift d φ) = Fml.lift d (Fml.lift c φ) := by
   match φ with
   | .mem a b =>
-    simp only [Fml.lift, Tm.lift_lift c d h]
+    show Fml.mem (Tm.lift (c + 1) (Tm.lift d a)) (Tm.lift (c + 1) (Tm.lift d b))
+        = Fml.mem (Tm.lift d (Tm.lift c a)) (Tm.lift d (Tm.lift c b))
+    rw [Tm.lift_lift c d h a, Tm.lift_lift c d h b]
   | .bot => rfl
   | .imp p q =>
-    simp only [Fml.lift, Fml.lift_lift c d h]
+    show Fml.imp (Fml.lift (c + 1) (Fml.lift d p)) (Fml.lift (c + 1) (Fml.lift d q))
+        = Fml.imp (Fml.lift d (Fml.lift c p)) (Fml.lift d (Fml.lift c q))
+    rw [Fml.lift_lift c d h p, Fml.lift_lift c d h q]
   | .all p =>
-    simp only [Fml.lift]
-    rw [Fml.lift_lift (c + 1) (d + 1) (by omega) p]
+    show Fml.all (Fml.lift (c + 1 + 1) (Fml.lift (d + 1) p))
+        = Fml.all (Fml.lift (d + 1) (Fml.lift (c + 1) p))
+    rw [Fml.lift_lift (c + 1) (d + 1) (Nat.succ_le_succ h) p]
 end
 
 -- ============================================================
@@ -142,34 +176,47 @@ theorem Tm.lift_subst (c j : Nat) (h : c ≤ j) (t : Tm) (s : Tm) :
     Tm.lift c (Tm.subst j t s) = Tm.subst (j + 1) (Tm.lift c t) (Tm.lift c s) := by
   match s with
   | .var n =>
+    simp only [Tm.subst, Tm.lift]
     by_cases hn : n = j
-    · simp only [Tm.subst, Tm.lift, if_pos hn, if_neg (show ¬ n < c by omega),
-        if_pos (show n + 1 = j + 1 by omega)]
+    · subst hn
+      rw [if_pos rfl, if_neg (NatAux.not_lt_of_le h), if_pos rfl]
     · by_cases hlt : j < n
-      · simp only [Tm.subst, Tm.lift, if_neg hn, if_pos hlt,
-          if_neg (show ¬ n - 1 < c by omega), if_neg (show ¬ n < c by omega),
-          if_neg (show ¬ n + 1 = j + 1 by omega), if_pos (show j + 1 < n + 1 by omega)]
-        congr 1; omega
-      · by_cases hc : n < c
-        · simp only [Tm.subst, Tm.lift, if_neg hn, if_neg hlt, if_pos hc,
-            if_neg (show ¬ n = j + 1 by omega), if_neg (show ¬ j + 1 < n by omega)]
-        · simp only [Tm.subst, Tm.lift, if_neg hn, if_neg hlt, if_neg hc,
-            if_neg (show ¬ n + 1 = j + 1 by omega), if_neg (show ¬ j + 1 < n + 1 by omega)]
+      · have hpos : 0 < n := Nat.lt_of_le_of_lt (Nat.zero_le j) hlt
+        rw [if_neg hn, if_pos hlt, Tm.lift,
+          if_neg (NatAux.not_lt_of_le (Nat.le_trans h (NatAux.le_sub_one_of_lt hlt))),
+          if_neg (NatAux.not_lt_of_le (Nat.le_trans h (Nat.le_of_lt hlt))),
+          if_neg (fun e => hn (Nat.succ.inj e)), if_pos (Nat.succ_lt_succ hlt)]
+        exact congrArg Tm.var (NatAux.sub_one_add_one hpos)
+      · have hnj : n < j := Nat.lt_of_le_of_ne (Nat.le_of_not_lt hlt) hn
+        by_cases hc : n < c
+        · have hnj1 : n < j + 1 := NatAux.lt_succ_of_lt hnj
+          rw [if_neg hn, if_neg hlt, Tm.lift, if_pos hc, if_neg (Nat.ne_of_lt hnj1),
+            if_neg (NatAux.not_lt_of_le (Nat.le_of_lt hnj1))]
+        · rw [if_neg hn, if_neg hlt, Tm.lift, if_neg hc, if_neg (fun e => hn (Nat.succ.inj e)),
+            if_neg (fun e => hlt (Nat.lt_of_succ_lt_succ e))]
   | .setOf φ =>
-    simp only [Tm.lift, Tm.subst]
-    rw [Fml.lift_subst (c + 1) (j + 1) (by omega) (Tm.lift 0 t) φ,
+    show Tm.setOf (Fml.lift (c + 1) (Fml.subst (j + 1) (Tm.lift 0 t) φ))
+        = Tm.setOf (Fml.subst (j + 1 + 1) (Tm.lift 0 (Tm.lift c t)) (Fml.lift (c + 1) φ))
+    rw [Fml.lift_subst (c + 1) (j + 1) (Nat.succ_le_succ h) (Tm.lift 0 t) φ,
         Tm.lift_lift c 0 (Nat.zero_le c) t]
 theorem Fml.lift_subst (c j : Nat) (h : c ≤ j) (t : Tm) (φ : Fml) :
     Fml.lift c (Fml.subst j t φ) = Fml.subst (j + 1) (Tm.lift c t) (Fml.lift c φ) := by
   match φ with
   | .mem a b =>
-    simp only [Fml.lift, Fml.subst, Tm.lift_subst c j h]
+    show Fml.mem (Tm.lift c (Tm.subst j t a)) (Tm.lift c (Tm.subst j t b))
+        = Fml.mem (Tm.subst (j + 1) (Tm.lift c t) (Tm.lift c a))
+                  (Tm.subst (j + 1) (Tm.lift c t) (Tm.lift c b))
+    rw [Tm.lift_subst c j h t a, Tm.lift_subst c j h t b]
   | .bot => rfl
   | .imp p q =>
-    simp only [Fml.lift, Fml.subst, Fml.lift_subst c j h]
+    show Fml.imp (Fml.lift c (Fml.subst j t p)) (Fml.lift c (Fml.subst j t q))
+        = Fml.imp (Fml.subst (j + 1) (Tm.lift c t) (Fml.lift c p))
+                  (Fml.subst (j + 1) (Tm.lift c t) (Fml.lift c q))
+    rw [Fml.lift_subst c j h t p, Fml.lift_subst c j h t q]
   | .all p =>
-    simp only [Fml.lift, Fml.subst]
-    rw [Fml.lift_subst (c + 1) (j + 1) (by omega) (Tm.lift 0 t) p,
+    show Fml.all (Fml.lift (c + 1) (Fml.subst (j + 1) (Tm.lift 0 t) p))
+        = Fml.all (Fml.subst (j + 1 + 1) (Tm.lift 0 (Tm.lift c t)) (Fml.lift (c + 1) p))
+    rw [Fml.lift_subst (c + 1) (j + 1) (Nat.succ_le_succ h) (Tm.lift 0 t) p,
         Tm.lift_lift c 0 (Nat.zero_le c) t]
 end
 
@@ -186,24 +233,40 @@ theorem Tm.subst_subst (a k : Nat) (h : k ≤ a) (u v : Tm) (w : Tm) :
       = Tm.subst k (Tm.subst a u v) (Tm.subst (a + 1) (Tm.lift k u) w) := by
   match w with
   | .var n =>
-    by_cases hn1 : n = k
-    · simp only [Tm.subst, if_pos hn1, if_neg (show ¬ n = a + 1 by omega),
-        if_neg (show ¬ a + 1 < n by omega)]
-    · by_cases hn2 : n = a + 1
-      · simp only [Tm.subst, if_neg hn1, if_pos (show k < n by omega),
-          if_pos (show n - 1 = a by omega), if_pos hn2, Tm.subst_lift]
-      · by_cases hlt : k < n
-        · by_cases hb : a + 1 < n
-          · simp only [Tm.subst, if_neg hn1, if_pos hlt, if_neg (show ¬ n - 1 = a by omega),
-              if_pos (show a < n - 1 by omega), if_neg hn2, if_pos hb,
-              if_neg (show ¬ n - 1 = k by omega), if_pos (show k < n - 1 by omega)]
-          · simp only [Tm.subst, if_neg hn1, if_pos hlt, if_neg (show ¬ n - 1 = a by omega),
-              if_neg (show ¬ a < n - 1 by omega), if_neg hn2, if_neg hb]
-        · simp only [Tm.subst, if_neg hn1, if_neg hlt, if_neg (show ¬ n = a by omega),
-            if_neg (show ¬ a < n by omega), if_neg hn2, if_neg (show ¬ a + 1 < n by omega)]
-  | .setOf φ =>
     simp only [Tm.subst]
-    rw [Fml.subst_subst (a + 1) (k + 1) (by omega) (Tm.lift 0 u) (Tm.lift 0 v) φ,
+    by_cases hn1 : n = k
+    · subst hn1
+      rw [if_pos rfl, if_neg (Nat.ne_of_lt (Nat.lt_succ_of_le h)),
+        if_neg (NatAux.not_lt_of_le (Nat.le_succ_of_le h)), Tm.subst, if_pos rfl]
+    · by_cases hn2 : n = a + 1
+      · subst hn2
+        rw [if_neg hn1, if_pos (Nat.lt_succ_of_le h), Tm.subst,
+          if_pos (c := a + 1 - 1 = a) rfl, if_pos (c := a + 1 = a + 1) rfl, Tm.subst_lift]
+      · by_cases hlt : k < n
+        · have hpos : 0 < n := Nat.lt_of_le_of_lt (Nat.zero_le k) hlt
+          by_cases hb : a + 1 < n
+          · have ha : a < n - 1 := NatAux.lt_sub_one_of_succ_lt hb
+            have hk : k < n - 1 := Nat.lt_of_le_of_lt h ha
+            rw [if_neg hn1, if_pos hlt, Tm.subst, if_neg (Nat.ne_of_gt ha), if_pos ha,
+              if_neg hn2, if_pos hb, Tm.subst, if_neg (Nat.ne_of_gt hk), if_pos hk]
+          · have hna : n ≤ a := Nat.le_of_lt_succ (Nat.lt_of_le_of_ne (Nat.le_of_not_lt hb) hn2)
+            have hp : n - 1 < n := Nat.sub_one_lt (Nat.ne_of_gt hpos)
+            rw [if_neg hn1, if_pos hlt, Tm.subst,
+              if_neg (fun (e : n - 1 = a) =>
+                Nat.lt_irrefl a (Nat.lt_of_lt_of_le (show a < n by rw [← e]; exact hp) hna)),
+              if_neg (NatAux.not_lt_of_le (Nat.le_trans (Nat.le_of_lt hp) hna)),
+              if_neg hn2, if_neg hb, Tm.subst, if_neg hn1, if_pos hlt]
+        · have hnk : n < k := Nat.lt_of_le_of_ne (Nat.le_of_not_lt hlt) hn1
+          have hna : n < a := Nat.lt_of_lt_of_le hnk h
+          rw [if_neg hn1, if_neg hlt, Tm.subst, if_neg (Nat.ne_of_lt hna),
+            if_neg (NatAux.not_lt_of_le (Nat.le_of_lt hna)), if_neg hn2,
+            if_neg (NatAux.not_lt_of_le (Nat.le_succ_of_le (Nat.le_of_lt hna))),
+            Tm.subst, if_neg hn1, if_neg hlt]
+  | .setOf φ =>
+    show Tm.setOf (Fml.subst (a + 1) (Tm.lift 0 u) (Fml.subst (k + 1) (Tm.lift 0 v) φ))
+        = Tm.setOf (Fml.subst (k + 1) (Tm.lift 0 (Tm.subst a u v))
+            (Fml.subst (a + 1 + 1) (Tm.lift 0 (Tm.lift k u)) φ))
+    rw [Fml.subst_subst (a + 1) (k + 1) (Nat.succ_le_succ h) (Tm.lift 0 u) (Tm.lift 0 v) φ,
         Tm.lift_lift k 0 (Nat.zero_le k) u,
         ← Tm.lift_subst 0 a (Nat.zero_le a) u v]
 theorem Fml.subst_subst (a k : Nat) (h : k ≤ a) (u v : Tm) (φ : Fml) :
@@ -211,13 +274,21 @@ theorem Fml.subst_subst (a k : Nat) (h : k ≤ a) (u v : Tm) (φ : Fml) :
       = Fml.subst k (Tm.subst a u v) (Fml.subst (a + 1) (Tm.lift k u) φ) := by
   match φ with
   | .mem x y =>
-    simp only [Fml.subst, Tm.subst_subst a k h u v]
+    show Fml.mem (Tm.subst a u (Tm.subst k v x)) (Tm.subst a u (Tm.subst k v y))
+        = Fml.mem (Tm.subst k (Tm.subst a u v) (Tm.subst (a + 1) (Tm.lift k u) x))
+                  (Tm.subst k (Tm.subst a u v) (Tm.subst (a + 1) (Tm.lift k u) y))
+    rw [Tm.subst_subst a k h u v x, Tm.subst_subst a k h u v y]
   | .bot => rfl
   | .imp p q =>
-    simp only [Fml.subst, Fml.subst_subst a k h u v]
+    show Fml.imp (Fml.subst a u (Fml.subst k v p)) (Fml.subst a u (Fml.subst k v q))
+        = Fml.imp (Fml.subst k (Tm.subst a u v) (Fml.subst (a + 1) (Tm.lift k u) p))
+                  (Fml.subst k (Tm.subst a u v) (Fml.subst (a + 1) (Tm.lift k u) q))
+    rw [Fml.subst_subst a k h u v p, Fml.subst_subst a k h u v q]
   | .all p =>
-    simp only [Fml.subst]
-    rw [Fml.subst_subst (a + 1) (k + 1) (by omega) (Tm.lift 0 u) (Tm.lift 0 v) p,
+    show Fml.all (Fml.subst (a + 1) (Tm.lift 0 u) (Fml.subst (k + 1) (Tm.lift 0 v) p))
+        = Fml.all (Fml.subst (k + 1) (Tm.lift 0 (Tm.subst a u v))
+            (Fml.subst (a + 1 + 1) (Tm.lift 0 (Tm.lift k u)) p))
+    rw [Fml.subst_subst (a + 1) (k + 1) (Nat.succ_le_succ h) (Tm.lift 0 u) (Tm.lift 0 v) p,
         Tm.lift_lift k 0 (Nat.zero_le k) u,
         ← Tm.lift_subst 0 a (Nat.zero_le a) u v]
 end
@@ -234,33 +305,51 @@ theorem Tm.lift_subst' (j c : Nat) (h : j ≤ c) (t : Tm) (s : Tm) :
     Tm.lift c (Tm.subst j t s) = Tm.subst j (Tm.lift c t) (Tm.lift (c + 1) s) := by
   match s with
   | .var n =>
+    simp only [Tm.subst, Tm.lift]
     by_cases hn : n = j
-    · simp only [Tm.subst, Tm.lift, if_pos hn, if_pos (show n < c + 1 by omega)]
+    · subst hn
+      rw [if_pos rfl, if_pos (Nat.lt_succ_of_le h), if_pos rfl]
     · by_cases hlt : j < n
-      · by_cases hb : n ≤ c
-        · simp only [Tm.subst, Tm.lift, if_neg hn, if_pos hlt,
-            if_pos (show n - 1 < c by omega), if_pos (show n < c + 1 by omega)]
-        · simp only [Tm.subst, Tm.lift, if_neg hn, if_pos hlt,
-            if_neg (show ¬ n - 1 < c by omega), if_neg (show ¬ n < c + 1 by omega),
-            if_neg (show ¬ n + 1 = j by omega), if_pos (show j < n + 1 by omega)]
-          congr 1; omega
-      · simp only [Tm.subst, Tm.lift, if_neg hn, if_neg hlt,
-          if_pos (show n < c by omega), if_pos (show n < c + 1 by omega)]
+      · have hpos : 0 < n := Nat.lt_of_le_of_lt (Nat.zero_le j) hlt
+        by_cases hb : c < n
+        · rw [if_neg hn, if_pos hlt, Tm.lift,
+            if_neg (NatAux.not_lt_of_le (NatAux.le_sub_one_of_lt hb)),
+            if_neg (NatAux.not_lt_of_le (Nat.succ_le_of_lt hb)),
+            if_neg (fun e => Nat.not_succ_le_self n
+              (Nat.le_trans (show n + 1 ≤ c by rw [e]; exact h) (Nat.le_of_lt hb))),
+            if_pos (NatAux.lt_succ_of_lt hlt)]
+          exact congrArg Tm.var (NatAux.sub_one_add_one hpos)
+        · have hb' : n ≤ c := Nat.le_of_not_lt hb
+          rw [if_neg hn, if_pos hlt, Tm.lift,
+            if_pos (Nat.lt_of_lt_of_le (Nat.sub_one_lt (Nat.ne_of_gt hpos)) hb'),
+            if_pos (Nat.lt_succ_of_le hb'), if_neg hn, if_pos hlt]
+      · have hnj : n < j := Nat.lt_of_le_of_ne (Nat.le_of_not_lt hlt) hn
+        have hnc : n < c := Nat.lt_of_lt_of_le hnj h
+        rw [if_neg hn, if_neg hlt, Tm.lift, if_pos hnc, if_pos (NatAux.lt_succ_of_lt hnc),
+          if_neg hn, if_neg hlt]
   | .setOf φ =>
-    simp only [Tm.lift, Tm.subst]
-    rw [Fml.lift_subst' (j + 1) (c + 1) (by omega) (Tm.lift 0 t) φ,
+    show Tm.setOf (Fml.lift (c + 1) (Fml.subst (j + 1) (Tm.lift 0 t) φ))
+        = Tm.setOf (Fml.subst (j + 1) (Tm.lift 0 (Tm.lift c t)) (Fml.lift (c + 1 + 1) φ))
+    rw [Fml.lift_subst' (j + 1) (c + 1) (Nat.succ_le_succ h) (Tm.lift 0 t) φ,
         Tm.lift_lift c 0 (Nat.zero_le c) t]
 theorem Fml.lift_subst' (j c : Nat) (h : j ≤ c) (t : Tm) (φ : Fml) :
     Fml.lift c (Fml.subst j t φ) = Fml.subst j (Tm.lift c t) (Fml.lift (c + 1) φ) := by
   match φ with
   | .mem a b =>
-    simp only [Fml.lift, Fml.subst, Tm.lift_subst' j c h]
+    show Fml.mem (Tm.lift c (Tm.subst j t a)) (Tm.lift c (Tm.subst j t b))
+        = Fml.mem (Tm.subst j (Tm.lift c t) (Tm.lift (c + 1) a))
+                  (Tm.subst j (Tm.lift c t) (Tm.lift (c + 1) b))
+    rw [Tm.lift_subst' j c h t a, Tm.lift_subst' j c h t b]
   | .bot => rfl
   | .imp p q =>
-    simp only [Fml.lift, Fml.subst, Fml.lift_subst' j c h]
+    show Fml.imp (Fml.lift c (Fml.subst j t p)) (Fml.lift c (Fml.subst j t q))
+        = Fml.imp (Fml.subst j (Tm.lift c t) (Fml.lift (c + 1) p))
+                  (Fml.subst j (Tm.lift c t) (Fml.lift (c + 1) q))
+    rw [Fml.lift_subst' j c h t p, Fml.lift_subst' j c h t q]
   | .all p =>
-    simp only [Fml.lift, Fml.subst]
-    rw [Fml.lift_subst' (j + 1) (c + 1) (by omega) (Tm.lift 0 t) p,
+    show Fml.all (Fml.lift (c + 1) (Fml.subst (j + 1) (Tm.lift 0 t) p))
+        = Fml.all (Fml.subst (j + 1) (Tm.lift 0 (Tm.lift c t)) (Fml.lift (c + 1 + 1) p))
+    rw [Fml.lift_subst' (j + 1) (c + 1) (Nat.succ_le_succ h) (Tm.lift 0 t) p,
         Tm.lift_lift c 0 (Nat.zero_le c) t]
 end
 
@@ -295,27 +384,30 @@ end
 mutual
 theorem piTm_lift (c : Nat) (u : Tm) : piTm (Tm.lift c u) = Tm.lift c (piTm u) := by
   match u with
-  | .var n => simp only [Tm.lift, piTm]
+  | .var n => rfl
   | .setOf ψ =>
-    simp only [Tm.lift, piTm]
+    show Tm.setOf (piFml (Fml.lift (c + 1) ψ)) = Tm.setOf (Fml.lift (c + 1) (piFml ψ))
     rw [piFml_lift (c + 1) ψ]
 theorem piFml_lift (c : Nat) (φ : Fml) : piFml (Fml.lift c φ) = Fml.lift c (piFml φ) := by
   match φ with
   | .mem a b =>
     match b with
     | .setOf ψ =>
-      simp only [Fml.lift, Tm.lift, piFml]
+      show Fml.subst 0 (piTm (Tm.lift c a)) (piFml (Fml.lift (c + 1) ψ))
+          = Fml.lift c (Fml.subst 0 (piTm a) (piFml ψ))
       rw [piTm_lift c a, piFml_lift (c + 1) ψ,
           Fml.lift_subst' 0 c (Nat.zero_le c) (piTm a) (piFml ψ)]
     | .var m =>
-      simp only [Fml.lift, Tm.lift, piFml]
+      show Fml.mem (piTm (Tm.lift c a)) (Tm.lift c (Tm.var m))
+          = Fml.mem (Tm.lift c (piTm a)) (Tm.lift c (Tm.var m))
       rw [piTm_lift c a]
   | .bot => rfl
   | .imp p q =>
-    simp only [Fml.lift, piFml]
+    show Fml.imp (piFml (Fml.lift c p)) (piFml (Fml.lift c q))
+        = Fml.imp (Fml.lift c (piFml p)) (Fml.lift c (piFml q))
     rw [piFml_lift c p, piFml_lift c q]
   | .all p =>
-    simp only [Fml.lift, piFml]
+    show Fml.all (piFml (Fml.lift (c + 1) p)) = Fml.all (Fml.lift (c + 1) (piFml p))
     rw [piFml_lift (c + 1) p]
 end
 
@@ -325,46 +417,57 @@ end
 
 -- Lifting a variable past cutoff 0 is just incrementing it.
 theorem liftz (i : Nat) : Tm.lift 0 (Tm.var i) = Tm.var (i + 1) := by
-  simp only [Tm.lift, if_neg (Nat.not_lt_zero i)]
+  show Tm.var (if i < 0 then i else i + 1) = Tm.var (i + 1)
+  rw [if_neg (Nat.not_lt_zero i)]
 
--- π commutes with substituting a VARIABLE for a de Bruijn index.  This is exactly the
--- ∀-elimination case of the conservativity transport (course A instantiates operational terms,
--- i.e. variables; substituting a set-builder for a variable would put it left of ∈ — Russell,
--- excluded by the grammar).  The comprehension case closes via the substitution lemma §7.
 mutual
 theorem piTm_subst (j i : Nat) (u : Tm) :
     piTm (Tm.subst j (Tm.var i) u) = Tm.subst j (Tm.var i) (piTm u) := by
   match u with
   | .var n =>
+    show piTm (if n = j then Tm.var i else Tm.var (if j < n then n - 1 else n))
+        = (if n = j then Tm.var i else Tm.var (if j < n then n - 1 else n))
     by_cases hn : n = j
-    · simp only [Tm.subst, if_pos hn, piTm]
-    · simp only [Tm.subst, if_neg hn, piTm]
+    · rw [if_pos hn]; rfl
+    · rw [if_neg hn]; rfl
   | .setOf ψ =>
-    simp only [Tm.subst, piTm, liftz]
-    rw [piFml_subst (j + 1) (i + 1) ψ]
+    show Tm.setOf (piFml (Fml.subst (j + 1) (Tm.lift 0 (Tm.var i)) ψ))
+        = Tm.setOf (Fml.subst (j + 1) (Tm.lift 0 (Tm.var i)) (piFml ψ))
+    rw [liftz, piFml_subst (j + 1) (i + 1) ψ]
 theorem piFml_subst (j i : Nat) (φ : Fml) :
     piFml (Fml.subst j (Tm.var i) φ) = Fml.subst j (Tm.var i) (piFml φ) := by
   match φ with
   | .mem a b =>
     match b with
     | .setOf ψ =>
-      simp only [Tm.subst, Fml.subst, piFml, liftz]
-      rw [piTm_subst j i a, piFml_subst (j + 1) (i + 1) ψ,
-          Fml.subst_subst j 0 (Nat.zero_le j) (Tm.var i) (piTm a) (piFml ψ)]
-      simp only [liftz]
+      show Fml.subst 0 (piTm (Tm.subst j (Tm.var i) a))
+              (piFml (Fml.subst (j + 1) (Tm.lift 0 (Tm.var i)) ψ))
+          = Fml.subst j (Tm.var i) (Fml.subst 0 (piTm a) (piFml ψ))
+      rw [liftz, piTm_subst j i a, piFml_subst (j + 1) (i + 1) ψ,
+          Fml.subst_subst j 0 (Nat.zero_le j) (Tm.var i) (piTm a) (piFml ψ), liftz]
     | .var m =>
+      show piFml (Fml.mem (Tm.subst j (Tm.var i) a)
+              (if m = j then Tm.var i else Tm.var (if j < m then m - 1 else m)))
+          = Fml.mem (Tm.subst j (Tm.var i) (piTm a))
+              (if m = j then Tm.var i else Tm.var (if j < m then m - 1 else m))
       by_cases hm : m = j
-      · simp only [Tm.subst, Fml.subst, piFml, if_pos hm]
+      · rw [if_pos hm]
+        show Fml.mem (piTm (Tm.subst j (Tm.var i) a)) (Tm.var i)
+            = Fml.mem (Tm.subst j (Tm.var i) (piTm a)) (Tm.var i)
         rw [piTm_subst j i a]
-      · simp only [Tm.subst, Fml.subst, piFml, if_neg hm]
+      · rw [if_neg hm]
+        show Fml.mem (piTm (Tm.subst j (Tm.var i) a)) (Tm.var (if j < m then m - 1 else m))
+            = Fml.mem (Tm.subst j (Tm.var i) (piTm a)) (Tm.var (if j < m then m - 1 else m))
         rw [piTm_subst j i a]
   | .bot => rfl
   | .imp p q =>
-    simp only [Fml.subst, piFml]
+    show Fml.imp (piFml (Fml.subst j (Tm.var i) p)) (piFml (Fml.subst j (Tm.var i) q))
+        = Fml.imp (Fml.subst j (Tm.var i) (piFml p)) (Fml.subst j (Tm.var i) (piFml q))
     rw [piFml_subst j i p, piFml_subst j i q]
   | .all p =>
-    simp only [Fml.subst, piFml, liftz]
-    rw [piFml_subst (j + 1) (i + 1) p]
+    show Fml.all (piFml (Fml.subst (j + 1) (Tm.lift 0 (Tm.var i)) p))
+        = Fml.all (Fml.subst (j + 1) (Tm.lift 0 (Tm.var i)) (piFml p))
+    rw [liftz, piFml_subst (j + 1) (i + 1) p]
 end
 
 -- ============================================================
