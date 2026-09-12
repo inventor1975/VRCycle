@@ -12,6 +12,19 @@
 -- (`tychonoff_binary` etc.) remain in `[propext, Quot.sound]` unchanged.
 --
 -- See PLAN_7.md §0 for full architectural justification.
+--
+-- **Integrity programme, step 4 (2026-09-12) — verdict.** This module is
+-- the MATHLIB FRAME BRIDGE, kind 3 in VR-LOGIC §1 (wired-in objects: Mathlib
+-- `Set.ext`, `CompleteLattice`, `Order.Frame.ofMinimalAxioms`). Its offenders
+-- are exactly `SatSet.ext ← Set.ext`, `instCompleteLattice`, `frameMinAx`,
+-- `instFrame ← Order.Frame.ofMinimalAxioms` — a frame is a Mathlib object and
+-- cannot be built without them. The operational topology tower
+-- (`FormalTopology`, `Operational`, `Continuous`, `Product`, `Compact`,
+-- `Tychonoff`) is on `[]` (census 2026-09-12, 0/0/0 per module): cover families
+-- there are predicates `S → Prop` (Mathlib's `Set S` is literally that
+-- definition; no extensionality is used), and the operational content works
+-- with finite lists of basics (`ListCore`). Nothing here is hidden behind the
+-- bridge: an operational consumer never needs this file.
 
 import VRCycle.Topology.Tychonoff
 import Mathlib.Order.CompleteBooleanAlgebra

@@ -1,5 +1,27 @@
 # Changelog
 
+## Integrity programme, steps 4–5: topology verdict and the witnessed apparatus — 2026-09-12
+
+* **Step 4 — topology.** Verdict recorded in the header of `Topology/Bridge.lean`: the operational
+  tower (`FormalTopology`, `Operational`, `Continuous`, `Product`, `Compact`, `Tychonoff`) is on `[]`
+  (census 0/0/0 per module); cover families are predicates `S → Prop` (Mathlib's `Set S` is that
+  definition, no extensionality used), the operational content runs on finite lists of basics.
+  `Topology/Bridge` is the Mathlib FRAME bridge — `SatSet.ext ← Set.ext`, `CompleteLattice`,
+  `Order.Frame.ofMinimalAxioms` — kind 3 in VR-LOGIC §1, named, not hidden; no operational
+  consumer imports it. Not done (a rebuild, the curator's call): moving the cover families
+  themselves from predicates onto `OpSet`.
+* **Step 5 — apparatus without `Quotient`.** `Apparatus/Composition.lean` §2b: witnessed Mode A
+  `IsModeAOpW f := ∀ a b, a ≈ b → f a ≈ f b` for endomorphisms `f : Q → Q` (definitionally the
+  endomorphism case of `InterApparatusMorphism`); identity element `id` (not `Quotient.mk`),
+  composition, identity and associativity laws pointwise up to `≈` (`Setoid.refl`), invariance
+  under pointwise `≈` (`of_pointwise`, the witnessed replacement for `funext` equalities of lifted
+  maps), congruence of composition, the cross-level `interApparatus_comp_modeAW` and the pointwise
+  functor law. 11 objects, offenders 0/0/0. The three `Quotient` theorems
+  (`IsModeAOp_quotientMk`, `modeA_liftFn_quotientMk_eq_id`, `modeA_liftFn_comp_interApparatus`)
+  stay as the quotient bridge on `[Quot.sound]`. The reverse bridge (`Q → Quotient s` back to a
+  witnessed map) needs `Quotient.out` and is not provided — T→O absence in miniature.
+* Programme 1→5 complete. Outside `[]` remain: bridges (kind 3) and Mathlib-object instances.
+
 ## Integrity programme, step 1a: `csr_ring` and the witnessed rationals — 2026-09-12
 
 The curator's programme (2026-09-12): VR must stand on itself from arithmetic to the top — numbers

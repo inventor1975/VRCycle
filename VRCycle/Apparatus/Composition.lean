@@ -86,9 +86,12 @@
 --   IsModeBOp_id                                            []
 --   interApparatus_comp_modeA_wd                            []
 --   modeA_liftFn_comp_interApparatus                        [Quot.sound]
+--   §2b witnessed Mode A (IsModeAOpW, 11 objects)          []
 --
--- 4 objects axiom-free []; 3 objects sub-ceiling [Quot.sound].
--- No propext, no Classical.choice. Pure quotient-algebraic composition.
+-- Integrity step 5 (2026-09-12): the three [Quot.sound] objects are the
+-- QUOTIENT BRIDGE (Lean's `Quotient`, kind 3 in VR-LOGIC §1); the same algebra
+-- is stated in the witnessed register in §2b on []. 15 objects axiom-free [];
+-- 3 bridge objects [Quot.sound]. No propext, no Classical.choice.
 --
 -- ## Productive triviality — fifth through seventh instances
 -- Identity proofs (A1, A3, A4) are one-liners; B1 is one-liner.
@@ -216,6 +219,124 @@ The direct proof is cleaner.
 theorem IsModeBOp_id {A : Type*} {PA : A → Prop} :
     IsModeBOp PA PA (fun _ => True) id :=
   fun _ ha _ => ha
+
+-- ============================================================
+-- §2b. Witnessed Mode A — Level 2 without the quotient (integrity step 5)
+-- ============================================================
+--
+-- Integrity programme (2026-09-12), step 5: the apparatus must state its
+-- reference-track algebra WITHOUT `Quotient`. A Mode A map in the witnessed
+-- register is an endomorphism `f : Q → Q` together with its congruence
+-- certificate `a ≈ b → f a ≈ f b` — no passage to `Quotient s`, no
+-- `Quot.sound`. Identity is `id` (not `Quotient.mk s`), the identity and
+-- associativity laws hold POINTWISE UP TO `≈` (they are `Setoid.refl`), and the
+-- bridge to the quotient level is `IsModeAOp_of_interApparatus` (kept, on
+-- `[Quot.sound]`). Definitionally `IsModeAOpW f` IS `InterApparatusMorphism f`
+-- with the same setoid on both sides (`IsModeAOpW_iff_interApparatus`, `Iff.rfl`):
+-- the witnessed Level 2 is the endomorphism case of Level 3.
+--
+-- The reverse bridge — from `g : Q → Quotient s` back to a witnessed `Q → Q` —
+-- needs a choice of representatives (`Quotient.out`, `Classical.choice`). It is
+-- not provided: this is the T→O absence of VR-LOGIC §3 in miniature.
+--
+-- All objects of this section: axiom profile `[]`.
+
+namespace ReferenceOperationality
+section
+variable {Q : Type*} [s : Setoid Q]
+
+/-- Witnessed Mode A: an endomorphism of the pre-type with its congruence
+certificate. `IsModeAOpW f = ∀ a b : Q, a ≈ b → f a ≈ f b`.
+
+## Axiom profile: [] -/
+def IsModeAOpW (f : Q → Q) : Prop :=
+  ∀ a b : Q, a ≈ b → f a ≈ f b
+
+/-- Witnessed Mode A is the endomorphism case of an inter-apparatus morphism.
+
+## Axiom profile: [] -/
+theorem IsModeAOpW_iff_interApparatus {f : Q → Q} :
+    IsModeAOpW f ↔ @InterApparatusMorphism Q Q s s f :=
+  Iff.rfl
+
+/-- Witnessed identity element: `id` is Mode A. The equivalence is its own
+certificate.
+
+## Axiom profile: [] -/
+theorem IsModeAOpW_id : IsModeAOpW (id : Q → Q) :=
+  fun _ _ h => h
+
+/-- Witnessed Mode A maps compose (no lift needed: both are `Q → Q`).
+
+## Axiom profile: [] -/
+theorem IsModeAOpW.compose {f g : Q → Q}
+    (hf : IsModeAOpW f) (hg : IsModeAOpW g) : IsModeAOpW (g ∘ f) :=
+  fun a b hab => hg _ _ (hf a b hab)
+
+/-- Left identity law, pointwise up to `≈`.
+
+## Axiom profile: [] -/
+theorem IsModeAOpW_id_comp (f : Q → Q) (a : Q) : (id ∘ f) a ≈ f a :=
+  Setoid.refl _
+
+/-- Right identity law, pointwise up to `≈`.
+
+## Axiom profile: [] -/
+theorem IsModeAOpW_comp_id (f : Q → Q) (a : Q) : (f ∘ id) a ≈ f a :=
+  Setoid.refl _
+
+/-- Associativity, pointwise up to `≈`.
+
+## Axiom profile: [] -/
+theorem IsModeAOpW_assoc (f g h : Q → Q) (a : Q) :
+    ((h ∘ g) ∘ f) a ≈ (h ∘ (g ∘ f)) a :=
+  Setoid.refl _
+
+/-- Mode A is a property of the map UP TO pointwise `≈`: a map pointwise
+equivalent to a Mode A map is Mode A. (The witnessed replacement for
+`funext`-based equalities of lifted maps.)
+
+## Axiom profile: [] -/
+theorem IsModeAOpW.of_pointwise {f g : Q → Q}
+    (hf : IsModeAOpW f) (hfg : ∀ a, f a ≈ g a) : IsModeAOpW g :=
+  fun a b hab =>
+    Setoid.trans (Setoid.symm (hfg a)) (Setoid.trans (hf a b hab) (hfg b))
+
+/-- A Mode A map sends pointwise-equivalent inputs to pointwise-equivalent
+outputs: composition respects pointwise `≈` on the right.
+
+## Axiom profile: [] -/
+theorem IsModeAOpW.comp_congr_right {g : Q → Q} (hg : IsModeAOpW g)
+    {f f' : Q → Q} (hff' : ∀ a, f a ≈ f' a) (a : Q) :
+    (g ∘ f) a ≈ (g ∘ f') a :=
+  hg _ _ (hff' a)
+
+end -- section {Q : Type*} [s : Setoid Q]
+end ReferenceOperationality
+
+/-- Cross-level, witnessed: an IAM `f : Q1 → Q2` followed by a witnessed Mode A
+map `g : Q2 → Q2` is an IAM `Q1 → Q2` — the witnessed form of
+`interApparatus_comp_modeA_wd`, with `≈₂` in place of equality in `Quotient s2`.
+
+## Axiom profile: [] -/
+theorem interApparatus_comp_modeAW
+    {Q1 Q2 : Type*} [s1 : Setoid Q1] [s2 : Setoid Q2]
+    {f : Q1 → Q2} {g : Q2 → Q2}
+    (hf : InterApparatusMorphism f)
+    (hg : @ReferenceOperationality.IsModeAOpW Q2 s2 g) :
+    InterApparatusMorphism (g ∘ f) :=
+  fun a b hab => hg _ _ (hf a b hab)
+
+/-- Witnessed functor law: the composite acts as `g` after `f`, pointwise up to
+`≈₂` (the witnessed form of `modeA_liftFn_comp_interApparatus`, which needs
+`funext` for the equality of lifted maps).
+
+## Axiom profile: [] -/
+theorem comp_modeAW_pointwise
+    {Q1 Q2 : Type*} [s2 : Setoid Q2]
+    (f : Q1 → Q2) (g : Q2 → Q2) (a : Q1) :
+    (g ∘ f) a ≈ g (f a) :=
+  Setoid.refl _
 
 -- ============================================================
 -- §3. Group B — Cross-level composition (Levels 2 and 3)
@@ -384,9 +505,14 @@ example :
 --   IsModeBOp_id                                            (theorem, identity Level 4)
 --   interApparatus_comp_modeA_wd                            (theorem, cross-level B1)
 --   modeA_liftFn_comp_interApparatus                        (theorem, cross-level B2)
+--   §2b (integrity step 5, 11 objects): IsModeAOpW, IsModeAOpW_iff_interApparatus,
+--     IsModeAOpW_id, IsModeAOpW.compose, IsModeAOpW_id_comp, IsModeAOpW_comp_id,
+--     IsModeAOpW_assoc, IsModeAOpW.of_pointwise, IsModeAOpW.comp_congr_right,
+--     interApparatus_comp_modeAW, comp_modeAW_pointwise
 -- AXIOM AUDIT:
---   [] (4): IsModeAOp_id, id_isInterApparatus, IsModeBOp_id, interApparatus_comp_modeA_wd
---   [Quot.sound] (3): IsModeAOp_quotientMk, modeA_liftFn_quotientMk_eq_id,
+--   [] (15): IsModeAOp_id, id_isInterApparatus, IsModeBOp_id, interApparatus_comp_modeA_wd,
+--            and the 11 objects of §2b
+--   [Quot.sound] (3, quotient bridge): IsModeAOp_quotientMk, modeA_liftFn_quotientMk_eq_id,
 --                     modeA_liftFn_comp_interApparatus
 -- CHECKS: no sorry, no admit.
 
@@ -397,5 +523,10 @@ example :
 #print axioms IsModeBOp_id
 #print axioms interApparatus_comp_modeA_wd
 #print axioms modeA_liftFn_comp_interApparatus
+#print axioms ReferenceOperationality.IsModeAOpW_id
+#print axioms ReferenceOperationality.IsModeAOpW.compose
+#print axioms ReferenceOperationality.IsModeAOpW.of_pointwise
+#print axioms interApparatus_comp_modeAW
+#print axioms comp_modeAW_pointwise
 
 end VR.Apparatus

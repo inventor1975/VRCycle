@@ -62,8 +62,16 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 >    (`Sets/` = ZFC bridge), and VR-Forms' operational register is `OpSet`: `isRealisable`, π,
 >    the transit pattern and the substrate thesis on `[]`; ⌜AFA⌝ realised in `OpSet` while its
 >    ZFC reading is refuted in `PSet` (`afa_two_registers`) — the ZFA boundary is a boundary of
->    groundedness (a mode), not of operationality. Remaining: step 4 (topology's cover families
->    without Mathlib `Set`/`Set.ext` in the bridges) and step 5 (apparatus without `Quotient`).
+>    groundedness (a mode), not of operationality. **Steps 4–5 (same day):** step 4 — the
+>    operational topology tower (`FormalTopology` … `Tychonoff`) is on `[]`; cover families are
+>    predicates `S → Prop` (no extensionality used); `Topology/Bridge` is the Mathlib FRAME bridge
+>    (`Set.ext`, `Order.Frame.ofMinimalAxioms`) — kind 3, named in its header. Step 5 — the
+>    apparatus' reference track has a witnessed Mode A (`IsModeAOpW`, `Apparatus/Composition` §2b):
+>    endomorphism + congruence certificate, identity `id`, laws pointwise up to `≈`, all on `[]`;
+>    the three `Quotient` theorems remain as the quotient bridge (`[Quot.sound]`). The reverse
+>    bridge (from `Q → Quotient s` back to a witnessed map) needs `Quotient.out` — the T→O absence
+>    in miniature; not provided. The programme 1→5 is complete; what remains outside `[]` is
+>    bridges (kind 3) and the Mathlib-object instances (`ZFSet`, `PSet`, `Finset`, `AddSubgroup`).
 > 3. *Wired in — the limit* — statements about Mathlib's own objects: `ZFSet` (VR-Sets, VR-Forms
 >    realisability), `AddSubgroup` (Algebra), `Finset` (Transit), `Set.ext` in the bridge theorems,
 >    and the isomorphisms with Mathlib's `ℤ`/`ℚ`/`ℝ` (`Rat.add` itself carries `Classical.choice`).
