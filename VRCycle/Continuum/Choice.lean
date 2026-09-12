@@ -27,6 +27,7 @@
 --
 -- ## Axiom profile: choice-free for the operational side (verified below).
 
+import VRCycle.Continuum.ListCore
 import VRCycle.Continuum.Model              -- NbhdFun, continuity_of_nbhd  (operational Continuity TRUE)
 import VRCycle.Continuum.ClassicalBoundary  -- not_continuity               (formal Continuity FALSE)
 import Mathlib.Data.List.Range
@@ -53,7 +54,7 @@ theorem take_dcSeq (f : List Bool → Bool) (n : ℕ) :
   | zero => rfl
   | succ k ih =>
     change (List.range (k + 1)).map (dcSeq f) = dcPrefix f (k + 1)
-    rw [List.range_succ, List.map_append]
+    rw [ListCore.range_succ', ListCore.map_append']
     have ihm : (List.range k).map (dcSeq f) = dcPrefix f k := ih
     rw [ihm]; rfl
 
@@ -100,11 +101,13 @@ theorem swapAt_self (k : ℕ) (c : ℕ → Bool) : swapAt k c k = !(c k) := by
   unfold swapAt
   rw [if_pos rfl]
 
-/-- **No selection rule exists** (Russell's socks; the Fraenkel–Mostowski sock
-statement in miniature).  A rule may read the bookkeeping labels only up to a
-finite bound and must be swap-invariant beyond it; no selection is — the swap
-at any box beyond the bound moves the pick there.  Choice-free, and rule-free
-by theorem. -/
+/-- **No swap-invariant selection exists.**  A selection fixed by the swap at
+some box would have to equal its own negation there.  Choice-free.
+
+This is the symmetry argument at its thinnest; on its own it says nothing
+about *indistinguishability*, since the statement never mentions it.  What
+makes the argument bite for socks and not for shoes is supplied below, in
+`socks_no_rule`, where both premises are formal rather than editorial. -/
 theorem no_symmetric_selector :
     ¬ ∃ (c : ℕ → Bool) (N : ℕ), ∀ k, N ≤ k → swapAt k c = c := by
   rintro ⟨c, N, h⟩
@@ -113,6 +116,66 @@ theorem no_symmetric_selector :
   cases hc : c N with
   | false => rw [hc] at h1; exact Bool.noConfusion h1
   | true  => rw [hc] at h1; exact Bool.noConfusion h1
+
+-- ------------------------------------------------------------
+-- Socks against shoes: the premise that does the work, made formal
+--
+-- `no_symmetric_selector` above proves that no Bool-valued function equals
+-- its own negation.  True, and too cheap: nothing in it distinguishes socks
+-- from shoes, so read as "no rule exists" it would prove the same about
+-- shoes, where a rule plainly does exist (take the left one).  The load
+-- bearing premise — that the swap is a SYMMETRY of the sock situation and
+-- not of the shoe situation — was carried by the prose.  It is carried here
+-- by two definitions and a shoe that survives them.
+-- ------------------------------------------------------------
+
+/-- A labelling records which element of each pair we have named first.  It is
+our bookkeeping, not a feature of the pairs. -/
+abbrev Labelling := ℕ → Bool
+
+/-- A selection rule reads a labelling and picks in every box. -/
+abbrev Selector := Labelling → ℕ → Bool
+
+/-- **The swap is a symmetry**: renaming the two elements of pair `k` carries
+the pick with them, because it is the same object under a different name.
+This is what "indistinguishable" means operationally, and it is now a formal
+hypothesis rather than a remark. -/
+def Equivariant (s : Selector) : Prop :=
+  ∀ l k, s (swapAt k l) k = !(s l k)
+
+/-- **The rule is blind to our labels** — the case of indistinguishable pairs.
+The box offers no mark, so no labelling of ours can enter the choice. -/
+def Blind (s : Selector) : Prop :=
+  ∀ l l' k, s l k = s l' k
+
+/-- **Socks: no rule.**  Blindness and equivariance cannot hold together.
+Both premises are now in the statement, so the theorem says something about
+socks in particular — see `shoes_rule_exists` for the case it excludes. -/
+theorem socks_no_rule : ¬ ∃ s : Selector, Blind s ∧ Equivariant s := by
+  rintro ⟨s, hblind, hequi⟩
+  have h : s (swapAt 0 (fun _ => false)) 0 = s (fun _ => false) 0 :=
+    hblind _ _ 0
+  rw [hequi] at h
+  cases hc : s (fun _ => false) 0 with
+  | false => rw [hc] at h; exact Bool.noConfusion h
+  | true  => rw [hc] at h; exact Bool.noConfusion h
+
+/-- Shoes: the mark is there, and "take the marked one" reads it. -/
+def leftShoe : Selector := fun l k => l k
+
+/-- **Shoes: a rule exists**, and it is equivariant.  Without this theorem
+`socks_no_rule` would be an impossibility proved about nothing in particular. -/
+theorem shoes_rule_exists : Equivariant leftShoe := by
+  intro l k
+  unfold leftShoe
+  exact swapAt_self k l
+
+/-- And the shoe rule is **not** blind.  That single difference — a mark the
+rule may read — is the whole of what separates shoes from socks. -/
+theorem shoes_not_blind : ¬ Blind leftShoe := by
+  intro h
+  have := h (fun _ => true) (fun _ => false) 0
+  exact Bool.noConfusion this
 
 /-- Every branch — every performed sequence; operationally, a lawless coin —
 IS a selection: the act picks where no rule can.  Definitionally choice-free. -/
@@ -179,6 +242,9 @@ theorem no_unique_leader (f : S → S → S → S) (L R : Fin m → Fin m)
 #print axioms operational_choice_available
 #print axioms not_continuity   -- the formal-register contrast: classical by design
 #print axioms no_symmetric_selector
+#print axioms socks_no_rule
+#print axioms shoes_rule_exists
+#print axioms shoes_not_blind
 #print axioms selectors_not_enumerable
 #print axioms twins_never_break
 #print axioms no_unique_leader

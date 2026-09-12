@@ -7,6 +7,10 @@ namespace VR
 -- §1. Primitives (Part I, §1)
 -- ============================================================
 
+-- Lean generates `injEq` lemmas (via `propext`) for every inductive; the cycle never uses them,
+-- and the empty axiom list is the bar (curator, 2026-09-12). Do not generate them.
+set_option genInjectivity false
+
 -- The type of VR objects: all objects generated from ∅ by applying t.
 -- Part I, §1 (Primitives) + A4 (Induction): the O_n exhaust the entire domain.
 --

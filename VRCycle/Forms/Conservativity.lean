@@ -32,6 +32,10 @@ namespace VR.Forms.Conservativity
 -- §1. Formulas (propositional, over an atom type)
 -- ============================================================
 
+-- Lean generates `injEq` lemmas (via `propext`) for every inductive; the cycle never uses them,
+-- and the empty axiom list is the bar (curator, 2026-09-12). Do not generate them.
+set_option genInjectivity false
+
 /-- Propositional formulas over atoms `At`, with falsum and implication. -/
 inductive Form (At : Type u) where
   | atom : At → Form At
@@ -62,7 +66,10 @@ theorem piTr_embed {A : Type u} {B : Type v} (tr : B → Form A) (φ : Form A) :
   induction φ with
   | atom a => rfl
   | bot => rfl
-  | imp p q ihp ihq => simp only [embed, piTr, ihp, ihq]
+  | imp p q ihp ihq =>
+      -- by hand, not `simp`: `simp` would close it through `propext`
+      show Form.imp (piTr tr (embed p)) (piTr tr (embed q)) = Form.imp p q
+      rw [ihp, ihq]
 
 -- ============================================================
 -- §3. Classical Hilbert provability over (⊥, →)

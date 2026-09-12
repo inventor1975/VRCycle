@@ -34,6 +34,10 @@ namespace VRCycle.SetsOp
 
 universe u
 
+-- Lean generates `injEq` lemmas (via `propext`) for every inductive; the cycle never uses them,
+-- and the empty axiom list is the bar (curator, 2026-09-12). Do not generate them.
+set_option genInjectivity false
+
 /-- An **operational set**: a pointed graph.  `V` its vertices, `E a b` "`a` is revealed
 as a member when the functionality at `b` is queried", `pt` the set itself. -/
 structure OpSet : Type (u+1) where

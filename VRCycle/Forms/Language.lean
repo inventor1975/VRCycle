@@ -64,6 +64,10 @@ Mixed formulas (Part VII §VII.2) combine OSet quantifiers with
 `isRealisable` predicates on formal terms. They are Lean `Prop`
 objects at the meta-level — not a third register for `FormalTerm`.
 
+-- Lean generates `injEq` lemmas (via `propext`) for every inductive; the cycle never uses them,
+-- and the empty axiom list is the bar (curator, 2026-09-12). Do not generate them.
+set_option genInjectivity false
+
 A `.mixed` constructor would be a category error: mixed formulas
 are a third kind of *formula in the two-register theory*, not a
 third register for individual terms. The register of a term is
@@ -73,7 +77,7 @@ property of the *formula* combining them. See `Examples.lean`
 inductive Register where
   | operational
   | formal
-  deriving DecidableEq, Repr
+  deriving DecidableEq
 
 
 -- ============================================================
@@ -197,7 +201,7 @@ structure FormalTerm where
       Operational-register objects are `OSet` elements (VR-Sets), not
       `FormalTerm.mk _ .operational` values. -/
   register : Register := .formal
-  deriving DecidableEq, Repr
+  deriving DecidableEq
 
 
 -- ============================================================

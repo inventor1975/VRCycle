@@ -22,6 +22,7 @@
 --     coverage case, soundly, for branches);
 --   * `Branch.Meets.mono` — meeting is monotone in the bar.
 
+import VRCycle.Continuum.ListCore
 import VRCycle.Continuum.Branch
 
 namespace VRCycle.Continuum
@@ -33,7 +34,9 @@ namespace VRCycle.Continuum
 /-- Appending the next bit extends the performed segment by one. -/
 theorem Branch.take_succ (α : Branch) (n : ℕ) :
     α.take (n + 1) = α.take n ++ [α n] := by
-  simp [Branch.take, List.range_succ]
+  show (List.range (n + 1)).map α = (List.range n).map α ++ [α n]
+  rw [ListCore.range_succ', ListCore.map_append']
+  rfl
 
 -- ============================================================
 -- §  One-step soundness: a branch through `s` meets its children
@@ -47,7 +50,10 @@ theorem through_meets_children (α : Branch) (s : List Bool)
     (h : α.Through s) : α.Meets (children s) := by
   refine ⟨s.length + 1, ?_⟩
   rw [Branch.take_succ, h]
-  cases α s.length <;> simp [children]
+  -- membership in the two-element cover, read off the definition: no `simp`, no `propext`
+  cases α s.length
+  · first | exact Or.inl rfl | exact Or.inr rfl
+  · first | exact Or.inl rfl | exact Or.inr rfl
 
 -- ============================================================
 -- §  Monotonicity of meeting

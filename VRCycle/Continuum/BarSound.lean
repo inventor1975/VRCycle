@@ -17,6 +17,7 @@
 -- branch through `s` continues through one child), and `cov [] B` holds; bar induction
 -- yields `Q []` = every branch (all pass through `[]`) meets `B`.
 
+import VRCycle.Continuum.ListCore
 import VRCycle.Continuum.Cover
 
 namespace VRCycle.Continuum
@@ -56,15 +57,15 @@ theorem cover_sound (hBI : BarInduction) {B : Set (List Bool)} (hB : IsBar B) :
       | false =>
           refine hf γ ?_
           change γ.take (s ++ [false]).length = s ++ [false]
-          have hlen : (s ++ [false]).length = s.length + 1 := by simp
+          have hlen : (s ++ [false]).length = s.length + 1 := ListCore.length_append_singleton false s
           rw [hlen, Branch.take_succ, hγ, hb]
       | true =>
           refine ht γ ?_
           change γ.take (s ++ [true]).length = s ++ [true]
-          have hlen : (s ++ [true]).length = s.length + 1 := by simp
+          have hlen : (s ++ [true]).length = s.length + 1 := ListCore.length_append_singleton true s
           rw [hlen, Branch.take_succ, hγ, hb]
   intro α
-  exact hQ α (by simp [Branch.Through, Branch.take])
+  exact hQ α rfl
 
 -- ============================================================
 -- Axiom audit — Stage B (file 4)

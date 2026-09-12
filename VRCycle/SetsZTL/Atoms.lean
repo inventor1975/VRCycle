@@ -166,6 +166,10 @@ theorem quineVsEmpty_val : quineVsEmpty.val = V.F := rfl
 -- §5.  The fully-earned register is classical (E21 §4 endpoint)
 -- ============================================================
 
+-- Lean generates `injEq` lemmas (via `propext`) for every inductive; the cycle never uses them,
+-- and the empty axiom list is the bar (curator, 2026-09-12). Do not generate them.
+set_option genInjectivity false
+
 /-- Formulas over abstract atoms (the identity atoms will be the
 instances); the connectives are ZTL's six. -/
 inductive Fm (α : Type v) where

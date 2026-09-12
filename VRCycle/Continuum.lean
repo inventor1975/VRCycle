@@ -21,3 +21,4 @@ import VRCycle.Continuum.Real
 import VRCycle.Continuum.Rational
 import VRCycle.Continuum.GaussianRational
 import VRCycle.Continuum.Spectrum
+import VRCycle.Continuum.ListCore
