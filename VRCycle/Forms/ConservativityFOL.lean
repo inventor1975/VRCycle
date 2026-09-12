@@ -23,6 +23,8 @@
 universe u v w x
 
 namespace VR.Forms.ConservativityFOL
+-- No auto-generated `injEq` lemmas (they carry `propext`); the empty axiom list is the bar (2026-09-12).
+set_option genInjectivity false
 
 -- ============================================================
 -- §1. Terms (de Bruijn variables, constants, unary functions); lift and substitution
@@ -113,8 +115,12 @@ theorem piTr_embed {A : Type u} {B : Type v} {F : Type x} {C : Type w}
   | op a ts => rfl
   | form e => exact e.elim
   | bot => rfl
-  | imp p q ihp ihq => simp only [embed, piTr, ihp, ihq]
-  | all p ih => simp only [embed, piTr, ih]
+  | imp p q ihp ihq =>
+      show Fml.imp (piTr tr (embed p)) (piTr tr (embed q)) = Fml.imp p q
+      rw [ihp, ihq]
+  | all p ih =>
+      show Fml.all (piTr tr (embed p)) = Fml.all p
+      rw [ih]
 
 /-- **π commutes with (term-)substitution** — given each `tr b` closed (subst-invariant).
 Operational atoms: π is the identity, so substitution matches; formal atoms: 0-ary (subst no-op)
@@ -126,10 +132,21 @@ theorem piTr_subst {A : Type u} {B : Type v} {F : Type x} {C : Type w} (tr : B �
   intro φ
   induction φ with
   | op a ts => intro j t; rfl
-  | form b => intro j t; simp only [Fml.subst, piTr, htr b j t]
+  | form b =>
+      intro j t
+      show tr b = Fml.subst j t (tr b)
+      exact (htr b j t).symm
   | bot => intro j t; rfl
-  | imp p q ihp ihq => intro j t; simp only [Fml.subst, piTr, ihp, ihq]
-  | all p ih => intro j t; simp only [Fml.subst, piTr, ih]
+  | imp p q ihp ihq =>
+      intro j t
+      show Fml.imp (piTr tr (Fml.subst j t p)) (piTr tr (Fml.subst j t q))
+           = Fml.imp (Fml.subst j t (piTr tr p)) (Fml.subst j t (piTr tr q))
+      rw [ihp j t, ihq j t]
+  | all p ih =>
+      intro j t
+      show Fml.all (piTr tr (Fml.subst (j + 1) (t.lift 0) p))
+           = Fml.all (Fml.subst (j + 1) (t.lift 0) (piTr tr p))
+      rw [ih (j + 1) (t.lift 0)]
 
 -- ============================================================
 -- §4. Classical Hilbert provability (quantifiers, term instantiation)
@@ -220,8 +237,15 @@ Choice-free: `simp only` on the definitions, then the bound-variable `if`s are d
 theorem trEmpty_closed : ∀ b j t, Fml.subst j t (trEmpty b) = trEmpty b := by
   intro b j t
   cases b
-  simp only [trEmpty, Fml.subst, Tm.subst, List.map_cons, List.map_nil]
-  rw [if_neg (by omega : ¬(0 = j + 1)), if_neg (by omega : ¬(j + 1 < 0))]
+  -- by hand (no `simp`, no `omega`): unfold to the two bound-variable `if`s and refute both tests
+  show Fml.all (Fml.imp (Fml.op .mem [Tm.subst (j + 1) (t.lift 0) (.var 0),
+                                       Tm.subst (j + 1) (t.lift 0) (.const .empty)]) .bot)
+       = trEmpty .emptyForm
+  have h1 : Tm.subst (j + 1) (t.lift 0) (.var 0) = (.var 0 : Tm Func Const) := by
+    show (if 0 = j + 1 then t.lift 0 else .var (if j + 1 < 0 then 0 - 1 else 0)) = .var 0
+    rw [if_neg (fun h => Nat.noConfusion h), if_neg (Nat.not_lt_zero _)]
+  rw [h1]
+  rfl
 
 /-- **Conservativity instantiated at the VR formal term ⌜∅⌝** (with successor available in the
 language).  The abstract floor meeting a genuine VR formal term and its operational meaning
