@@ -95,7 +95,7 @@ packaging) is not.  This is the doing/being asymmetry at the typeclass level.
 \end{finding}
 
 \textbf{The boundary is a build invariant.}  The exhibit
-\texttt{VRCycle/Continuum/Spectrum.lean} certifies it at build time over the generic
+\texttt{VRClassical/Continuum/Spectrum.lean} certifies it at build time over the generic
 checker \texttt{Meta/DependsOn.lean}:
 
 \begin{center}
@@ -233,7 +233,7 @@ alongside the classical one, not a replacement.  \textbf{The witness is meta-tru
 --- the dependency checker certifies the relation but is not itself kernel-verified, the
 same tier as \texttt{\#print axioms}.
 
-The Lean~4 formalisation lives under \texttt{VRCycle/Continuum/} (\texttt{Rational},
+The Lean~4 formalisation lives under \texttt{VR/Continuum/} (\texttt{Rational},
 \texttt{GaussianRational}, \texttt{Real}, \texttt{UnitInterval}, the becoming core
 \texttt{Spread}\,\dots\,\texttt{Model}, and the consolidated exhibit \texttt{Spectrum}),
-with the meta-thesis in \texttt{VRCycle/Meta/DoingNotBeing.lean}.
+with the meta-thesis in \texttt{VRClassical/Meta/DoingNotBeing.lean}.

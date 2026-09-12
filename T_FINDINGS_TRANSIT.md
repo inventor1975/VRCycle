@@ -12,7 +12,7 @@
 
 ## TR-FW1 — Finite-dimensional transit cost lives in the carrier encoding, not in the algebra
 
-**Stage**: 1 (`VRCycle/Transit/FiniteWitness.lean`).
+**Stage**: 1 (`VRClassical/Transit/FiniteWitness.lean`).
 **Caught at**: Stage 1 axiom audit, then again at the Stage 1 amendment re-audit.
 **Target**: `finiteSpan_provides_factorisable` was first targeted `[]`; revised to
 choice-free `[propext, Quot.sound]` after this finding (see "Calibration" below).
@@ -97,7 +97,7 @@ target choice-free `[propext, Quot.sound]`.
 
 ## TR-C1 — The operation source is itself a spectrum (algebraic propext vs analytic choice)
 
-**Stage**: 2 (`VRCycle/Transit/Conservativity.lean`).
+**Stage**: 2 (`VRClassical/Transit/Conservativity.lean`).
 **Caught at**: Stage 2 name/profile verification (CLAUDE.md §7) before writing the file.
 
 ### Statement

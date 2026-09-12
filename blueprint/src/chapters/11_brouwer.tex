@@ -166,7 +166,7 @@ constructive.
 \end{theorem}
 
 \textbf{The witness is a build invariant, not a claim.}  A transitive-dependency
-checker (\texttt{VRCycle/Meta/DependsOn.lean}, project-agnostic) walks the
+checker (\texttt{VR/Meta/DependsOn.lean}, project-agnostic) walks the
 environment and gates the build on the partition below; the \texttt{depends} rows
 certify the boundary is genuine, not vacuous.  A negative control (asserting a false
 dependency) is correctly rejected, so the checker is sound in both directions.
@@ -252,7 +252,7 @@ infinite-dimensional convex sets (Schauder) is out of scope.
 \section{References}
 \label{sec:brouwer_refs}
 
-The Lean~4 formalisation lives under \texttt{VRCycle/Brouwer/} (modules
+The Lean~4 formalisation lives under \texttt{VRClassical/Brouwer/} (modules
 \texttt{Skeleton}, \texttt{Sperner}, \texttt{Grid}, \texttt{Handshake}, \texttt{Kuhn},
 \texttt{KuhnGen}, \texttt{Approx}, \texttt{Fixed}), with the differential witness in
 \texttt{Brouwer/DiffWitness.lean} over the generic engine

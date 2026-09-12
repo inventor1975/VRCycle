@@ -84,16 +84,16 @@ Expected: 3296 build jobs successful, no errors, no warnings.
 Verify the central axiom claim:
 
 ```lean
-#print axioms VRCycle.Topology.tychonoff_binary
--- 'VRCycle.Topology.tychonoff_binary' depends on axioms:
+#print axioms VR.Topology.tychonoff_binary
+-- 'VR.Topology.tychonoff_binary' depends on axioms:
 --   [propext, Quot.sound]
 
-#print axioms VRCycle.Topology.instFrame
--- 'VRCycle.Topology.instFrame' depends on axioms:
+#print axioms VR.Topology.instFrame
+-- 'VR.Topology.instFrame' depends on axioms:
 --   [propext, Quot.sound]
 
-#print axioms VRCycle.Topology.Examples.instUnitBoolProductOperationalCompact
--- 'VRCycle.Topology.Examples.instUnitBoolProductOperationalCompact' depends on
+#print axioms VR.Topology.Examples.instUnitBoolProductOperationalCompact
+-- 'VR.Topology.Examples.instUnitBoolProductOperationalCompact' depends on
 -- axioms: [propext, Quot.sound]
 ```
 
@@ -101,11 +101,11 @@ Full audit per object: see `FINAL_AXIOM_AUDIT.md`.
 
 ## Key theorems
 
-- `VRCycle.Topology.tychonoff_binary` — binary Tychonoff (Stage 6, Mode B
+- `VR.Topology.tychonoff_binary` — binary Tychonoff (Stage 6, Mode B
   audit object).
-- `VRCycle.Topology.Examples.instUnitBoolProductOperationalCompact` —
+- `VR.Topology.Examples.instUnitBoolProductOperationalCompact` —
   concrete compactness for `Unit × Bool` (Stage 6b).
-- `VRCycle.Topology.instFrame` — bridge from `SatSet T` to mathlib's
+- `VR.Topology.instFrame` — bridge from `SatSet T` to mathlib's
   `Order.Frame` (Stage 7).
 
 ## T-findings (architectural amendments through cycle)

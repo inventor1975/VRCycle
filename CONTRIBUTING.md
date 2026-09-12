@@ -7,19 +7,32 @@ This document is for **Lean 4 developers** who want to use, understand, or exten
 ## Project structure
 
 ```
-VRCycle/
-├── VR.lean                  # VR. A Formal System: primitives, arithmetic, Peano (51 objects)
-├── Numbers/                 # VR-Numbers: ℤ_VR, ℚ_VR, ℝ_VR, ℂ_VR as quotient types
-├── Sets/                    # VR-Sets: ZFC axioms, ZFA boundary, conjectures
-├── Forms/                   # VR-Forms: two-register apparatus, transit pattern
-├── Audit/                   # VR-Audit: IsComputableReal, OperationalHilbertSpace, Hahn-Banach
+VR.lean                      # root of the CORE library `VR` — VR proper, every declaration on []
+VR/
+├── Arithmetic.lean          # VR. A Formal System: primitives, arithmetic, Peano
+├── Numbers/                 # witnessed ℤ→ℚ→ℝ on their own pairs (Integers, *Op, IntegersOrd)
+├── SetsOp/                  # the operational set universe (pointed graphs, witnessed bisimulation)
+├── ZTL/                     # the ZTL layer over SetsOp (Kernel, Atoms, Stages, Survival)
+├── Forms/                   # VR-Forms over SetsOp: realisability, transit, substrate, conservativity
+├── Topology/                # formal topology tower up to binary Tychonoff
+├── Continuum/               # the Brouwer continuum: branches, spreads, bar, Cantor, choice, model
+├── Apparatus/               # apparatus definitions: Mode A/B, IAM, factorisation, composition
+├── Prelude/                 # Set-as-predicate, Nat.find, ∃! — what the core used to take from Mathlib
+├── Meta/                    # instruments: csr_ring/cr_ring/cr_linarith, axiom census and guard
+└── Guard.lean               # #assert_axiom_free_library VR — the build fails on any axiom
+VRClassical.lean             # root of the CLASSICAL library (depends on VR; Mathlib allowed)
+VRClassical/
+├── Numbers/                 # ℤ_VR as a quotient ≅ Int (IntegersBridge), old ℚ_VR/ℝ_VR/ℂ_VR over Mathlib
+├── Sets/                    # VR-Sets over ZFSet: ZFC axioms, ZFA boundary, conjectures
 ├── SetsZFA/                 # VR-Sets-ZFA: CoPSet coinductive type, OSetZFA, AFA as theorem
-├── Apparatus/               # VR-Apparatus: PredicateOperationality, ReferenceOperationality,
-│   │                        #   Mode A, Mode B, InterApparatusMorphism, composition
-│   └── Examples/            # Tutorial examples (E01–E04)
+├── Audit/                   # VR-Audit: IsComputableReal, OperationalHilbertSpace, Hahn-Banach
+├── Algebra/, Brouwer/, Transit/   # operational algebra, Brouwer fixed point, transit library
+├── Continuum/, Forms/, Topology/  # the bridges: Qop/GaussQ/Real quotients, ZFC reading, Frame
+├── Apparatus/               # apparatus instances over ℝ/PSet, Riesz, and the QuotientBridge
+└── Examples/                # Tutorial examples (E01–E04)
 ```
 
-Root-level index files (`VRCycle/Apparatus.lean`, `VRCycle/Audit.lean`, etc.) re-export each subsystem's public API. Import the index to get everything; import individual files for targeted access.
+Root-level index files (`VR/Apparatus.lean`, `VRClassical/Audit.lean`, etc.) re-export each subsystem's public API; `VRClassical/X.lean` also imports the core `VR/X.lean`, so importing the classical index of a subsystem gives both halves. Import the index to get everything; import individual files for targeted access.
 
 **Conceptual organisation by layer:**
 
@@ -69,9 +82,9 @@ The first build downloads the mathlib4 cache (~1 GB). Subsequent builds are incr
 To build a specific subsystem:
 
 ```bash
-lake build VRCycle.Apparatus        # VR-Apparatus only
-lake build VRCycle.Audit.HahnBanach # Main audit theorem only
-lake build VRCycle.Examples.E01_ComputableReals  # Single tutorial example
+lake build VR.Apparatus        # VR-Apparatus only
+lake build VRClassical.Audit.HahnBanach # Main audit theorem only
+lake build VRClassical.Examples.E01_ComputableReals  # Single tutorial example
 ```
 
 ---
@@ -142,11 +155,11 @@ Ceiling `[propext, Classical.choice, Quot.sound]` is **accepted** for objects to
 | VR-Audit | `VR.Audit` |
 | VR-Sets-ZFA | `VR.SetsZFA` |
 | VR-Apparatus | `VR.Apparatus` |
-| Examples | `VRCycle.Examples.E0N` |
+| Examples | `VRClassical.Examples.E0N` |
 
 ### No sorry policy
 
-**No `sorry` or `admit` in any implementation file** (under `VRCycle/Apparatus/`, `VRCycle/Audit/`, etc.). The only permitted `sorry` is in the tutorial skeleton `VRCycle/Examples/E04_ModeBSkeleton.lean`, which is explicitly a template.
+**No `sorry` or `admit` in any implementation file** (under `VR/Apparatus/`, `VRClassical/Audit/`, etc.). The only permitted `sorry` is in the tutorial skeleton `VRClassical/Examples/E04_ModeBSkeleton.lean`, which is explicitly a template.
 
 ---
 
@@ -226,9 +239,9 @@ theorem myOp_isModeA :
 4. Optionally: use `IsModeBOp.lift` to get typed outputs.
 5. Optionally: use `Factorisable` + `operand_determines_operational` for the explicit witness approach.
 
-**See**: `VRCycle/Examples/E04_ModeBSkeleton.lean` for the skeleton template.
+**See**: `VRClassical/Examples/E04_ModeBSkeleton.lean` for the skeleton template.
 
-**See**: `VRCycle/Apparatus/ModeB.lean` (`riesz_extension_isModeBOp`) for a complete instance.
+**See**: `VR/Apparatus/ModeB.lean` (`riesz_extension_isModeBOp`) for a complete instance.
 
 ### New operational audit (VR-Audit pattern)
 
@@ -277,7 +290,7 @@ The VR-Apparatus preprint (DOI 10.5281/zenodo.20381417) catalogues twelve struct
 | S2-B | `[Quot.sound]` tier | IAM lift uses only quotient soundness — keep this when possible |
 | S5-A | Lens applicability depends on natural structure | Don't force `ReferenceOperationality` on types without natural membership |
 
-Full catalog: `VRCycle/Apparatus.lean` module header (inline) and VR-Apparatus preprint Part VI.
+Full catalog: `VR/Apparatus.lean` module header (inline) and VR-Apparatus preprint Part VI.
 
 ---
 
@@ -286,12 +299,13 @@ Full catalog: `VRCycle/Apparatus.lean` module header (inline) and VR-Apparatus p
 After any change:
 
 ```bash
-lake build VRCycle           # Full build (all subsystems)
-lake build VRCycle.Apparatus # Apparatus subsystem only
-lake build VRCycle.Audit     # Audit subsystem only
+lake build                   # Full build (both libraries: VR and VRClassical)
+lake build VR                # the core only — includes the axiom guard
+lake build VR.Apparatus      # Apparatus definitions only
+lake build VRClassical.Audit # Audit subsystem only
 ```
 
-Expected: `Build completed successfully` with no errors. The one expected warning is `VRCycle/Examples/E04_ModeBSkeleton.lean: declaration uses sorry` (intentional skeleton).
+Expected: `Build completed successfully` with no errors. The one expected warning is `VRClassical/Examples/E04_ModeBSkeleton.lean: declaration uses sorry` (intentional skeleton).
 
 For axiom verification, add `#print axioms` at the end of your file and check the output against the four-tier table above.
 
@@ -311,10 +325,10 @@ rev = "v1.7-vr-apparatus-1.0.0"  # pin to a specific tag
 Then in your Lean file:
 
 ```lean
-import VRCycle.Apparatus           -- VR-Apparatus (apparatus framework)
-import VRCycle.Audit.Computable    -- IsComputableReal predicate
-import VRCycle.Audit.HahnBanach    -- Main operational Hahn-Banach theorem
-import VRCycle.SetsZFA             -- OSetZFA, AFA theorem
+import VR.Apparatus           -- VR-Apparatus (apparatus framework)
+import VRClassical.Audit.Computable    -- IsComputableReal predicate
+import VRClassical.Audit.HahnBanach    -- Main operational Hahn-Banach theorem
+import VRClassical.SetsZFA             -- OSetZFA, AFA theorem
 ```
 
-See `VRCycle/Examples/` for usage patterns.
+See `VRClassical/Examples/` for usage patterns.

@@ -18,7 +18,7 @@ Nothing is translated between the two sides --- the disciplines coincide;
 the Lean development makes the coincidence a set of kernel-checked theorems.
 
 The ZTL value kernel is \emph{vendored} into
-\texttt{VRCycle/SetsZTL/Kernel.lean} with a commit pin (the dependency is
+\texttt{VR/ZTL/Kernel.lean} with a commit pin (the dependency is
 one-way: ZTL never depends on VR).  The kernel stands on the \emph{empty}
 axiom list, as it does at home; the whole verdict layer of this chapter is
 likewise \axiomprofile{[]}; after the 2026-07-12 tier pass of
@@ -28,7 +28,7 @@ empty axiom list.
 
 \begin{definition}[The verdict carried with its certificate]
 \label{def:setsztl_eqverdict}
-\lean{VRCycle.SetsZTL.EqVerdict, VRCycle.SetsZTL.EqVerdict.val}
+\lean{VRCycle.ZTL.EqVerdict, VRCycle.ZTL.EqVerdict.val}
 \leanok
 \uses{def:setsop_opset}
 \texttt{EqVerdict x y} has three constructors: \texttt{earnedT} holding a
@@ -42,7 +42,7 @@ and \texttt{unexamined}; \texttt{val} sends them to \textsf{T}, \textsf{F},
 
 \begin{theorem}[The alive rules are witness constructors]
 \label{thm:setsztl_constructors}
-\lean{VRCycle.SetsZTL.EqVerdict.refl_val, VRCycle.SetsZTL.EqVerdict.symm_val, VRCycle.SetsZTL.EqVerdict.composeT_val}
+\lean{VRCycle.ZTL.EqVerdict.refl_val, VRCycle.ZTL.EqVerdict.symm_val, VRCycle.ZTL.EqVerdict.composeT_val}
 \leanok
 \uses{def:setsztl_eqverdict, thm:setsop_equiv}
 \texttt{refl} (the diagonal), \texttt{symm} (the converse, verdict-preserving)
@@ -54,7 +54,7 @@ table luck; each is backed by a certificate constructor.
 
 \begin{theorem}[The vn register is total and classical]
 \label{thm:setsztl_vn}
-\lean{VRCycle.SetsZTL.vnVerdict_ne_Z, VRCycle.SetsZTL.vnVerdict_T_iff}
+\lean{VRCycle.ZTL.vnVerdict_ne_Z, VRCycle.ZTL.vnVerdict_T_iff}
 \leanok
 \uses{def:setsztl_eqverdict}
 On the operational naturals every identity atom decides:
@@ -66,7 +66,7 @@ Both \axiomprofile{[]}.
 
 \begin{theorem}[Groundedness is orthogonal to earnability]
 \label{thm:setsztl_orthogonality}
-\lean{VRCycle.SetsZTL.quine_orthogonality, VRCycle.SetsZTL.quineVsEmpty_val}
+\lean{VRCycle.ZTL.quine_orthogonality, VRCycle.ZTL.quineVsEmpty_val}
 \leanok
 \uses{def:setsztl_eqverdict}
 The Quine atom $\Omega = \{\Omega\}$ earns its identity
@@ -80,7 +80,7 @@ quarantine-as-theorem.  All \axiomprofile{[]}.
 
 \begin{theorem}[The fully-earned register is classical]
 \label{thm:setsztl_classical}
-\lean{VRCycle.SetsZTL.earned_register_classical, VRCycle.SetsZTL.earned_register_ne_Z, VRCycle.SetsZTL.earned_register_T_iff}
+\lean{VRCycle.ZTL.earned_register_classical, VRCycle.ZTL.earned_register_ne_Z, VRCycle.ZTL.earned_register_T_iff}
 \leanok
 \uses{def:setsztl_eqverdict}
 If every atom of a formula carries a decided, truthful verdict, then the
@@ -106,7 +106,7 @@ Branch layer inherits the Continuum's own choice-free tier
 
 \begin{definition}[The stage court]
 \label{def:setsztl_forces}
-\lean{VRCycle.SetsZTL.Forces}
+\lean{VRCycle.ZTL.Forces}
 \leanok
 Node $s$ \textbf{forces} $P$ when every branch through $s$ satisfies $P$.
 \axiomprofile{[]}.
@@ -114,7 +114,7 @@ Node $s$ \textbf{forces} $P$ when every branch through $s$ satisfies $P$.
 
 \begin{theorem}[Heredity is native to the lazy register]
 \label{thm:setsztl_heredity}
-\lean{VRCycle.SetsZTL.through_mono, VRCycle.SetsZTL.forces_mono}
+\lean{VRCycle.ZTL.through_mono, VRCycle.ZTL.forces_mono}
 \leanok
 \uses{def:setsztl_forces}
 A verdict forced at a node is forced at every extension: earned-at-a-stage
@@ -125,7 +125,7 @@ native to the lazy one.
 
 \begin{theorem}[The ladder cells: p→p redeemed, ¬¬ overclaims]
 \label{thm:setsztl_ladder}
-\lean{VRCycle.SetsZTL.identity_forced_at_root, VRCycle.SetsZTL.identity_greedy_abstains, VRCycle.SetsZTL.ladder_overclaims, VRCycle.SetsZTL.atom_not_forced_at_root}
+\lean{VRCycle.ZTL.identity_forced_at_root, VRCycle.ZTL.identity_greedy_abstains, VRCycle.ZTL.ladder_overclaims, VRCycle.ZTL.atom_not_forced_at_root}
 \leanok
 \uses{def:setsztl_forces}
 The identity law, fallen in the greedy court
@@ -139,7 +139,7 @@ cells \axiomprofile{[]}.
 
 \begin{theorem}[Lawless stage = global supervaluation]
 \label{thm:setsztl_super}
-\lean{VRCycle.SetsZTL.stage_eq_super, VRCycle.SetsZTL.pad_through}
+\lean{VRCycle.ZTL.stage_eq_super, VRCycle.ZTL.pad_through}
 \leanok
 \uses{def:setsztl_forces, thm:setsztl_heredity}
 For a property read off the horizon-$H$ segment, forcing at node $s$ is
@@ -152,7 +152,7 @@ and strengthens the stage.
 
 \begin{theorem}[Stream identity at a stage]
 \label{thm:setsztl_streams}
-\lean{VRCycle.SetsZTL.eq_never_forced, VRCycle.SetsZTL.apart_earned, VRCycle.SetsZTL.through_pointwise}
+\lean{VRCycle.ZTL.eq_never_forced, VRCycle.ZTL.apart_earned, VRCycle.ZTL.through_pointwise}
 \leanok
 \uses{def:setsztl_forces}
 Equality of branches is never forced at a finite stage (below any node two
@@ -180,7 +180,7 @@ separator).
 
 \begin{theorem}[Spot-checks: three flagships, moved]
 \label{thm:setsztl_survival}
-\lean{VRCycle.SetsZTL.extVerdict_val, VRCycle.SetsZTL.afaVerdict_val, VRCycle.SetsZTL.vnMemVerdict_T_iff, VRCycle.SetsZTL.memCongrVerdict_val}
+\lean{VRCycle.ZTL.extVerdict_val, VRCycle.ZTL.afaVerdict_val, VRCycle.ZTL.vnMemVerdict_T_iff, VRCycle.ZTL.memCongrVerdict_val}
 \leanok
 \uses{def:setsztl_eqverdict, thm:setsop_ext}
 Strong extensionality moves as a certificate constructor

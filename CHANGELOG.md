@@ -27,6 +27,15 @@ files of a new `VR/Prelude/`, all on `[]`:
   own package, for the two meta instruments); `lake build VR` green; the guard now checks
   **1555 declarations, all on `[]`** (1516 + the Prelude). The package still requires Mathlib — for
   `VRClassical` only. What "VR stands on" is now exactly Lean's kernel and `Init`.
+* **Docs and blueprint brought to the new layout (same night).** `README.md`, `CONTRIBUTING.md` (layout
+  tree, module table, build commands), `README_VR_Topology.md`, `FINAL_AXIOM_AUDIT.md`, `T_FINDINGS_TRANSIT.md`,
+  `ZTL_SURVIVAL.md`: every `VRCycle/…` path and `VRCycle.…` module name resolved to `VR/…` or `VRClassical/…`
+  by existence on disk (declaration names such as `VRCycle.Topology.tychonoff_binary` are Lean namespaces and
+  stay). Blueprint: paths likewise, `VRCycle.SetsZTL.*` anchors → `VRCycle.ZTL.*`, and the three anchors of the
+  Forms chapter that had pointed to ZFSet-era names since step 3 (`isRealisable_osetPair`,
+  `translate_pi_osetPair`, `mixed_AFA_boundary`) now point to `isRealisable_pair`, `translate_pi_pair`,
+  `mixed_AFA_two_registers`, with a layout note in the chapter. **Measured:** all 501 `\lean{…}` anchors of the
+  blueprint resolve against `import VR` + `import VRClassical` (0 unknown identifiers).
 
 ## The perimeter: library `VR` = VR proper on `[]`, `VRClassical` = the classical register — 2026-09-12/13
 

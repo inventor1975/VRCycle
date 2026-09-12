@@ -52,7 +52,7 @@ Fourteen Zenodo records (seven works × Lean + preprint). Two further works (Ope
 | 14 | **VR-Apparatus v1.0.0 (preprint)** | [**10.5281/zenodo.20381417**](https://doi.org/10.5281/zenodo.20381417) | — |
 | 15 | **VR-Topology v1.0.0 (Lean)** | — *(Zenodo pending)* | **`v1.13-vr-topology-v1.0.0`** |
 | 16 | **VR-Transit v1.0.0 (Lean)** | — *(no Zenodo; cited by git tag, curatorial decision)* | **`v1.15-vr-transit-v1.0.0`** |
-| 17 | **VR Part II v1.0.0 (preprint)** | [**10.5281/zenodo.21326038**](https://doi.org/10.5281/zenodo.21326038) | — *(Lean in-repo: `VRCycle.ZTL`; ledger `ZTL_SURVIVAL.md`)* |
+| 17 | **VR Part II v1.0.0 (preprint)** | [**10.5281/zenodo.21326038**](https://doi.org/10.5281/zenodo.21326038) | — *(Lean in-repo: `VR.ZTL`; ledger `ZTL_SURVIVAL.md`)* |
 
 Preprint PDFs are in [`preprints/`](preprints/).
 
@@ -66,7 +66,7 @@ Preprint PDFs are in [`preprints/`](preprints/).
 |-----------|------------------------|
 | **Mathematician** | Companion preprints on [Zenodo](https://zenodo.org/communities/vr-cycle) — each work has a self-contained PDF. Start with *VR. A Formal System*, then follow the numbered works in the table above. |
 | **Philosopher** | *VR. A Formal System* preprint (DOI [10.5281/zenodo.20324391](https://doi.org/10.5281/zenodo.20324391)) for the foundational ontological claims; *VR-Forms* preprint (DOI [10.5281/zenodo.20355939](https://doi.org/10.5281/zenodo.20355939)) for the two-register apparatus. |
-| **Lean developer** | `VRCycle/Examples/` (four annotated tutorial files) + [`CONTRIBUTING.md`](CONTRIBUTING.md) for code conventions and apparatus patterns. |
+| **Lean developer** | `VRClassical/Examples/` (four annotated tutorial files) + [`CONTRIBUTING.md`](CONTRIBUTING.md) for code conventions and apparatus patterns. |
 
 ### Build the project
 
@@ -78,11 +78,11 @@ cd VRCycle
 lake build
 ```
 
-First build downloads the mathlib4 cache (~1 GB). Expected output: `Build completed successfully (3361 jobs).` with one expected warning (E04 skeleton uses `sorry`).
+First build downloads the mathlib4 cache (~1 GB; needed by `VRClassical` only — `lake build VR` builds the core without touching Mathlib). Expected output: `Build completed successfully (8397 jobs).` The core's axiom guard prints `axiom guard VR: 1555 declarations checked, all on []`.
 
 ### Tutorial examples (Lean developers)
 
-Four annotated examples in `VRCycle/Examples/`:
+Four annotated examples in `VRClassical/Examples/`:
 
 | File | What it demonstrates |
 |------|---------------------|
@@ -94,7 +94,7 @@ Four annotated examples in `VRCycle/Examples/`:
 Build a single example:
 
 ```bash
-lake build VRCycle.Examples.E01_ComputableReals
+lake build VRClassical.Examples.E01_ComputableReals
 ```
 
 ### Use VRCycle as a dependency
@@ -111,10 +111,10 @@ rev = "v1.7-vr-apparatus-1.0.0"
 Then import the subsystem you need:
 
 ```lean
-import VRCycle.Apparatus           -- apparatus framework (all of Apparatus/)
-import VRCycle.Audit.Computable    -- IsComputableReal predicate
-import VRCycle.Audit.HahnBanach    -- operational Hahn-Banach theorem
-import VRCycle.SetsZFA             -- OSetZFA, AFA as theorem
+import VR.Apparatus           -- apparatus framework (all of Apparatus/)
+import VRClassical.Audit.Computable    -- IsComputableReal predicate
+import VRClassical.Audit.HahnBanach    -- operational Hahn-Banach theorem
+import VRClassical.SetsZFA             -- OSetZFA, AFA as theorem
 ```
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for code conventions, axiom profile discipline, and how to add new apparatus instances.
@@ -123,7 +123,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for code conventions, axiom profile dis
 
 ## What is formalised
 
-### VR. A Formal System (`VRCycle/VR.lean`)
+### VR. A Formal System (`VR/Arithmetic.lean`)
 
 A complete Lean 4 formalisation of **VR. A Formal System**, Parts I–II. All 51 theorems and definitions depend on no axioms (see [Axiom audit](#axiom-audit) below).
 
@@ -175,7 +175,13 @@ A complete Lean 4 formalisation of **VR. A Formal System**, Parts I–II. All 51
 
 ---
 
-### VR-Numbers (`VRCycle/Numbers/`)
+### VR-Numbers (`VR/Numbers/`)
+
+> **Layout since 2026-09-12.** The witnessed layer — `IntExpr`/`intEq` and its operations, the ring and order laws on
+> pairs (`IntegersOp`, `IntegersOrd`), `QExpr` (`RationalsOp`), `RExpr` (`RealsOp`) — lives in `VR/Numbers/` on `[]`.
+> The quotient `ℤ_VR := Quotient intEqSetoid` with Theorem II.6 (≅ `Int`) is `VRClassical/Numbers/IntegersBridge.lean`,
+> and the ℚ_VR/ℝ_VR/ℂ_VR of the original work (built over Mathlib) are `VRClassical/Numbers/{Rationals,Reals,Complex}.lean`.
+> The subsections below describe that original work; read `Numbers/Rationals.lean` etc. as `VRClassical/Numbers/…`.
 
 A complete Lean 4 formalisation of **VR-Numbers**, Parts II–V. Operational superstructures ℤ, ℚ, ℝ, ℂ over VR natural numbers, each as a quotient type (except ℂ_VR) with a proved isomorphism to the corresponding Lean/Mathlib type.
 
@@ -223,7 +229,7 @@ A complete Lean 4 formalisation of **VR-Numbers**, Parts II–V. Operational sup
 
 ---
 
-### VR-Sets (`VRCycle/Sets/`)
+### VR-Sets (`VRClassical/Sets/`)
 
 A complete Lean 4 formalisation of **VR-Sets** (DOI 10.5281/zenodo.20303536), Parts II–V,
 built on mathlib's `ZFSet = Quotient PSet.setoid`. The formalisation covers
@@ -296,7 +302,7 @@ Open questions formalised as `def : Prop` — a third Lean status distinct from 
 
 ---
 
-### VR-Forms (`VRCycle/Forms/`)
+### VR-Forms (`VR/Forms/`)
 
 A partial Lean 4 formalisation of **VR-Forms** (DOI 10.5281/zenodo.20313735), Parts II, IV–V, and VII.
 VR-Forms is proof-theoretic: it introduces a two-register system (formal register L₁ / operational register L₀),
@@ -379,7 +385,7 @@ The boundary is documented at every relevant Lean object with explicit comments.
 
 ---
 
-### VR-Audit: Hahn-Banach for Operational Hilbert Spaces (`VRCycle/Audit/`)
+### VR-Audit: Hahn-Banach for Operational Hilbert Spaces (`VRClassical/Audit/`)
 
 **Lean: [10.5281/zenodo.20363739](https://doi.org/10.5281/zenodo.20363739) — git tag `v1.4-vr-audit-hb-hilbert`**  
 **Preprint v1.0.0: [10.5281/zenodo.20364111](https://doi.org/10.5281/zenodo.20364111)**
@@ -433,7 +439,7 @@ operational located subspace, the Riesz representation vector is operationally
 accessible. Classical Hahn-Banach follows; the transit via Riesz avoids the
 Specker obstruction.
 
-#### File structure (`VRCycle/Audit/`)
+#### File structure (`VRClassical/Audit/`)
 
 | Stage | File | Public objects | Description |
 |-------|------|---------------|-------------|
@@ -496,7 +502,7 @@ with predecessor VR Lean cycles.
 
 ---
 
-### VR-Sets-ZFA (`VRCycle/SetsZFA/`)
+### VR-Sets-ZFA (`VRClassical/SetsZFA/`)
 
 **Lean: [10.5281/zenodo.20368268](https://doi.org/10.5281/zenodo.20368268) — git tag `v1.5-vr-sets-zfa`**  
 **Preprint v1.0.0: [10.5281/zenodo.20369346](https://doi.org/10.5281/zenodo.20369346)**
@@ -547,7 +553,7 @@ For any relation `E : V → V → Prop` (a graph), there exists a unique decorat
 `f : V → OSetZFA` assigning to each vertex the set of images of its successors.
 This is Aczel's AFA for the ZFA universe `OSetZFA`, proved — not postulated.
 
-#### File structure (`VRCycle/SetsZFA/`)
+#### File structure (`VRClassical/SetsZFA/`)
 
 | Stage | File | Public objects | Lines | Description |
 |-------|------|---------------|-------|-------------|
@@ -642,7 +648,7 @@ with predecessor VR Lean cycles.
 
 ---
 
-### VR-Apparatus (`VRCycle/Apparatus/`)
+### VR-Apparatus (`VR/Apparatus/`)
 
 **Lean: [10.5281/zenodo.20380344](https://doi.org/10.5281/zenodo.20380344) — git tag `v1.7-vr-apparatus-1.0.0`**  
 **Preprint v1.0.0: [10.5281/zenodo.20381417](https://doi.org/10.5281/zenodo.20381417)**
@@ -661,7 +667,7 @@ Two apparatus modes, two transit modes, five architectural tiers, twelve methodo
 - **Mode A** (`IsModeAOp`): operations preserving the operational predicate lift to the operational subtype by `rfl`. Apparatus-structure-independent.
 - **Mode B** (`IsModeBOp`): classical operations with `Factorisable` witness yield operational results. Captures operand-not-operation principle. Riesz extension (VR-Audit Hahn-Banach) is the canonical instance.
 
-#### File structure (`VRCycle/Apparatus/`)
+#### File structure (`VR/Apparatus/`)
 
 | Stage | File | Public objects | Description |
 |-------|------|---------------|-------------|
@@ -712,7 +718,7 @@ with predecessor VR Lean cycles.
 
 ---
 
-### Operational Algebra (`VRCycle/Algebra/`)
+### Operational Algebra (`VRClassical/Algebra/`)
 
 **Git tags**: `v1.8-vr-operational-algebra-v0.1.0` (additive groups), `v1.9-vr-operational-algebra-v0.2.0` (rings), `v1.10-vr-operational-algebra-v0.3.0` (fields + multiplicative groups), `v1.11-vr-operational-algebra-v0.4.0` (modules + zsmul + A15 investigation), `v1.12-vr-operational-algebra-v1.0.0` (stable release)
 **Status**: v1.0.0 — stable release. Pending Zenodo paired publication (companion preprint in preparation).
@@ -760,7 +766,7 @@ v0.3.0 introduced two objects with `Classical.choice` in their elaborated proof 
 v0.4.0 Stage 2 (Finding A16) systematically investigated whether isolation could remove them.
 **Conclusion: both sources are structurally embedded and not removable**:
 
-- `inv_isModeAOp_field`: root is the apparatus import chain — `VRCycle.Apparatus.ModeA`
+- `inv_isModeAOp_field`: root is the apparatus import chain — `VR.Apparatus.ModeA`
   transitively imports `Mathlib.Data.Real.Basic`, injecting instances that affect `Inv K`
   elaboration in `IsModeAOp` types. `IsModeAOp` cannot be used without the apparatus import;
   file separation is impossible. Confirmed: minimal-import test file still shows `Classical.choice`.
@@ -862,7 +868,7 @@ with predecessor VR Lean cycles.
 
 ---
 
-### VR-Topology (`VRCycle/Topology/`)
+### VR-Topology (`VR/Topology/`)
 
 **Lean: git tag `v1.13-vr-topology-v1.0.0` — Zenodo submission pending**
 
@@ -906,7 +912,7 @@ Binary Tychonoff for formal topology (Vickers 2006 Theorem 19, constructive vers
 
 The decidability hypotheses (T16) are explicit: Lean 4's `List`-based compactness machinery — replacing `Finset`, which inherits `Classical.choice` via `Multiset` (T13) — requires decidable equality, order, and compactness-set membership as explicit typeclass parameters.
 
-#### File structure (`VRCycle/Topology/`)
+#### File structure (`VR/Topology/`)
 
 | Stage | File | Public objects | Description |
 |-------|------|---------------|-------------|
@@ -951,13 +957,13 @@ Developed using **Claude Opus 4.7** in both architectural and implementation rol
 
 ---
 
-### Brouwer fixed-point theorem (`VRCycle/Brouwer/`) — *mathlib-bound, not part of the VR Cycle*
+### Brouwer fixed-point theorem (`VRClassical/Brouwer/`) — *mathlib-bound, not part of the VR Cycle*
 
 **Lean: git tag `v1.16-vr-brouwer-v1.0.0`**
 
 A Lean 4 formalisation of **Brouwer's fixed-point theorem via Sperner's lemma** (Kuhn–Freudenthal grid), developed as a candidate contribution to **mathlib** — the VR methodology is shared, but the target is mathlib, not the VR Cycle. It proves Sperner's lemma in every dimension, Brouwer for the standard simplex `stdSimplex ℝ (Fin (n+1))` (all `n`), and for any nonempty compact convex set in `EuclideanSpace ℝ (Fin n)`. `sorry`-free, lint-clean.
 
-Distinctive: the constructive/classical boundary is a **machine-checked differential witness** (`VRCycle/Meta/DependsOn.lean`) — the Sperner combinatorics and the approximate fixed point are certified free of the compactness extraction `IsCompact.tendsto_subseq`, which enters only at the final limit. Exposition in blueprint [Chapter 11](https://inventor1975.github.io/VRCycle/).
+Distinctive: the constructive/classical boundary is a **machine-checked differential witness** (`VR/Meta/DependsOn.lean`) — the Sperner combinatorics and the approximate fixed point are certified free of the compactness extraction `IsCompact.tendsto_subseq`, which enters only at the final limit. Exposition in blueprint [Chapter 11](https://inventor1975.github.io/VRCycle/).
 
 *Status: proposed to mathlib (the 1000-theorems entry Q1144897 is currently a Lean 3 external formalisation; this would be the first in Lean 4 / mathlib). Outcome pending community discussion.*
 
@@ -967,7 +973,7 @@ Developed using **Claude Opus 4.8** in both architectural and implementation rol
 
 ---
 
-### Operational continuum & number spectrum (`VRCycle/Continuum/`) — *exploratory, in repository*
+### Operational continuum & number spectrum (`VR/Continuum/`) — *exploratory, in repository*
 
 A hand-built operational continuum (Path 1, after Brouwer), and an **operational number spectrum** ℤ → ℚ → ℂ → ℝ → Ω, every node constructed from `ℤ` and kept **below the `Classical.choice` floor** (never mathlib `ℚ`/`ℝ`, which are entirely Tier-3). Exploratory and **not a published work** (no DOI).
 
@@ -1034,7 +1040,7 @@ Every theorem was checked with Lean's `#print axioms`. The formalisation has a t
 
 ### Tier 1 — Axiom-free (VR. A Formal System, Parts I–II)
 
-All 51 theorems in `VRCycle/VR.lean` return:
+All 51 theorems in `VR/Arithmetic.lean` return:
 
 ```
 'VR.X' does not depend on any axioms
@@ -1407,7 +1413,7 @@ lake build
 
 The first build downloads mathlib cache (~1 GB). Subsequent builds are fast.
 
-**Expected output:** `Build completed successfully (3361 jobs).` Zero warnings. Zero sorry.
+**Expected output:** `Build completed successfully (8397 jobs).` Zero sorry (2026-09-13 layout).
 
 ## Toolchain
 

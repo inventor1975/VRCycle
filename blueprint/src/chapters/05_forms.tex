@@ -19,6 +19,21 @@ of description, not separate operational levels.  All descriptions are
 operational acts; the distinction is whether the described referent has an
 operational correlate.
 
+\textbf{Layout note (2026-09-12, integrity programme).} The formalisation now
+lives in the core library \texttt{VR} over the operational universe
+\texttt{OpSet} (Chapter~\ref{chap:setsop}), on the empty axiom list:
+realisability of $\ulcorner\emptyset\urcorner$, $\ulcorner\omega\urcorner$,
+$\ulcorner\mathrm{pair}\urcorner$, $\ulcorner\mathrm{AFA}\urcorner$ is witnessed
+by \texttt{OpSet.empty}, \texttt{OpSet.omega}, \texttt{OpSet.pair},
+\texttt{OpSet.afa} (\texttt{VR/Forms/Realisability.lean},
+\texttt{Transit.lean}, \texttt{Substrate.lean}).  The ZFC reading over
+Mathlib's \texttt{ZFSet} described below --- \texttt{osetPair}, the
+\texttt{AFA\_Statement} refutation, the conjectures --- is the
+\emph{bridge} \texttt{VRClassical/Forms/Bridge.lean}
+(\texttt{isRealisableZFC}, \texttt{afa\_two\_registers}).  Where this
+chapter names a witness by its ZFSet-era name, the Lean anchor points to the
+current object.
+
 \textbf{Architectural note.} The Lean formalisation is a \emph{shallow
 embedding} over mathlib.  Formal terms are Lean strings carrying a register
 tag; $\pi$ is a total Lean function; realisability is a Lean predicate.
@@ -94,7 +109,7 @@ preserving the mathematical content of the witness.
 \begin{theorem}[Base realisability lemmas]
 \label{thm:isRealisable_base}
 \lean{VR.Forms.isRealisable_empty, VR.Forms.isRealisable_omega,
-      VR.Forms.isRealisable_osetPair}
+      VR.Forms.isRealisable_pair}
 \leanok
 \uses{def:isRealisable, thm:Lemma_II_2, thm:T_III_6_inf, thm:T_III_3}
 $\texttt{isRealisable\_empty}$: $\texttt{isRealisable}\,\ulcorner$\texttt{"∅"}$\urcorner$
@@ -144,7 +159,7 @@ Contrast with \texttt{isRealisable} (\emph{existential} layer).
 \begin{theorem}[π-translation lemmas]
 \label{thm:translate_pi_base}
 \lean{VR.Forms.translate_pi_empty, VR.Forms.translate_pi_omega,
-      VR.Forms.translate_pi_osetPair}
+      VR.Forms.translate_pi_pair}
 \leanok
 \uses{def:translate_pi, def:osetEmpty, def:set_ops}
 Direct proofs for $\ulcorner$\texttt{"∅"}$\urcorner$,
@@ -300,8 +315,8 @@ realisability agree on the same object.
 \end{theorem}
 
 \begin{theorem}[Central junction: ZFA boundary in both registers]
-\label{thm:mixed_AFA_boundary}
-\lean{VR.Forms.mixed_AFA_boundary}
+\label{thm:mixed_AFA_two_registers}
+\lean{VR.Forms.mixed_AFA_two_registers}
 \leanok
 \uses{thm:bridge_AFA, thm:Lemma_II_1}
 $(\forall x : \mathrm{OSet},\; x \notin x) \land
@@ -478,7 +493,7 @@ VR-Sets inherit logical axioms from their mathlib imports.
 \begin{remark}[Observation~2 --- Realisability inherits Classical-free closure of VR-Sets]
 \label{rem:obs2_classical}
 \lean{VR.Forms.isRealisable_empty, VR.Forms.isRealisable_omega,
-      VR.Forms.isRealisable_osetPair}
+      VR.Forms.isRealisable_pair}
 \leanok
 \uses{thm:isRealisable_base}
 The three base realisable cases correspond to the Classical-free closure
@@ -509,9 +524,9 @@ propagate across cycle boundaries without explicit annotation.
 
 \begin{remark}[Observation~9 --- ZFA boundary in both registers simultaneously]
 \label{rem:obs9_zfa}
-\lean{VR.Forms.mixed_AFA_boundary}
+\lean{VR.Forms.mixed_AFA_two_registers}
 \leanok
-\uses{thm:mixed_AFA_boundary}
+\uses{thm:mixed_AFA_two_registers}
 \texttt{mixed\_AFA\_boundary} formalises the parallel manifestation of
 well-foundedness across both registers in a single Lean \texttt{Prop}.
 What appeared in VR-Sets Part~X as Boundary~B.5 (``ZFA total absence'')
@@ -524,7 +539,7 @@ VR-Forms provides for talking about both registers simultaneously.
 
 \begin{remark}[Observation~10 --- Zero \texttt{Classical.choice} across the entire cycle]
 \label{rem:obs10_zero_classical}
-\lean{VR.Forms.bridge_AFA, VR.Forms.mixed_AFA_boundary}
+\lean{VR.Forms.bridge_AFA, VR.Forms.mixed_AFA_two_registers}
 \leanok
 The cycle plan predicted \texttt{[propext, Classical.choice, Quot.sound]}
 or stricter.  The actual result: 3 axiom-free objects (Stage~1), 15+ at

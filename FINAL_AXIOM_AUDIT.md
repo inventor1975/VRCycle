@@ -202,8 +202,8 @@ lake update
 lake build  # ~3296 jobs, must complete clean
 
 # Then for each object listed above:
-echo "import VRCycle.Topology
-#print axioms VRCycle.Topology.<OBJECT_NAME>" | lake env lean /dev/stdin
+echo "import VR.Topology
+#print axioms VR.Topology.<OBJECT_NAME>" | lake env lean /dev/stdin
 ```
 
 Or use the bundled audit script (run all at once):

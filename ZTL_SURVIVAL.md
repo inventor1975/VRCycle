@@ -1,7 +1,7 @@
 # ZTL_SURVIVAL.md — VR Part II, step (в): the survival ledger
 
 **Generated 2026-07-12** under criterion **C2** (curator's decision,
-2026-07-12). Companion Lean spot-checks: `VRCycle/ZTL/Survival.lean`
+2026-07-12). Companion Lean spot-checks: `VR/ZTL/Survival.lean`
 (all on the empty axiom list). ZTL — Zero-Trust Logic: DOI
 [10.5281/zenodo.21318982](https://doi.org/10.5281/zenodo.21318982).
 
@@ -85,7 +85,7 @@ No operational theorem died in the move; the fallen laws of ZTL were
 never load-bearing in the operational corpus. **Verified, not
 postulated.**
 
-## Spot-checks (Lean, `VRCycle/ZTL/Survival.lean`)
+## Spot-checks (Lean, `VR/ZTL/Survival.lean`)
 
 Three flagships exhibited in the moved form — as certificate
 constructors over ZTL atoms, all `[]`:
