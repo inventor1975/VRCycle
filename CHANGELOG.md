@@ -37,6 +37,14 @@ files of a new `VR/Prelude/`, all on `[]`:
   `mixed_AFA_two_registers`, with a layout note in the chapter. **Measured:** all 501 `\lean{…}` anchors of the
   blueprint resolve against `import VR` + `import VRClassical` (0 unknown identifiers).
 
+* **Blueprint chapter 5 (VR-Forms) rewritten for the `OpSet` era (09-13, curator: "переписывай").** The
+  chapter now describes the formalisation as it is: the operational register is `OpSet`, realisability is
+  the classifier `named` plus `isRealisableN` over `Mem`/`Equiv`, four base witnesses (`∅`, `ω`, `pair`, and
+  `AFA` via `OpSet.decorate`), transit class by class, the substrate as the identity bisimulation (with the
+  record of why `Acc (· ∈ ·)` was refuted as a substrate), and the ZFC reading `isRealisableZFC` as a named
+  bridge in `VRClassical` — with the junction theorem read as a boundary of groundedness, not of
+  operationality. All labels used by other chapters kept; anchors now cover 509 Lean names, all resolving;
+  `leanblueprint web` builds with 0 errors.
 ## The perimeter: library `VR` = VR proper on `[]`, `VRClassical` = the classical register — 2026-09-12/13
 
 The curator's question after the integrity programme: "can I say VR in Lean is without axioms?" The

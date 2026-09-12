@@ -1,54 +1,60 @@
 \chapter{VR-Forms}
 \label{chap:forms}
-\uses{chap:sets, chap:setszfa}
+\uses{chap:setsop, chap:sets, chap:setszfa}
 
 \section{Position}
 \label{sec:forms_position}
 
-VR-Forms is the two-register apparatus over VR-Sets.  The \emph{operational
-register} (L\textsubscript{0}) describes operational sets in the sense of
-Chapter~\ref{chap:sets}: objects built from $\emptyset$ by the closure
-principle.  The \emph{formal register} (L\textsubscript{1}) accommodates
-syntactic descriptions without operational obligation---classically
-uncountable objects, paradoxical classes, and any correctly built term
-regardless of operationality or consistency.  The two registers are connected
-by the translation $\pi$ and by Theorem~III.1 (conservativity).
+VR-Forms is the two-register apparatus over the operational sets.  The
+\emph{operational register} (L\textsubscript{0}) describes operational sets
+in the sense of Chapter~\ref{chap:setsop}: revealing functionalities,
+identical when bisimilar by witness.  The \emph{formal register}
+(L\textsubscript{1}) accommodates syntactic descriptions without operational
+obligation---classically uncountable objects, paradoxical classes, and any
+correctly built term regardless of operationality or consistency.  The two
+registers are connected by the translation $\pi$ and by Theorem~III.1
+(conservativity).
 
 \textbf{Clarification on register language.} The registers describe modes
 of description, not separate operational levels.  All descriptions are
 operational acts; the distinction is whether the described referent has an
 operational correlate.
 
-\textbf{Layout note (2026-09-12, integrity programme).} The formalisation now
-lives in the core library \texttt{VR} over the operational universe
-\texttt{OpSet} (Chapter~\ref{chap:setsop}), on the empty axiom list:
-realisability of $\ulcorner\emptyset\urcorner$, $\ulcorner\omega\urcorner$,
-$\ulcorner\mathrm{pair}\urcorner$, $\ulcorner\mathrm{AFA}\urcorner$ is witnessed
-by \texttt{OpSet.empty}, \texttt{OpSet.omega}, \texttt{OpSet.pair},
-\texttt{OpSet.afa} (\texttt{VR/Forms/Realisability.lean},
-\texttt{Transit.lean}, \texttt{Substrate.lean}).  The ZFC reading over
-Mathlib's \texttt{ZFSet} described below --- \texttt{osetPair}, the
-\texttt{AFA\_Statement} refutation, the conjectures --- is the
-\emph{bridge} \texttt{VRClassical/Forms/Bridge.lean}
-(\texttt{isRealisableZFC}, \texttt{afa\_two\_registers}).  Where this
-chapter names a witness by its ZFSet-era name, the Lean anchor points to the
-current object.
+\textbf{Two readings of the operational register (2026-09-12, integrity
+programme, step~3).}  Until 2026-09-12 the operational register of the Lean
+formalisation was Mathlib's well-founded ZFC universe \texttt{OSet = ZFSet}
+(Chapter~\ref{chap:sets}), and every object above the language layer
+carried \texttt{[propext, Quot.sound]}.  The formalisation now lives in the
+core library \texttt{VR} over the operational universe \texttt{OpSet}
+(Chapter~\ref{chap:setsop}) --- \texttt{VR/Forms/Realisability.lean},
+\texttt{Transit.lean}, \texttt{Examples.lean}, \texttt{Substrate.lean} ---
+and every declaration is on the empty axiom list, enforced by the core's
+build-time guard.  The ZFC reading is kept, named as such, in
+\texttt{VRClassical/Forms/Bridge.lean}: the predicate
+\texttt{isRealisableZFC} (\S\,\ref{sec:forms_bridge}) is realisability with
+the operational register taken to be \texttt{ZFSet}.  The two readings
+disagree on exactly one named term, $\ulcorner\mathrm{AFA}\urcorner$, and
+their disagreement is itself a theorem (\S\,\ref{sec:forms_examples}): the
+ZFA boundary of VR-Sets is a boundary of \emph{groundedness} (a mode), not
+of operationality.  Axioms that appear in the bridge are Mathlib's
+(\texttt{ZFSet}/\texttt{PSet}) --- the bridge's, not VR's.
 
 \textbf{Architectural note.} The Lean formalisation is a \emph{shallow
-embedding} over mathlib.  Formal terms are Lean strings carrying a register
-tag; $\pi$ is a total Lean function; realisability is a Lean predicate.
-What was the apparatus's one explicit structural boundary --- Theorem~III.1
-(conservativity), proved in the preprint but previously not formalised --- has
-\textbf{now been formalised} (2026-06) by a separate deep embedding
-(\texttt{Forms/Conservativity.lean}, \texttt{Forms/ConservativityFOL.lean}):
-\texttt{Formula} over de Bruijn terms, a classical Hilbert \texttt{Provable}, the
-translation $\pi$, and the conservativity theorem by induction on derivations, with a
-concrete VR instance.  The shallow embedding above is unchanged; the deep embedding sits
-beside it.  See \S\,\ref{subsec:conservativity}.
+embedding}: formal terms are Lean strings carrying a register tag; $\pi$ is a
+total Lean function; realisability is a Lean predicate.  Theorem~III.1
+(conservativity), proved in the preprint, is formalised beside the shallow
+embedding by a separate deep embedding
+(\texttt{Forms/Conservativity.lean}, \texttt{ConservativityFOL.lean},
+\texttt{ConservativityComprehension.lean}): \texttt{Formula} over de Bruijn
+terms, a classical Hilbert \texttt{Provable}, the translation $\pi$, and the
+conservativity theorem by induction on derivations, with a concrete VR
+instance.  See \S\,\ref{subsec:conservativity}.
 
-\noindent\axiomprofile{[]} for 3 Stage~1 objects; \axiomprofile{[propext,
-Quot.sound]} for all remaining; zero \texttt{Classical.choice} in the
-entire cycle.
+\noindent\axiomprofile{[]} for every object of the core files (language,
+realisability, transit, conservativity in all three storeys, examples,
+substrate); the ZFC bridge inherits Mathlib's
+\axiomprofile{[propext, Quot.sound]} and, through \texttt{PSet}, no
+\texttt{Classical.choice}.
 
 %──────────────────────────────────────────────────────────────────────
 \section{Formal language (Part II)}
@@ -61,7 +67,6 @@ entire cycle.
 \texttt{Register} is an inductive type with two constructors:
 \texttt{.operational} (the operational register~L\textsubscript{0}) and
 \texttt{.formal} (the formal register~L\textsubscript{1}).
-Derives \texttt{DecidableEq} and \texttt{Repr}.
 \axiomprofile{[]} --- no imports; pure Lean~4 prelude.
 \end{definition}
 
@@ -76,6 +81,9 @@ $\ulcorner\tau\urcorner$ always produces
 \texttt{FormalTerm.mk\,$\tau$\,.formal}.  The Principle of Forms (§\,II.4):
 any syntactically correct string specifies a formal term --- no
 operationality, consistency, or constructivity is required.
+Injectivity of the constructor is proved by hand
+(\texttt{FormalTerm.mk\_eq\_iff}); the auto-generated \texttt{injEq} is
+not produced, since it would carry \texttt{propext}.
 \axiomprofile{[]} --- Language.lean imports nothing.
 \end{definition}
 
@@ -85,57 +93,76 @@ operationality, consistency, or constructivity is required.
 
 \begin{definition}[Operational realisability predicate]
 \label{def:isRealisable}
-\lean{VR.Forms.isRealisable}
+\lean{VR.Forms.isRealisable, VR.Forms.isRealisableN, VR.Forms.named}
 \leanok
-\uses{def:FormalTerm, def:OSet}
-$\texttt{isRealisable} : \texttt{FormalTerm} \to \mathrm{Prop}$ is a
-total \texttt{def} function defined by \texttt{match} on the description
-string:
+\uses{def:FormalTerm, def:setsop_opset}
+Realisability is defined in two steps.  A closed-world classifier
+$\texttt{named} : \texttt{FormalTerm} \to \texttt{Named}$ sends a term, by
+decidable equality of its description, to one of
+$\{\texttt{empty}, \texttt{omega}, \texttt{pair}, \texttt{afa},
+\texttt{other}\}$; then
+$\texttt{isRealisableN} : \texttt{Named} \to \mathrm{Prop}$ gives each class
+its existential proposition over \texttt{OpSet}:
 
 \begin{tabular}{ll}
-$\ulcorner$\texttt{"∅"}$\urcorner$ & $\exists\, s : \mathrm{OSet},\; \forall x,\; x \notin s$ \\
-$\ulcorner$\texttt{"omega\_OSet"}$\urcorner$ & $\exists\, s : \mathrm{OSet},\; \emptyset \in s \land \forall n \in s,\; \texttt{insert}\,n\,n \in s$ \\
-$\ulcorner$\texttt{"osetPair"}$\urcorner$ & $\forall a\,b : \mathrm{OSet},\; \exists\, s : \mathrm{OSet},\; \forall x,\; x \in s \leftrightarrow x=a \lor x=b$ \\
-$\ulcorner$\texttt{"Conjecture\_IV\_1\_Statement"}$\urcorner$ & \texttt{VR.Sets.Conjecture\_IV\_1\_Statement} \\
-$\ulcorner$\texttt{"Conjecture\_IV\_2\_Statement"}$\urcorner$ & \texttt{VR.Sets.Conjecture\_IV\_2\_Statement} \\
-$\ulcorner$\texttt{"AFA\_Statement"}$\urcorner$ & \texttt{VR.Sets.AFA\_Statement} \\
+$\ulcorner$\texttt{"∅"}$\urcorner$ & $\exists\, s : \mathrm{OpSet},\; \forall x,\; \lnot\, x \mathrel{\mathtt{Mem}} s$ \\
+$\ulcorner$\texttt{"omega"}$\urcorner$ & $\exists\, s : \mathrm{OpSet},\; \mathtt{vn}\,0 \mathrel{\mathtt{Mem}} s \land \forall n,\; n \mathrel{\mathtt{Mem}} s \to \mathtt{succ}\,n \mathrel{\mathtt{Mem}} s$ \\
+$\ulcorner$\texttt{"pair"}$\urcorner$ & $\forall a\,b : \mathrm{OpSet},\; \exists\, s,\; \forall x,\; x \mathrel{\mathtt{Mem}} s \leftrightarrow x \mathrel{\mathtt{Equiv}} a \lor x \mathrel{\mathtt{Equiv}} b$ \\
+$\ulcorner$\texttt{"AFA"}$\urcorner$ & $\forall\, (V : \mathrm{Type})\,(E : V\to V\to\mathrm{Prop}),\; \exists\, d : V \to \mathrm{OpSet},\; \mathtt{IsDecoration}\,E\,d$ \\
 any other & \texttt{False}
 \end{tabular}
 
-Each realisable case maps to an existential Lean Prop (not \texttt{True}),
-preserving the mathematical content of the witness.
+$\texttt{isRealisable}\,t := \texttt{isRealisableN}\,(\texttt{named}\,t)$.
+Membership is read as \texttt{Mem} and identity as \texttt{Equiv}: the pair
+$\{a,b\}$ has members \emph{identical to} $a$ or $b$ by witness, not by
+extension.  Each realisable case is an existential Lean Prop (not
+\texttt{True}), preserving the mathematical content of the witness.  The
+two-step form replaces the earlier \texttt{match} on string literals: a
+\texttt{match} with overlapping literal patterns generates a splitter that
+carries \texttt{propext}; the \texttt{if}-chain of \texttt{named} does not.
+\axiomprofile{[]}.
 \end{definition}
 
 \begin{theorem}[Base realisability lemmas]
 \label{thm:isRealisable_base}
 \lean{VR.Forms.isRealisable_empty, VR.Forms.isRealisable_omega,
-      VR.Forms.isRealisable_pair}
+      VR.Forms.isRealisable_pair, VR.Forms.isRealisable_AFA}
 \leanok
-\uses{def:isRealisable, thm:Lemma_II_2, thm:T_III_6_inf, thm:T_III_3}
-$\texttt{isRealisable\_empty}$: $\texttt{isRealisable}\,\ulcorner$\texttt{"∅"}$\urcorner$
-via witness \texttt{osetEmpty}.
-$\texttt{isRealisable\_omega}$: via witness \texttt{omega\_OSet}.
-$\texttt{isRealisable\_osetPair}$: via \texttt{osetPair}.
-All three at \axiomprofile{[propext, Quot.sound]}, zero \texttt{Classical.choice}.
+\uses{def:isRealisable, thm:setsop_basic, thm:setsop_omega, thm:setsop_afa}
+$\texttt{isRealisable\_empty}$: witness \texttt{OpSet.empty}, which reveals
+nothing (\texttt{not\_mem\_empty}).
+$\texttt{isRealisable\_omega}$: witness \texttt{OpSet.omega}
+(\texttt{empty\_mem\_omega}, \texttt{omega\_succ\_closed}).
+$\texttt{isRealisable\_pair}$: witness \texttt{OpSet.pair a b}
+(\texttt{mem\_pair}, up to \texttt{Equiv}).
+$\texttt{isRealisable\_AFA}$: witness \texttt{OpSet.decorate E}
+(\texttt{decorate\_isDecoration}) --- every graph has a decoration in the
+operational universe.  All four on \axiomprofile{[]}.
 \end{theorem}
 
 \begin{remark}[Three-category structure of formal terms]
 \label{rem:three_category}
-\lean{VR.Forms.isRealisable}
+\lean{VR.Forms.isRealisable, VR.Forms.isRealisableZFC}
 \leanok
 \uses{def:isRealisable, def:Conjecture_IV_1, def:Conjecture_IV_2,
       def:AFA_Statement}
-The \texttt{isRealisable} match encodes a triadic classification:
-(a)~\emph{Provably realisable} ---
-$\ulcorner$\texttt{"∅"}$\urcorner$, $\ulcorner$\texttt{"omega\_OSet"}$\urcorner$,
-$\ulcorner$\texttt{"osetPair"}$\urcorner$, with concrete VR-Sets witnesses;
-(b)~\emph{Open realisability} ---
-$\ulcorner$\texttt{"Conjecture\_IV\_X"}$\urcorner$: realisability is
-mathematically open, mirroring VR-Sets Conjectures~IV.1/IV.2;
-(c)~\emph{Provably non-realisable} --- split into trivially-False (catch-all,
-no VR-Sets theorem needed) and VR-Sets-refutable
+Across the two readings the formal terms fall into three categories:
+(a)~\emph{Provably realisable} in the operational universe ---
+$\ulcorner$\texttt{"∅"}$\urcorner$, $\ulcorner$\texttt{"omega"}$\urcorner$,
+$\ulcorner$\texttt{"pair"}$\urcorner$, $\ulcorner$\texttt{"AFA"}$\urcorner$,
+with concrete \texttt{OpSet} witnesses;
+(b)~\emph{Open realisability} in the ZFC reading ---
+$\ulcorner$\texttt{"Conjecture\_IV\_X\_Statement"}$\urcorner$: realisability
+is mathematically open, mirroring VR-Sets Conjectures~IV.1/IV.2 (only
+\texttt{isRealisableZFC} names these terms; in the operational reading they
+fall to the catch-all);
+(c)~\emph{Provably non-realisable} --- split into trivially-False (the
+catch-all: Russell, Vitali, classical~$\mathbb{R}$, classical
+$\mathcal{P}(\mathbb{N})$, no set theorem needed) and ZFC-refutable
 ($\ulcorner$\texttt{"AFA\_Statement"}$\urcorner$ via
-\texttt{AFA\_Refuted}).
+\texttt{AFA\_Refuted}, in the ZFC reading only).  The term
+$\ulcorner\mathrm{AFA}\urcorner$ is the one that changes category with the
+reading --- see Theorem~\ref{thm:mixed_AFA_two_registers}.
 \end{remark}
 
 %──────────────────────────────────────────────────────────────────────
@@ -144,42 +171,50 @@ no VR-Sets theorem needed) and VR-Sets-refutable
 
 \begin{definition}[Translation $\pi$ (shallow)]
 \label{def:translate_pi}
-\lean{VR.Forms.translate_pi}
+\lean{VR.Forms.translate_pi, VR.Forms.translateN}
 \leanok
-\uses{def:FormalTerm, def:osetEmpty, def:set_ops}
+\uses{def:FormalTerm, def:isRealisable, thm:setsop_basic}
 $\texttt{translate\_pi} : \texttt{FormalTerm} \to \mathrm{Prop}$ is the
-\emph{specific} layer: for each named formal term, the direct operational
-predicate naming a concrete VR-Sets object.  For $\ulcorner$\texttt{"∅"}$\urcorner$:
-$\forall x,\; x \notin \texttt{osetEmpty}$ (not an existential).
-For $\ulcorner$\texttt{"omega\_OSet"}$\urcorner$: $\emptyset \in
-\texttt{omega\_OSet} \land \ldots$.  Catch-all: \texttt{False}.
-Contrast with \texttt{isRealisable} (\emph{existential} layer).
+\emph{specific} layer (rule~(ii) of §\,III.2): for each named formal term,
+the defining predicate of the concrete operational set.  For
+$\ulcorner$\texttt{"∅"}$\urcorner$: $\forall x,\; \lnot\, x
+\mathrel{\mathtt{Mem}} \texttt{OpSet.empty}$ (not an existential).  For
+$\ulcorner$\texttt{"omega"}$\urcorner$: $\mathtt{vn}\,0 \mathrel{\mathtt{Mem}}
+\texttt{OpSet.omega} \land \ldots$.  For $\ulcorner$\texttt{"pair"}$\urcorner$:
+$\forall a\,b\,x,\; x \mathrel{\mathtt{Mem}} \texttt{OpSet.pair}\,a\,b
+\leftrightarrow x \mathrel{\mathtt{Equiv}} a \lor x \mathrel{\mathtt{Equiv}}
+b$.  For $\ulcorner$\texttt{"AFA"}$\urcorner$: $\forall V\,E,\;
+\mathtt{IsDecoration}\,E\,(\texttt{OpSet.decorate}\,E)$.  Catch-all:
+\texttt{False}.  Contrast with \texttt{isRealisable} (\emph{existential}
+layer).  \axiomprofile{[]}.
 \end{definition}
 
 \begin{theorem}[π-translation lemmas]
 \label{thm:translate_pi_base}
 \lean{VR.Forms.translate_pi_empty, VR.Forms.translate_pi_omega,
-      VR.Forms.translate_pi_pair}
+      VR.Forms.translate_pi_pair, VR.Forms.translate_pi_AFA}
 \leanok
-\uses{def:translate_pi, def:osetEmpty, def:set_ops}
-Direct proofs for $\ulcorner$\texttt{"∅"}$\urcorner$,
-$\ulcorner$\texttt{"omega\_OSet"}$\urcorner$, $\ulcorner$\texttt{"osetPair"}$\urcorner$
-by the VR-Sets theorems.  All at \axiomprofile{[propext, Quot.sound]}.
+\uses{def:translate_pi, thm:setsop_basic, thm:setsop_omega, thm:setsop_afa}
+Direct proofs for the four named terms by the SetsOp theorems
+\texttt{not\_mem\_empty}, \texttt{empty\_mem\_omega} with
+\texttt{omega\_succ\_closed}, \texttt{mem\_pair},
+\texttt{decorate\_isDecoration}.  All on \axiomprofile{[]}.
 \end{theorem}
 
 \begin{theorem}[Transit: $\pi$ implies realisability]
 \label{thm:translate_implies_realisable}
-\lean{VR.Forms.translate_implies_realisable}
+\lean{VR.Forms.translate_implies_realisable, VR.Forms.translateN_implies_realisableN}
 \leanok
 \uses{def:translate_pi, def:isRealisable}
 $\forall t : \texttt{FormalTerm},\;
 \texttt{translate\_pi}(t) \Rightarrow \texttt{isRealisable}(t)$.
-Proved by \texttt{by\_cases} discrimination on the named constructors
-(possible since \texttt{DecidableEq FormalTerm}) followed by existential
-introduction with the concrete named witness.  The \emph{converse does
-not hold}: from $\exists\, s,\; \ldots$ one cannot recover the specific
-named object without Skolemisation.  The transit pattern operates
-exclusively in the forward direction.
+Proved class by class on \texttt{Named}
+(\texttt{translateN\_implies\_realisableN}): in each realisable class the
+specific predicate names the witness, and existential introduction closes
+the goal; the catch-all is vacuous.  The \emph{converse does not hold}:
+from $\exists\, s,\; \ldots$ one cannot recover the specific named object
+without Skolemisation --- the T$\to$O asymmetry (TR-R1).  The transit
+pattern operates exclusively in the forward direction.  \axiomprofile{[]}.
 \end{theorem}
 
 %──────────────────────────────────────────────────────────────────────
@@ -197,7 +232,7 @@ register: any formula $\varphi \in L_0$ that is derivable in $T_1$ is
 already derivable in $T_0$.  Equivalently: formal terms do not produce
 new operational theorems.»
 
-\textbf{Now formalised} (2026-06) by a deep embedding via relative interpretation, in
+\textbf{Formalised} (2026-06) by a deep embedding via relative interpretation, in
 \texttt{Forms/Conservativity.lean} (propositional floor) and
 \texttt{Forms/ConservativityFOL.lean} (full FOL).  The two-register language $L_1$ consists of
 operational atoms and $0$-ary formal atoms over de Bruijn terms (variables, constants such as
@@ -208,18 +243,16 @@ derivations --- $\pi$ commutes with every rule, and \texttt{piTr\_subst} shows $
 with substitution (kept trivial by $0$-ary formal atoms and closed $\pi$-images, so no de-Bruijn
 substitution composition arises).  A concrete VR instance (\texttt{VRExample}: $\emptyset$,
 $\in$, $t$, the formal term $\ulcorner\emptyset\urcorner \mapsto \forall x\,\lnot(x\in\emptyset)$)
-discharges the hypothesis end-to-end (\texttt{conservativity\_empty\_concrete}).  All objects are
-choice-free (\axiomprofile{[propext]}; instances \axiomprofile{[propext, Quot.sound]}),
-self-contained.
+discharges the hypothesis end-to-end (\texttt{conservativity\_empty\_concrete}).
 
 \textbf{Comprehension storey (full fidelity to the preprint's $\pi$, 2026-06).}  The FOL floor
 models formal atoms as $0$-ary; the preprint's $\pi$ (\S\,III.2, rule for $\ulcorner x\in\tau\urcorner$
 with $\tau=\{y:\psi(y)\}$) is the genuine comprehension translation $\pi(\ulcorner x\in\tau\urcorner)=\psi(x)$,
-which substitutes the argument.  This is now machine-checked in
+which substitutes the argument.  This is machine-checked in
 \texttt{Forms/ConservativityComprehension.lean}: terms and formulas are \emph{mutually} recursive
 ($\mathtt{Tm}$ carries set-builders $\{y:\psi\}$), so $\pi$ substituting $\psi(x)$ forces the full
 de-Bruijn substitution calculus --- $\mathtt{subst\_lift}$, $\mathtt{lift\_lift}$,
-$\mathtt{lift\_subst}$, and the substitution lemma $\mathtt{subst\_subst}$ --- all proved choice-free.
+$\mathtt{lift\_subst}$, and the substitution lemma $\mathtt{subst\_subst}$.
 The keystone $\mathtt{piFml\_subst}$ ($\pi$ commutes with substituting a variable) closes precisely
 via $\mathtt{subst\_subst}$ on the comprehension case; conservativity then follows as before, with a
 non-vacuous instance whose hypothesis is proved ($\pi$ of a comprehension axiom is the Hilbert theorem
@@ -228,13 +261,17 @@ member of every membership is operational (a variable).  A \emph{total} $\pi$ un
 every position (course B) is provably ill-defined --- it diverges on self-membered formal terms (the
 Russell term $\ulcorner\{x:x\notin x\}\urcorner$ gives $\pi(\ulcorner R\in R\urcorner)=\lnot\pi(\ulcorner R\in R\urcorner)$,
 no fixpoint).  This is the formal-register counterpart of why VR holds paradoxes safely: they cannot be
-unfolded into operational theorems --- $\pi$ is simply undefined on them, not defined-and-false.  All
-objects \axiomprofile{[propext, Quot.sound]}, choice-free.
+unfolded into operational theorems --- $\pi$ is simply undefined on them, not defined-and-false.
+
+\textbf{Axiom profile (2026-09-12 sweep).}  All three storeys are on \axiomprofile{[]}: the de Bruijn
+lemmas that had been closed by \texttt{simp}/\texttt{omega} (both reach \texttt{propext}) were
+re-proved by hand (\texttt{NatAux}, explicit \texttt{rw [if\_pos …]}), and the auto-generated
+\texttt{injEq} lemmas are switched off.
 
 \begin{remark}[Scope and remaining polish]
 \label{rem:conservativity_boundary}
 What was the cycle's one premeditated boundary --- a proof-theory project beyond the shallow
-embedding --- is now a machine-checked result.  Two documented refinements remain, by choice,
+embedding --- is a machine-checked result.  Two documented refinements remain, by choice,
 and are polish rather than gaps in the theorem: \texttt{gen} is stated without the eigenvariable
 side-condition (it would match standard first-order soundness, but is not needed for the
 syntactic $\pi$-transport that conservativity is), and the worked VR instance covers $\emptyset$
@@ -243,24 +280,31 @@ syntactic $\pi$-transport that conservativity is), and the worked VR instance co
 \end{theorem}
 
 %──────────────────────────────────────────────────────────────────────
-\section{Bridge theorems (Part V)}
+\section{The ZFC reading and the bridge theorems (Part V)}
 \label{sec:forms_bridge}
 
-\begin{theorem}[Negative bridge: AFA is non-realisable]
+The bridge file \texttt{VRClassical/Forms/Bridge.lean} keeps the reading
+VR-Forms had until 2026-09-12: realisability with the operational register
+taken to be Mathlib's \texttt{OSet = ZFSet}.  It is a second predicate,
+\texttt{isRealisableZFC}, over the same formal terms; its three positive
+cases are the ZFC-era witnesses (\texttt{osetEmpty}, \texttt{omega\_OSet},
+\texttt{osetPair}, Chapter~\ref{chap:sets}), and it alone names the three
+statements about Mathlib's universes.
+
+\begin{theorem}[Negative bridge: AFA is non-realisable in the ZFC reading]
 \label{thm:bridge_AFA}
-\lean{VR.Forms.bridge_AFA}
+\lean{VR.Forms.bridge_AFA, VR.Forms.isRealisableZFC}
 \leanok
 \uses{def:isRealisable, thm:AFA_Refuted}
-$\lnot\,\texttt{isRealisable}\,\ulcorner$\texttt{"AFA\_Statement"}$\urcorner$.
-Proof: \texttt{isRealisable} reduces definitionally to
+$\lnot\,\texttt{isRealisableZFC}\,\ulcorner$\texttt{"AFA\_Statement"}$\urcorner$.
+Proof: \texttt{isRealisableZFC} reduces definitionally to
 \texttt{VR.Sets.AFA\_Statement}; the theorem is exactly
-\texttt{AFA\_Refuted} from Chapter~\ref{chap:sets}.
-
-This is the first theorem in VR-Forms using a VR-Sets
-\emph{refutation} (not a VR-Sets existence theorem).  The cross-cycle
-chain: \texttt{AFA\_Refuted} (Ch.~\ref{chap:sets})
-$\to$ \texttt{bridge\_AFA}.
-\axiomprofile{[propext, Quot.sound]}.
+\texttt{AFA\_Refuted} from Chapter~\ref{chap:sets}.  The cross-cycle chain:
+\texttt{PSet.mem\_irrefl} $\to$ \texttt{AFA\_Refuted} $\to$
+\texttt{bridge\_AFA}.  This is a statement about Mathlib's well-founded
+universe; in the operational universe the same description is realised
+(Theorem~\ref{thm:isRealisable_base}, \texttt{isRealisable\_AFA}).
+\axiomprofile{[propext, Quot.sound]} (Mathlib's, via \texttt{ZFSet}).
 \end{theorem}
 
 \begin{theorem}[Open conditional bridges: Conjectures~IV.1 and IV.2]
@@ -268,16 +312,12 @@ $\to$ \texttt{bridge\_AFA}.
 \lean{VR.Forms.bridge_Conjecture_IV_1, VR.Forms.bridge_Conjecture_IV_2}
 \leanok
 \uses{def:isRealisable, def:Conjecture_IV_1, def:Conjecture_IV_2}
-$\texttt{isRealisable}\,\ulcorner$\texttt{"Conjecture\_IV\_1\_Statement"}$\urcorner
-\leftrightarrow \texttt{Conjecture\_IV\_1\_Statement}$.
-$\texttt{isRealisable}\,\ulcorner$\texttt{"Conjecture\_IV\_2\_Statement"}$\urcorner
-\leftrightarrow \texttt{Conjecture\_IV\_2\_Statement}$.
-
-Both iff proofs are $\langle\texttt{id},\texttt{id}\rangle$ (definitional
-equality); the mathematical \emph{content} is open.  The bridge theorem
-is trivially proved; its resolution requires proving or refuting the
-corresponding VR-Sets conjecture.  Status: open realisability
-(category~(b) of the triadic structure).
+$\texttt{isRealisableZFC}\,\ulcorner$\texttt{"Conjecture\_IV\_1\_Statement"}$\urcorner
+\leftrightarrow \texttt{Conjecture\_IV\_1\_Statement}$, and likewise for
+IV.2.  Both iff proofs are $\langle\texttt{id},\texttt{id}\rangle$
+(definitional equality); the mathematical \emph{content} is open.  Status:
+open realisability (category~(b) of the triadic structure), in the ZFC
+reading.
 \end{theorem}
 
 %──────────────────────────────────────────────────────────────────────
@@ -295,10 +335,11 @@ $\lnot\,\texttt{isRealisable}\,\ulcorner$\texttt{"Russell\_class"}$\urcorner$,
 $\lnot\,\texttt{isRealisable}\,\ulcorner$\texttt{"Vitali"}$\urcorner$,
 $\lnot\,\texttt{isRealisable}\,\ulcorner$\texttt{"classical\_R"}$\urcorner$,
 $\lnot\,\texttt{isRealisable}\,\ulcorner$\texttt{"classical\_powerset\_N"}$\urcorner$.
-All four proofs are \texttt{id}: the catch-all redirects each description to
-\texttt{False}.  Non-realisability is metatheoretic (category~(c), Level~1):
-no VR-Sets theorem is needed.  Contrast with \texttt{bridge\_AFA}
-(Level~2: VR-Sets-refutable).
+All four proofs are \texttt{id}: the closed world of \texttt{named} sends
+each description to \texttt{other}, hence to \texttt{False}.
+Non-realisability is metatheoretic (category~(c), Level~1): no set theorem
+is needed.  Contrast with \texttt{bridge\_AFA} (Level~2: refutable in the
+ZFC reading).  \axiomprofile{[]}.
 \end{theorem}
 
 \begin{theorem}[Positive mixed formula: $\omega$ in both registers]
@@ -306,44 +347,38 @@ no VR-Sets theorem is needed.  Contrast with \texttt{bridge\_AFA}
 \lean{VR.Forms.mixed_omega_two_register}
 \leanok
 \uses{def:isRealisable, def:translate_pi, thm:translate_pi_base}
-$\emptyset \in \texttt{omega\_OSet} \land
-\texttt{isRealisable}\,\ulcorner$\texttt{"omega\_OSet"}$\urcorner$.
-Proof: $\langle\texttt{translate\_pi\_omega.1},\,
+$\mathtt{vn}\,0 \mathrel{\mathtt{Mem}} \texttt{OpSet.omega} \land
+\texttt{isRealisable}\,\ulcorner$\texttt{"omega"}$\urcorner$.
+Proof: $\langle\texttt{OpSet.empty\_mem\_omega},\,
 \texttt{isRealisable\_omega}\rangle$.
 Both registers affirm $\omega$: operational membership and formal
-realisability agree on the same object.
+realisability agree on the same object.  Mixed formulas combine operational
+statements about \texttt{OpSet} with realisability predicates on formal
+terms --- Lean \texttt{Prop}s at the meta level, not a third register.
+\axiomprofile{[]}.
 \end{theorem}
 
-\begin{theorem}[Central junction: ZFA boundary in both registers]
+\begin{theorem}[Central junction: the ZFA boundary is a boundary of mode]
 \label{thm:mixed_AFA_two_registers}
-\lean{VR.Forms.mixed_AFA_two_registers}
+\lean{VR.Forms.mixed_AFA_two_registers, VR.Forms.afa_two_registers}
 \leanok
-\uses{thm:bridge_AFA, thm:Lemma_II_1}
-$(\forall x : \mathrm{OSet},\; x \notin x) \land
-\lnot\,\texttt{isRealisable}\,\ulcorner$\texttt{"AFA\_Statement"}$\urcorner$.
-Proof: $\langle\texttt{ZFSet.mem\_irrefl},\,\texttt{bridge\_AFA}\rangle$.
+\uses{thm:isRealisable_base, thm:bridge_AFA, thm:setsop_afa, thm:setsop_grounded}
+$\texttt{isRealisable}\,\ulcorner$\texttt{"AFA"}$\urcorner \land
+\lnot\,\texttt{isRealisableZFC}\,\ulcorner$\texttt{"AFA\_Statement"}$\urcorner$.
+Proof: $\langle\texttt{isRealisable\_AFA},\,\texttt{bridge\_AFA}\rangle$
+(\texttt{afa\_two\_registers}).
 
-\emph{Junction theorem of VR-Forms.}  Both conjuncts derive from the
-inductive structure of mathlib's \texttt{PSet}:
-\[
-\texttt{PSet.mem\_irrefl}
-\xrightarrow{\quad}
-\texttt{ZFSet.mem\_irrefl}
-\xrightarrow{\quad}
-\text{left conjunct}
-\]
-\[
-\texttt{PSet.mem\_irrefl}
-\xrightarrow{\quad}
-\texttt{AFA\_Refuted}
-\xrightarrow{\quad}
-\texttt{bridge\_AFA}
-\xrightarrow{\quad}
-\text{right conjunct}
-\]
-The ZFA structural boundary of Chapter~\ref{chap:sets} (Boundary~B.5)
-now appears as a single Lean \texttt{Prop} combining both registers.  See
-Observation~9.
+\emph{Junction theorem of VR-Forms.}  The formal register's anti-foundation
+description has an operational correlate --- \texttt{OpSet.afa}: every
+graph is decorated in the operational universe, since a set \emph{is} a
+pointed graph and identity is bisimulation --- while its ZFC-register
+reading is refuted in Mathlib's well-founded universe
+(\texttt{PSet.mem\_irrefl} $\to$ \texttt{AFA\_Refuted}).  Both conjuncts are
+theorems; they speak of different universes.  What Chapter~\ref{chap:sets}
+recorded as Boundary~B.5 (``ZFA total absence'') is thereby located: it is
+a boundary of \emph{groundedness} --- \texttt{IsGrounded} is a predicate on
+the graph, the ZFC-mode (\S\,\ref{sec:setsop_grounded}) --- not a boundary
+of operationality.  See Observation~9.
 \end{theorem}
 
 %──────────────────────────────────────────────────────────────────────
@@ -354,18 +389,30 @@ Observation~9.
 \label{def:Carrier}
 \lean{VR.Forms.Carrier, VR.Forms.Operational}
 \leanok
-\uses{def:OSet, def:FormalTerm}
+\uses{def:setsop_opset, thm:setsop_equiv, def:FormalTerm}
 $\texttt{Carrier}$ is an inductive type with two constructors:
-$\texttt{.obj} : \mathrm{OSet}.{0} \to \texttt{Carrier}$ (operational
+$\texttt{.obj} : \mathrm{OpSet}.\{0\} \to \texttt{Carrier}$ (operational
 objects in the operational register) and
 $\texttt{.term} : \texttt{FormalTerm} \to \texttt{Carrier}$ (formal terms).
 
 $\texttt{Operational} : \texttt{Carrier} \to \mathrm{Prop}$ by:
-$\texttt{Operational}(\texttt{.obj}\,a) := \texttt{Acc}({\cdot}\in{\cdot})\,a$
-(well-foundedness; content-ful via \texttt{ZFSet.mem\_wf});
-$\texttt{Operational}(\texttt{.term}\,\_) := \texttt{True}$
-(by the Principle of Forms: any inscribed formal term carries substrate
-unconditionally).
+$\texttt{Operational}(\texttt{.obj}\,a) := a \mathrel{\mathtt{Equiv}} a$
+--- the substrate of an operational set is the act it \emph{is}, its
+revealing functionality, witnessed minimally by the identity bisimulation
+(the diagonal relation with its two simulation proofs: a construction, not
+\texttt{True});
+$\texttt{Operational}(\texttt{.term}\,\_) := \texttt{True}$ --- for a formal
+term the substrate is the act of inscription (Principle of Forms, §\,II.4).
+
+\textbf{Why not well-foundedness.}  The 2026-05-28 gate chose
+$\texttt{Acc}({\cdot}\in{\cdot})$ as the substrate predicate on
+\texttt{OSet = ZFSet}, where it is total because Mathlib's universe is
+well-founded by construction.  On \texttt{OpSet} that choice is
+\emph{refuted} as a substrate: AFA holds there, so groundedness
+(\texttt{IsGrounded}) is not total --- it is a mode, separately available.
+The frozen statement («operationality is a total substrate; every operand
+and every result, including the empty result $\emptyset$, carries
+operational substrate») survives with the correct predicate.
 \end{definition}
 
 \begin{theorem}[Substrate totality and base cases]
@@ -373,24 +420,22 @@ unconditionally).
 \lean{VR.Forms.operational_total, VR.Forms.operational_empty,
       VR.Forms.omega_substrate}
 \leanok
-\uses{def:Carrier, def:osetEmpty, def:set_ops}
+\uses{def:Carrier, thm:setsop_equiv, thm:setsop_omega}
 $\texttt{operational\_total}$: $\forall c : \texttt{Carrier},\;
-\texttt{Operational}(c)$.  Proof: \texttt{.obj}~branch via
-\texttt{ZFSet.mem\_wf.apply} (Classical-free);
-\texttt{.term}~branch by \texttt{trivial}.
+\texttt{Operational}(c)$.  Proof: \texttt{.obj}~branch by
+\texttt{OpSet.Equiv.refl}; \texttt{.term}~branch by \texttt{trivial}.
 
 $\texttt{operational\_empty}$: $\texttt{Operational}(\texttt{.obj}\,
-\texttt{osetEmpty})$ --- the primordial object $\emptyset$ carries
-operational substrate.
+\texttt{OpSet.empty})$ --- the primordial object $\emptyset$, the limit case
+the curator insisted on, carries operational substrate.
 
 $\texttt{omega\_substrate}$: $\texttt{Operational}(\texttt{.obj}\,
-\texttt{omega\_OSet}) \land \texttt{Operational}(\texttt{.term}\,
-\ulcorner$\texttt{"omega\_OSet"}$\urcorner)$ --- $\omega$ carries
-substrate in both registers, connecting Stage~6 to
+\texttt{OpSet.omega}) \land \texttt{Operational}(\texttt{.term}\,
+\ulcorner$\texttt{"omega"}$\urcorner)$ --- $\omega$ carries substrate in
+both registers, connecting Stage~6 to
 \texttt{mixed\_omega\_two\_register}.
 
-\noindent\axiomprofile{[propext, Quot.sound]} for all three;
-zero \texttt{Classical.choice}.
+\noindent\axiomprofile{[]} for all three.
 \end{theorem}
 
 %──────────────────────────────────────────────────────────────────────
@@ -399,7 +444,7 @@ zero \texttt{Classical.choice}.
 
 VR-Forms Lean originally had \emph{one} explicit structural boundary (at conservativity),
 in contrast to VR-Sets Lean's five mathematical-content boundaries.  That boundary has
-since been \textbf{closed}: conservativity is now formalised by a deep embedding
+since been \textbf{closed}: conservativity is formalised by a deep embedding
 (\S\,\ref{subsec:conservativity}).
 
 \begin{remark}[Observation~3 --- Conservativity, formalised]
@@ -410,23 +455,28 @@ since been \textbf{closed}: conservativity is now formalised by a deep embedding
 Theorem~III.1 was mathematically proved in the preprint (full inductive proof via $\pi$);
 the shallow embedding deliberately did not formalise it, documenting the boundary in
 \texttt{Transit.lean} and declining a \texttt{def Conjecture\_Conservativity} (which would
-misrepresent a proved result as open).  It is now machine-checked by a separate deep
+misrepresent a proved result as open).  It is machine-checked by a separate deep
 embedding (\texttt{Forms/ConservativityFOL.lean}): a classical Hilbert calculus over de
 Bruijn terms with $n$-ary functions and predicates, the $\pi$-translation, and conservativity
-by induction on derivations --- choice-free, with a concrete VR $\emptyset$ instance.  The
-shallow embedding remains the working layer; the deep embedding stands beside it as the proof.
+by induction on derivations, with a concrete VR $\emptyset$ instance --- on the empty axiom
+list.  The shallow embedding remains the working layer; the deep embedding stands beside it
+as the proof.
 \end{remark}
 
-\begin{remark}[Observation~4 --- Equation-compiler catch-all does not reduce]
+\begin{remark}[Observation~4 --- Closed-world classification instead of a literal \texttt{match}]
 \label{rem:obs4_catchall}
-\lean{VR.Forms.translate_implies_realisable}
+\lean{VR.Forms.named, VR.Forms.translate_implies_realisable}
 \leanok
 \uses{thm:translate_implies_realisable}
-The catch-all \texttt{|\,\_ => False} in \texttt{translate\_pi} does not
-reduce in term mode for a schematic variable \texttt{x✝}.  The zero-axiom
-fix: \texttt{by\_cases} discrimination enabled by \texttt{DecidableEq
-FormalTerm}, followed by \texttt{unfold + split + simp\_all
-[FormalTerm.mk.injEq]} in the residual branch.
+The original \texttt{match} on description strings had two costs: its
+catch-all \texttt{|\,\_ => False} did not reduce in term mode for a
+schematic variable, forcing \texttt{by\_cases} discrimination; and the
+splitter Lean generates for overlapping literal patterns carries
+\texttt{propext} (measured in the 2026-09-12 sweep).  The classifier
+\texttt{named} (an \texttt{if}-chain over \texttt{DecidableEq FormalTerm}
+into the finite \texttt{Named}) removes both: every theorem about
+\texttt{isRealisable} is a case analysis on five constructors, and the
+module is on \texttt{[]}.
 \end{remark}
 
 \begin{remark}[Observation~5 --- Realisability and $\pi$-translation are complementary layers]
@@ -441,7 +491,9 @@ complementary layers connected by \texttt{translate\_implies\_realisable}
 via existential introduction.  The converse (specific $\Leftarrow$
 existential) is not provable: Skolemisation is unavailable from the
 existential in the shallow embedding.  The transit pattern of §\,IV.2
-operates exclusively in the forward direction.
+operates exclusively in the forward direction --- the same asymmetry that
+governs the apparatus (Chapter~\ref{chap:apparatus}, T$\to$O has no
+mechanism).
 \end{remark}
 
 \begin{remark}[Observation~6 --- Two-level structure of negative cases]
@@ -451,11 +503,14 @@ operates exclusively in the forward direction.
 \uses{thm:not_realisable, thm:bridge_AFA}
 Two levels of non-realisability:
 \emph{Level~1 (trivially False)}: Russell, Vitali, classical~$\mathbb{R}$,
-classical~$\mathcal{P}(\mathbb{N})$ --- catch-all redirects to \texttt{False},
-proof is \texttt{id}, no VR-Sets theorem needed.
-\emph{Level~2 (VR-Sets-refutable)}: $\ulcorner$\texttt{AFA\_Statement}$\urcorner$
---- the match returns a mathematically formulated \texttt{Prop};
-non-realisability requires \texttt{AFA\_Refuted} from VR-Sets.
+classical~$\mathcal{P}(\mathbb{N})$ --- the closed world sends them to
+\texttt{False}, proof is \texttt{id}, no set theorem needed; this level lives
+in the core on \texttt{[]}.
+\emph{Level~2 (refutable in a reading)}: $\ulcorner$\texttt{AFA\_Statement}$\urcorner$
+--- \texttt{isRealisableZFC} returns a mathematically formulated
+\texttt{Prop}; non-realisability requires \texttt{AFA\_Refuted} from
+VR-Sets, and lives in the bridge.  The operational reading has no Level~2:
+every description it names is realised.
 \end{remark}
 
 \begin{remark}[Observation~7 --- Three-category structure mirrors VR-Sets tier structure]
@@ -467,7 +522,10 @@ non-realisability requires \texttt{AFA\_Refuted} from VR-Sets.
 The triadic classification of formal terms (provably realisable~/ open ~/
 provably non-realisable) parallels VR-Sets Stage~11's three-tier
 formalisation result (proved theorems / refuted claims / open formulations),
-but localised at the level of formal terms within the formal register.
+but localised at the level of formal terms within the formal register.  With
+two readings of the operational register the middle and the refutable tier
+are exhibited by the ZFC reading; the operational reading has only the
+first tier and the trivial part of the third.
 \end{remark}
 
 %──────────────────────────────────────────────────────────────────────
@@ -476,32 +534,31 @@ but localised at the level of formal terms within the formal register.
 
 \subsection*{\S\,IX.1 Foundation-level properties}
 
-\begin{remark}[Observation~1 --- Foundation file is import-free and axiom-free]
+\begin{remark}[Observation~1 --- The whole core module is import-light and axiom-free]
 \label{rem:obs1_import}
 \lean{VR.Forms.Register, VR.Forms.FormalTerm}
 \leanok
 \uses{def:Register, def:FormalTerm}
 \texttt{Language.lean} introduces the syntactic skeleton without importing
-any mathlib or VR-Sets module.  \texttt{Register} and \texttt{FormalTerm}
-are axiom-free.  This contrasts with VR-Numbers (imports mathlib's natural
-number infrastructure) and VR-Sets (imports mathlib's \texttt{ZFSet},
-inheriting \texttt{[propext, Quot.sound]}).  The base layer of VR-Forms is
-thus axiom-free \texttt{[]}, whereas the base layers of VR-Numbers and
-VR-Sets inherit logical axioms from their mathlib imports.
+any module at all.  Since 2026-09-12 the rest of the core module imports
+only \texttt{VR.SetsOp} (itself Mathlib-free), and since 2026-09-13 the
+whole core library imports nothing but Lean.  What was true of the base
+layer in 2026-05 --- axiom-free \texttt{[]} --- is now true of every
+declaration of VR-Forms in the core, by the build-time guard.
 \end{remark}
 
-\begin{remark}[Observation~2 --- Realisability inherits Classical-free closure of VR-Sets]
+\begin{remark}[Observation~2 --- Realisability inherits the axiom profile of its universe]
 \label{rem:obs2_classical}
 \lean{VR.Forms.isRealisable_empty, VR.Forms.isRealisable_omega,
       VR.Forms.isRealisable_pair}
 \leanok
 \uses{thm:isRealisable_base}
-The three base realisable cases correspond to the Classical-free closure
-theorems of VR-Sets (\texttt{osetEmpty}, \texttt{omega\_OSet},
-\texttt{osetPair}) --- all at \texttt{[propext, Quot.sound]}, none
-requiring \texttt{Classical.choice}.  Realisable terms tied to Classical
-VR-Sets theorems (replacement, choice, foundation) would inherit
-\texttt{Classical.choice}; no such terms appear in this formalisation.
+The realisable cases are exactly as clean as the universe that supplies
+their witnesses.  Over \texttt{ZFSet} they were \texttt{[propext,
+Quot.sound]} (the Classical-free closure layer of VR-Sets); over
+\texttt{OpSet} they are \texttt{[]}.  Nothing in the realisability layer
+itself introduces an axiom: it names witnesses and reads their defining
+properties.
 \end{remark}
 
 \subsection*{\S\,IX.3 Structural patterns}
@@ -511,74 +568,70 @@ VR-Sets theorems (replacement, choice, foundation) would inherit
 \lean{VR.Forms.isRealisable, VR.Forms.mixed_omega_two_register}
 \leanok
 \uses{def:isRealisable, thm:mixed_omega}
-Two universe-management issues arose from the cross-cycle nature of
-VR-Forms.  (a)~Stage~2: \texttt{OSet.\{0\}} must be pinned explicitly in
-\texttt{isRealisable}; without it Lean cannot infer the universe inside
-\texttt{namespace VR.Forms}.  (b)~Stage~5: projecting \texttt{.1} from
-\texttt{Theorem\_III\_6\_Infinity} (two-universe signature \texttt{\{u v\}})
-generates metavariables; the fix is \texttt{translate\_pi\_omega.1}
-(universe pinned in the match case).  Both reflect the same architectural
-fact: VR-Forms is a cross-cycle module, and universe inference does not
-propagate across cycle boundaries without explicit annotation.
+VR-Forms is a cross-cycle module, and universe inference does not
+propagate across cycle boundaries without explicit annotation:
+\texttt{OpSet.\{0\}} is pinned explicitly in \texttt{isRealisableN} and in
+\texttt{Carrier} (as \texttt{OSet.\{0\}} was before), and the witnesses are
+taken at that universe.
 \end{remark}
 
-\begin{remark}[Observation~9 --- ZFA boundary in both registers simultaneously]
+\begin{remark}[Observation~9 --- The ZFA boundary is a boundary of groundedness]
 \label{rem:obs9_zfa}
 \lean{VR.Forms.mixed_AFA_two_registers}
 \leanok
 \uses{thm:mixed_AFA_two_registers}
-\texttt{mixed\_AFA\_boundary} formalises the parallel manifestation of
-well-foundedness across both registers in a single Lean \texttt{Prop}.
-What appeared in VR-Sets Part~X as Boundary~B.5 (``ZFA total absence'')
-appears in VR-Forms Lean as a theorem with cross-register content: the
-same structural fact, now expressed in the two-register apparatus
-VR-Forms provides for talking about both registers simultaneously.
+\texttt{mixed\_AFA\_two\_registers} states in a single Lean \texttt{Prop}
+what the two readings of the operational register say about one formal
+description: realised in the operational universe, refuted in the
+well-founded one.  What appeared in VR-Sets Part~X as Boundary~B.5 (``ZFA
+total absence'') is thus not a limit of operationality but the choice of a
+mode --- \texttt{IsGrounded}, a predicate on the graph, ZFC-mode inside
+the one universe (Chapter~\ref{chap:setsop}).  The two-register apparatus is
+precisely the instrument that lets this be said as a theorem rather than as
+a remark.
 \end{remark}
 
 \subsection*{\S\,IX.4 Cross-cycle integration}
 
-\begin{remark}[Observation~10 --- Zero \texttt{Classical.choice} across the entire cycle]
+\begin{remark}[Observation~10 --- Two libraries, one perimeter]
 \label{rem:obs10_zero_classical}
 \lean{VR.Forms.bridge_AFA, VR.Forms.mixed_AFA_two_registers}
 \leanok
 The cycle plan predicted \texttt{[propext, Classical.choice, Quot.sound]}
-or stricter.  The actual result: 3 axiom-free objects (Stage~1), 15+ at
-\texttt{[propext, Quot.sound]} (Stages~2--6), zero requiring
-\texttt{Classical.choice}.  The structural reason: realisable cases
-correspond to the Classical-free closure layer of VR-Sets; non-realisable
-cases either reduce to \texttt{False} (\texttt{id}) or use
-\texttt{AFA\_Refuted} (Classical-free via inductive \texttt{PSet}).
-VR-Forms reaches \texttt{[propext, Quot.sound]} with zero
-\texttt{Classical.choice} throughout, whereas VR-Numbers, VR-Sets and
-VR-Sets-ZFA each reach the full
-\texttt{[propext, Classical.choice, Quot.sound]} ceiling.
+or stricter; the 2026-05 result was \texttt{[propext, Quot.sound]} with zero
+\texttt{Classical.choice}.  The 2026-09 result is sharper: every object of
+VR-Forms that speaks about VR's own universe is in the core library
+\texttt{VR} on \texttt{[]}, and the two theorems that speak about Mathlib's
+universes (\texttt{bridge\_AFA}, the Conjecture bridges) together with the
+junction that compares the two readings are in \texttt{VRClassical/Forms/}
+\texttt{Bridge.lean}, at Mathlib's \texttt{[propext, Quot.sound]} and still
+without \texttt{Classical.choice}.  The perimeter is drawn in code: nothing
+in the core depends on the bridge.
 \end{remark}
 
 %──────────────────────────────────────────────────────────────────────
 \section{Axiom profile}
 \label{sec:forms_axiom_profile}
 
-\axiomprofile{[]} for 3 Stage~1 objects:
-\texttt{Register}, \texttt{FormalTerm}, and the \texttt{⌜·⌝} notation.
-Language.lean imports nothing; pure Lean~4 prelude.
+\axiomprofile{[]} for every public object of the core module
+(\texttt{VR/Forms/}): the language, the classifier and both realisability
+layers, all four base lemmas, the transit theorem, the three storeys of
+conservativity, the four non-realisable terms, the positive mixed formula,
+and the substrate results.  Enforced at build time by
+\texttt{VR/Guard.lean}.
 
-\axiomprofile{[propext, Quot.sound]} for all remaining public objects
-(Stages~2--6), including all realisability lemmas, $\pi$-translation
-theorems, bridge theorems, examples, mixed formulas, and substrate results.
-\textbf{Zero \texttt{Classical.choice}.}
+\axiomprofile{[propext, Quot.sound]} for the ZFC bridge
+(\texttt{VRClassical/Forms/Bridge.lean}): \texttt{isRealisableZFC} and its
+three positive cases, \texttt{bridge\_AFA}, the two Conjecture bridges,
+\texttt{afa\_two\_registers} and \texttt{mixed\_AFA\_two\_registers}.
+\textbf{Zero \texttt{Classical.choice}} anywhere in VR-Forms.
 
-Comparison with VR-Sets (Chapter~\ref{chap:sets}):
-VR-Sets has 6 objects at the full ceiling
-\texttt{[propext, Classical.choice, Quot.sound]} through four structurally
-distinct mechanisms (ordinal-valued constructions, definability, foundation,
-choice).  VR-Forms has none.  VR-Forms achieves axiom-minimality by staying
-entirely on the shallow side of its single structural boundary;
-VR-Sets achieves it by navigating five mathematical-content boundaries.
-
-VR-Forms surfaces \emph{one} structural boundary (conservativity, at the
-proof-theoretic meta-level) with four substructural manifestations.
-VR-Sets surfaces five boundaries at the mathematical-content level.
-Both are honest treatments of their respective limits.
+Comparison with VR-Sets (Chapter~\ref{chap:sets}): VR-Sets has 6 objects at
+the full ceiling \texttt{[propext, Classical.choice, Quot.sound]} through
+four structurally distinct mechanisms (ordinal-valued constructions,
+definability, foundation, choice).  VR-Forms has none, and since the move
+onto \texttt{OpSet} it has no axiom at all where it speaks for itself; the
+only axioms left are those of the universe it is compared against.
 
 %──────────────────────────────────────────────────────────────────────
 \section{References}
@@ -589,4 +642,6 @@ The preprint for this chapter is
 
 The Lean~4 formalisation is archived at
 \zenodo{10.5281/zenodo.20355757}{VR-Forms Lean, v1.0.0} (23 May 2026),
-git tag \texttt{v1.3-vr-forms}.
+git tag \texttt{v1.3-vr-forms}; the move of the operational register onto
+\texttt{OpSet} and the split into core and bridge are in the repository
+history of 2026-09-12/13 (\texttt{CHANGELOG.md}).
