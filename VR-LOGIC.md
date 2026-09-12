@@ -49,12 +49,17 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 >    terms, core list, membership and division lemmas, `Set.ext` where only monotonicity was needed,
 >    `rw` with an `Iff`. Never mathematics; replaced by structural recursion and `show`/`rw`/`cases`.
 > 2. *Walkable, not yet walked* — the `Quotient` carriers `Qop`/`Real`. **Measured:** dropping the
->    quotient would remove only `Quot.sound`, because `PreQ`/`Pre` are built over Mathlib's `ℤ`, whose
->    core lemmas (`Int.add_comm`, `Int.mul_comm`, …) themselves carry `propext`. Reaching `[]` means
->    rebuilding the continuum's integer substrate as `IntegersOp` does for ℤ_VR — a rebuild of
->    `Rational`/`Real`/`GaussianRational`/`UnitInterval`, not a wave. This is a *cost*, not a limit;
->    it must not be filed under 3. Precedent: VR-SetsOp already paid it once ("the cost of the
->    quotient": witnessed bisimulation instead of `Quotient`, `OpSet.ext` on `[]`).
+>    quotient would remove only `Quot.sound`, because `PreQ`/`Pre` were built over Mathlib's `ℤ`,
+>    whose core lemmas (`Int.add_comm`, `Int.mul_comm`, …) themselves carry `propext`. This is a
+>    *cost*, not a limit; it must not be filed under 3. Precedent: VR-SetsOp paid it once ("the cost
+>    of the quotient"). **Paid for the number floor on 2026-09-12 (integrity programme, step 1):**
+>    ℤ_VR/ℚ_VR/ℂ_op/ℝ_op are witnessed layers over `VR.lean`'s numbers, on `[]`
+>    (`Numbers/{IntegersOp,IntegersOrd,RationalsOp,RealsOp}.lean`, `GaussE`), and `Qop`/`GaussQ`/
+>    `Real` are quotient bridges on `[Quot.sound]` for Mathlib-style consumers; `Pre.ofBranch` (a
+>    branch's point as a Cauchy sequence) on `[]`. Instruments: `csr_ring`/`cr_ring`/`cr_linarith`
+>    (`Meta/CSRNorm.lean`), all on `[]`. Still to walk: the order/apartness/inverse of ℝ_op on the
+>    witnessed layer; then steps 2–5 (sets = `SetsZTL`/`SetsOp`, forms and topology over them,
+>    apparatus without `Quotient`).
 > 3. *Wired in — the limit* — statements about Mathlib's own objects: `ZFSet` (VR-Sets, VR-Forms
 >    realisability), `AddSubgroup` (Algebra), `Finset` (Transit), `Set.ext` in the bridge theorems,
 >    and the isomorphisms with Mathlib's `ℤ`/`ℚ`/`ℝ` (`Rat.add` itself carries `Classical.choice`).

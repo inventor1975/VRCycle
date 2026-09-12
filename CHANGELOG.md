@@ -58,8 +58,24 @@ apparatus with witnessed identity. Step 1 is the number floor.
   Fourier–Motzkin certificate search in meta code over `Rat`, hypotheses collected from the context
   (`lt a b` used as `le (a+1) b`). `int_linarith` (`IntExpr.ocr`) and `rat_linarith` (`QExpr.ocr`).
   This replaces `omega`/`linarith` (both `propext`) for the ℤ/ℚ inequality reasoning of the reals.
-  Next: ℝ_VR — the Cauchy layer over VR's integer pairs (`Real.lean`/`UnitInterval.lean` are
-  still over Mathlib's `ℤ`), then `Real` as its bridge.
+* **Step 1e — the reals on VR's own numbers.** `Continuum/UnitInterval.lean` rebuilt on integer
+  pairs (`intval : Branch → ℕ → IntExpr`, prefix structure and Cauchy bound by `int_linarith`).
+  New `Numbers/RealsOp.lean`: a pre-real is a sequence of pre-rationals with an explicit modulus
+  (within `ε_k = 1/2^k`), identity = eventual closeness at every precision; `rneg`/`radd`/`rmul`
+  termwise, the Cauchy estimates through power-of-two bounds (`rbounded`) and the four-products
+  trick for `|a·c| ≤ P·Q`, closed by `rat_linarith`; every ring law termwise by `rat_ring`;
+  `0 ≉ 1`; `RExpr.cr`. All on `[]`. `Continuum/Real.lean` is now the bridge: `Pre := RExpr`,
+  `Real` the quotient, `CommRing Real` on `[Quot.sound]` (was `[propext, Quot.sound]` over Mathlib
+  ℤ, 1087 lines), and **`Pre.ofBranch` — the point named by a branch, as the Cauchy sequence
+  `intval α n / 2^n` — on `[]`**. Removed with the old file, to be rebuilt on the witnessed layer
+  (step 1f): the order `le`/`lt`, apartness, the witnessed inverse `invPos`.
+
+**Step 1 stands.** The number floor ℤ → ℚ → ℂ → ℝ is now VR's own from `VR.lean` up: witnessed
+layers on `[]` (`IntegersOp`/`IntegersOrd`, `RationalsOp`, `GaussE`, `RealsOp`), quotient bridges
+on `[Quot.sound]` (`Qop`, `GaussQ`, `Real`), `Classical.choice` gone from the continuum's ℚ/ℂ/ℝ.
+The instruments that made it a day's work rather than weeks: `csr_ring`/`cr_ring` (reflection,
+`Meta/CSRNorm.lean`) and `cr_linarith` (Farkas certificates by Fourier–Motzkin, checked by
+reflection) — both on `[]`.
 
 ## Empty-list sweep, waves 4–8 — 2026-09-12
 
