@@ -32,6 +32,8 @@
 import Mathlib.Data.Set.Basic
 
 namespace VRCycle.Topology
+-- No auto-generated `injEq` lemmas (they carry `propext`); the empty axiom list is the bar (2026-09-12).
+set_option genInjectivity false
 
 -- ============================================================
 -- Section 0: Helper — common refinement (introduced for Finding T7)
@@ -52,10 +54,6 @@ def commonRefinement {S : Type*} (le : S → S → Prop) (U V : Set S) : Set S :
 a coverage relation `cov : S → Set S → Prop` satisfying the five coverage
 axioms — reflexivity, transitivity, refinement-monotonicity, locality
 (Coquand 1992) — plus **meet** (Sambin extension; Finding T7).
-
--- Lean generates `injEq` lemmas (via `propext`) for every inductive; the cycle never uses them,
--- and the empty axiom list is the bar (curator, 2026-09-12). Do not generate them.
-set_option genInjectivity false
 
 We use `structure` (not `class`): formal topologies are typically given as
 concrete data, not synthesised by instance inference.  A typeclass variant

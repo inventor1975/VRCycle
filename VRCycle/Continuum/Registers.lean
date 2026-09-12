@@ -26,7 +26,7 @@ theorem no_node_surjection : ¬ ∃ f : List Bool → Branch, Function.Surjectiv
   refine branches_not_enumerable ⟨f ∘ decodeNode, ?_⟩
   intro α
   obtain ⟨s, hs⟩ := hf α
-  exact ⟨encodeNode s, by simp [Function.comp, decodeNode_encodeNode, hs]⟩
+  exact ⟨encodeNode s, by show f (decodeNode (encodeNode s)) = α; rw [decodeNode_encodeNode]; exact hs⟩
 
 -- ============================================================
 -- Axiom audit — Stage B (file 6)

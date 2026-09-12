@@ -47,6 +47,8 @@
 import VRCycle.Forms.Examples
 
 namespace VR.Forms
+-- No auto-generated `injEq` lemmas (they carry `propext`); the empty axiom list is the bar (2026-09-12).
+set_option genInjectivity false
 
 open VR.Sets
 

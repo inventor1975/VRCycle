@@ -69,7 +69,7 @@ theorem diagonal_escapes_enumeration (e : ℕ → (ℕ → Bool)) :
   refine ⟨fun n => !(e n n), ?_⟩
   intro k hk
   have h : (!(e k k)) = e k k := congrFun hk k
-  cases hb : e k k <;> rw [hb] at h <;> simp at h
+  cases hb : e k k <;> rw [hb] at h <;> exact Bool.noConfusion h
 
 /-- **℘(ℕ), as characteristic functions, is non-enumerable.**  No `e : ℕ → (ℕ → Bool)` is
 surjective — its diagonal subset is missed.  Choice-free. -/

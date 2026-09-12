@@ -21,6 +21,8 @@
 import VRCycle.Continuum.UniformContinuity
 
 namespace VRCycle.Continuum
+-- No auto-generated `injEq` lemmas (they carry `propext`); the empty axiom list is the bar (2026-09-12).
+set_option genInjectivity false
 
 /-- An **operationally-presented functional**: a finite-information associate
 `φ : List Bool → Option ℕ` that **decides along every branch** (`bar`).  No modulus and no
@@ -58,15 +60,20 @@ theorem continuity_of_nbhd (F : NbhdFun) (α : Branch) :
   -- β decides at exactly the same least depth.
   -- `Nat.find_eq_iff` pulls Classical.choice (Finding CONT-5); go via antisymmetry
   -- of the choice-free `Nat.find_le` / `Nat.le_find_iff`.
+  -- `Nat.find_le` / `Nat.le_find_iff` reach `propext`; `find_spec` and `find_min` do not — so the
+  -- antisymmetry is argued from those two alone (2026-09-12, empty-list sweep).
   have hfindβ : Nat.find (F.bar β) = Nat.find (F.bar α) := by
     apply Nat.le_antisymm
-    · apply Nat.find_le
+    · apply Nat.le_of_not_lt
+      intro hlt
+      apply Nat.find_min (F.bar β) hlt
       rw [← hagree _ (Nat.le_refl _)]
       exact Nat.find_spec (F.bar α)
-    · rw [Nat.le_find_iff]
-      intro j hj
-      rw [← hagree j (Nat.le_of_lt hj)]
-      exact Nat.find_min (F.bar α) hj
+    · apply Nat.le_of_not_lt
+      intro hlt
+      apply Nat.find_min (F.bar α) hlt
+      rw [hagree _ (Nat.le_of_lt hlt)]
+      exact Nat.find_spec (F.bar β)
   -- the values agree.
   have hsβ : some (F.eval β) = F.φ (α.take (Nat.find (F.bar α))) := by
     rw [some_eval, hfindβ, hagree _ (Nat.le_refl _)]

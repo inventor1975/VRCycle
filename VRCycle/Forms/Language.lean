@@ -17,6 +17,8 @@
 -- Language.lean does not import VRCycle.Sets.
 
 namespace VR.Forms
+-- No auto-generated `injEq` lemmas (they carry `propext`); the empty axiom list is the bar (2026-09-12).
+set_option genInjectivity false
 
 -- ============================================================
 -- §II.2 — The two registers
@@ -63,10 +65,6 @@ they do not appear as `FormalTerm.mk _ .operational` in this cycle.
 Mixed formulas (Part VII §VII.2) combine OSet quantifiers with
 `isRealisable` predicates on formal terms. They are Lean `Prop`
 objects at the meta-level — not a third register for `FormalTerm`.
-
--- Lean generates `injEq` lemmas (via `propext`) for every inductive; the cycle never uses them,
--- and the empty axiom list is the bar (curator, 2026-09-12). Do not generate them.
-set_option genInjectivity false
 
 A `.mixed` constructor would be a category error: mixed formulas
 are a third kind of *formula in the two-register theory*, not a
@@ -202,6 +200,13 @@ structure FormalTerm where
       `FormalTerm.mk _ .operational` values. -/
   register : Register := .formal
   deriving DecidableEq
+
+/-- Injectivity of `FormalTerm.mk`, by hand: the auto-generated `injEq` is not produced (it carries
+`propext`); this `Iff` is on the empty axiom list and serves `simp` where `injEq` used to. -/
+theorem FormalTerm.mk_eq_iff {d d' : String} {r r' : Register} :
+    (FormalTerm.mk d r = FormalTerm.mk d' r') ↔ (d = d' ∧ r = r') :=
+  ⟨fun h => by cases h; exact ⟨rfl, rfl⟩, fun h => by rw [h.1, h.2]⟩
+
 
 
 -- ============================================================

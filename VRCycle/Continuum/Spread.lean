@@ -25,6 +25,7 @@
 -- `CoverGen` is a `Prop`-valued inductive; the spread carries no choice.  This is the
 -- "safe core is genuinely constructive" check (cf. VR-Topology binary Tychonoff).
 
+import VRCycle.Continuum.ListCore
 import VRCycle.Topology.FormalTopology
 import VRCycle.Topology.Operational
 import Mathlib.Data.List.Infix
@@ -42,11 +43,11 @@ i.e. `s` extends `t`, i.e. `s` is **more determined** (a smaller neighbourhood).
 A child `s ++ [b]` refines its parent `s`. -/
 def nodeLe (s t : List Bool) : Prop := t <+: s
 
-theorem nodeLe_refl (s : List Bool) : nodeLe s s := List.prefix_refl s
+theorem nodeLe_refl (s : List Bool) : nodeLe s s := ⟨[], ListCore.append_nil' s⟩
 
 theorem nodeLe_trans (s t u : List Bool) :
     nodeLe s t → nodeLe t u → nodeLe s u :=
-  fun (hst : t <+: s) (htu : u <+: t) => htu.trans hst
+  fun ⟨x, hx⟩ ⟨y, hy⟩ => ⟨y ++ x, by rw [← ListCore.append_assoc', hy, hx]⟩
 
 -- ============================================================
 -- §A3.  Basic cover: a node is covered by its two children
@@ -109,34 +110,57 @@ choice-free — in this import context `Encodable (List Bool)` resolves through 
 `Classical.choice` path (Finding CONT-1). -/
 def encodeNode : List Bool → ℕ
   | [] => 0
-  | false :: l => 2 * encodeNode l + 1
-  | true :: l => 2 * encodeNode l + 2
+  | false :: l => encodeNode l + encodeNode l + 1
+  | true :: l => encodeNode l + encodeNode l + 2
 
-/-- Inverse of `encodeNode`, by well-founded recursion on `n / 2`. -/
-def decodeNode : ℕ → List Bool
-  | 0 => []
-  | (n + 1) => decide (n % 2 = 1) :: decodeNode (n / 2)
-decreasing_by omega
+/-- Inverse of `encodeNode`. Structural recursion on a fuel argument (the input itself suffices),
+halving through `ListCore.halve` — no `/`, no `%`, no well-founded recursion: every core lemma about
+division reaches `propext`, and the fixpoint equations of well-founded definitions are not `rfl`.
+Rewritten 2026-09-12 for the empty axiom list. -/
+def decodeAux : ℕ → ℕ → List Bool
+  | 0, _ => []
+  | _ + 1, 0 => []
+  | f + 1, n + 1 => (ListCore.halve n).2 :: decodeAux f (ListCore.halve n).1
+
+def decodeNode (n : ℕ) : List Bool := decodeAux n n
+
+/-- The fuel does not matter once it is at least the input. -/
+theorem decodeAux_fuel : ∀ (f g n : ℕ), n ≤ f → n ≤ g → decodeAux f n = decodeAux g n
+  | 0, g, n, hf, _ => by
+      have h0 : n = 0 := Nat.le_zero.mp hf
+      subst h0
+      cases g <;> rfl
+  | f + 1, g, 0, _, _ => by cases g <;> rfl
+  | f + 1, g + 1, n + 1, hf, hg => by
+      show (ListCore.halve n).2 :: decodeAux f (ListCore.halve n).1
+           = (ListCore.halve n).2 :: decodeAux g (ListCore.halve n).1
+      have hn := ListCore.halve_fst_le n
+      rw [decodeAux_fuel f g (ListCore.halve n).1
+            (Nat.le_trans hn (Nat.le_of_succ_le_succ hf)) (Nat.le_trans hn (Nat.le_of_succ_le_succ hg))]
 
 /-- Round-trip: `decodeNode` is a left inverse of `encodeNode`. -/
 theorem decodeNode_encodeNode : ∀ l : List Bool, decodeNode (encodeNode l) = l
-  | [] => by simp only [encodeNode, decodeNode]
+  | [] => rfl
   | false :: l => by
       have ih := decodeNode_encodeNode l
-      change decodeNode (2 * encodeNode l + 1) = false :: l
-      simp only [decodeNode]
-      have h1 : (2 * encodeNode l) % 2 = 0 := by omega
-      have h2 : (2 * encodeNode l) / 2 = encodeNode l := by omega
-      rw [h1, h2, ih]; rfl
+      show decodeAux (encodeNode l + encodeNode l + 1) (encodeNode l + encodeNode l + 1) = false :: l
+      show (ListCore.halve (encodeNode l + encodeNode l)).2
+           :: decodeAux (encodeNode l + encodeNode l) (ListCore.halve (encodeNode l + encodeNode l)).1 = false :: l
+      rw [ListCore.halve_double]
+      show false :: decodeAux (encodeNode l + encodeNode l) (encodeNode l) = false :: l
+      rw [decodeAux_fuel (encodeNode l + encodeNode l) (encodeNode l) (encodeNode l)
+            (Nat.le_add_right _ _) (Nat.le_refl _)]
+      exact congrArg (List.cons false) ih
   | true :: l => by
       have ih := decodeNode_encodeNode l
-      change decodeNode (2 * encodeNode l + 2) = true :: l
-      have e : 2 * encodeNode l + 2 = (2 * encodeNode l + 1) + 1 := by omega
-      rw [e]
-      simp only [decodeNode]
-      have h1 : (2 * encodeNode l + 1) % 2 = 1 := by omega
-      have h2 : (2 * encodeNode l + 1) / 2 = encodeNode l := by omega
-      rw [h1, h2, ih]; rfl
+      show decodeAux (encodeNode l + encodeNode l + 2) (encodeNode l + encodeNode l + 2) = true :: l
+      show (ListCore.halve (encodeNode l + encodeNode l + 1)).2
+           :: decodeAux (encodeNode l + encodeNode l + 1) (ListCore.halve (encodeNode l + encodeNode l + 1)).1 = true :: l
+      rw [ListCore.halve_double_succ]
+      show true :: decodeAux (encodeNode l + encodeNode l + 1) (encodeNode l) = true :: l
+      rw [decodeAux_fuel (encodeNode l + encodeNode l + 1) (encodeNode l) (encodeNode l)
+            (Nat.le_succ_of_le (Nat.le_add_right _ _)) (Nat.le_refl _)]
+      exact congrArg (List.cons true) ih
 
 /-- **The space of performed acts is describable.**  The set of all nodes
 (`Set.univ : Set (List Bool)`) carries an explicit, hand-rolled enumeration

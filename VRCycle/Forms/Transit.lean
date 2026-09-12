@@ -374,7 +374,7 @@ theorem translate_implies_realisable (t : FormalTerm) (h : translate_pi t) :
     exfalso
     have hf : translate_pi t = False := by
       unfold translate_pi
-      split <;> simp_all [FormalTerm.mk.injEq]
+      split <;> simp_all [FormalTerm.mk_eq_iff]
     rw [hf] at h; exact h
 
 

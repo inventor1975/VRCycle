@@ -18,6 +18,7 @@
 --   * `FanTheorem` collapses that bar to a uniform depth `N`;
 --   * any two branches agreeing to depth `N` agree at the deciding node, so `F` agrees.
 
+import VRCycle.Continuum.ListCore
 import VRCycle.Continuum.Cover
 import Mathlib.Data.List.Basic
 
@@ -29,7 +30,8 @@ namespace VRCycle.Continuum
 
 /-- A performed segment of length `n` has length `n`. -/
 theorem Branch.length_take (α : Branch) (n : ℕ) : (α.take n).length = n := by
-  simp [Branch.take]
+  show ((List.range n).map α).length = n
+  rw [ListCore.length_map', ListCore.length_range']
 
 /-- If two branches agree to depth `N`, they agree to any smaller depth `m ≤ N`.
 By induction on `N`, peeling the last bit with `Branch.take_succ` and `List.append_inj_left'`. -/
@@ -41,10 +43,11 @@ theorem take_le_eq {α β : Branch} {m : ℕ} :
   | succ N ih =>
       intro hmN h
       rw [Branch.take_succ, Branch.take_succ] at h
-      have h1 : α.take N = β.take N := List.append_inj_left' h rfl
-      rcases (by omega : m ≤ N ∨ m = N + 1) with hm | heq
-      · exact ih hm h1
-      · subst heq; rw [Branch.take_succ, Branch.take_succ]; exact h
+      have h1 : α.take N = β.take N := ListCore.append_singleton_inj_left h
+      rcases Nat.lt_or_ge m (N + 1) with hm | hge
+      · exact ih (Nat.le_of_lt_succ hm) h1
+      · have heq : m = N + 1 := Nat.le_antisymm hmN hge
+        subst heq; rw [Branch.take_succ, Branch.take_succ]; exact h
 
 -- ============================================================
 -- §  Continuity + Fan ⟹ Uniform continuity
