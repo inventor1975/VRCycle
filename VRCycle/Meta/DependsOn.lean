@@ -197,4 +197,30 @@ elab "#axiom_offenders_all " ax:ident " in " "[" ms:ident,* "]" : command => do
     lines := lines.push s!"{env.header.moduleNames[midx.toNat]!} :: {n}  ← ext: {ext}  int: {intl}"
   logInfo m!"{lines.size} carry {axName}\n{String.intercalate "\n" (lines.qsort (· < ·)).toList}"
 
-
+/-- `#assert_axiom_free_library pfx` — the build-time GUARD of the VR core: fails the build unless every
+declaration of every module whose name starts with `pfx` has an empty axiom list (`propext`,
+`Quot.sound`, `Classical.choice`, `sorryAx` — all of them). Structural constants (inductives, constructors,
+recursors) and internal auxiliaries are skipped; so is META CODE — any declaration whose type or value
+mentions a `Lean.*` constant (tactics and census commands are instruments, not theorems). Prints the
+count checked on success; on failure lists every offender with its axioms. -/
+elab "#assert_axiom_free_library " pfx:ident : command => do
+  let env ← getEnv
+  let p := pfx.getId.toString
+  let isOurs (m : Name) : Bool := m.toString == p || m.toString.startsWith (p ++ ".")
+  let mut checked := 0
+  let mut offenders : Array String := #[]
+  for (n, ci) in env.constants.map₁.toList do
+    let some midx := env.getModuleIdxFor? n | continue
+    let m := env.header.moduleNames[midx.toNat]!
+    if !isOurs m then continue
+    if n.isInternal || n.isInternalDetail then continue
+    if ci matches .ctorInfo _ | .recInfo _ | .inductInfo _ then continue
+    let used := ci.type.getUsedConstants ++ (ci.value?.map (·.getUsedConstants)).getD #[]
+    if used.any (fun d => d.toString.startsWith "Lean.") then continue
+    let (_, st) := ((CollectAxioms.collect n).run env).run {}
+    checked := checked + 1
+    if st.axioms.size > 0 then
+      offenders := offenders.push s!"{m} :: {n}  {st.axioms}"
+  if offenders.size > 0 then
+    throwError "AXIOM GUARD FAILED for {p}: {offenders.size} declaration(s) carry axioms:\n{String.intercalate "\n" (offenders.qsort (· < ·)).toList}"
+  logInfo m!"axiom guard {p}: {checked} declarations checked, all on []"

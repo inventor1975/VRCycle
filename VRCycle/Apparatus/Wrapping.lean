@@ -43,7 +43,7 @@
 -- identityNature def: [].
 
 import VRCycle.Apparatus.Identity
-import VRCycle.Audit.Computable
+import Mathlib.Tactic.TypeStar
 
 namespace VR.Apparatus
 
@@ -93,42 +93,13 @@ def PredicateOperationality.identityNature
   .AsPoint
 
 -- ============================================================
--- §3. Test instance: IsComputableReal over ℝ
--- ============================================================
-
-/-- IsComputableReal is a predicate-wrapping apparatus over ℝ.
-
-The classical type is ℝ (mathlib's `Real`); the operational predicate is
-`IsComputableReal` (VR-Audit Stage 1, Computable.lean):
-
-  `IsComputableReal x := ∃ (alg : ℕ → ℚ) (mod : ℕ → ℕ),
-     ∀ n k, mod n ≤ k → |(alg k : ℝ) - x| ≤ 1/2^n`
-
-Objects `x : ℝ` are identified as real numbers (AsPoint). The predicate
-certifies that x has explicit rational approximations with modulus.
-
-This instance has no content beyond the declaration. The substantive
-apparatus (closure under +, -, ¬, rat) is in VRCycle.Audit.Computable.
-
-## Axiom profile: [] (marker instance, Prop) -/
-instance : PredicateOperationality ℝ VR.Audit.IsComputableReal := ⟨⟩
-
--- ============================================================
--- §4. Verification
--- ============================================================
-
-/-- The identity nature of the IsComputableReal apparatus is AsPoint. -/
-example : @PredicateOperationality.identityNature ℝ VR.Audit.IsComputableReal _ =
-    IdentityNature.AsPoint := rfl
-
--- ============================================================
 -- Axiom audit — Stage 1, Wrapping.lean
 -- ============================================================
 -- STAGE: 1. SOURCE: PLAN.md Stage 1.
 -- LEAN OBJECTS (1 class, 1 def, 1 instance):
 --   PredicateOperationality (class, Prop, 0 fields)
 --   PredicateOperationality.identityNature (def)
---   instance PredicateOperationality ℝ IsComputableReal
+--   (instance PredicateOperationality ℝ IsComputableReal — moved to VRClassical/Apparatus/Wrapping.lean)
 -- AXIOM AUDIT: expected [] for all objects in this file.
 --   The marker class and its instance introduce no proof obligations.
 --   identityNature returns a constructor — no axioms.

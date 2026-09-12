@@ -87,6 +87,10 @@
 
 import VRCycle.Apparatus.Factorisation
 
+-- Integrity programme (2026-09-12): the QUOTIENT BRIDGE of this file — `lift`, `lift_mk`,
+-- `IsModeAOp_of_interApparatus`, `lift_compose` (all `[Quot.sound]`) — moved to
+-- VRClassical/Apparatus/QuotientBridge.lean. What stays here is on `[]`.
+
 namespace VR.Apparatus
 
 -- ============================================================
@@ -116,79 +120,6 @@ def InterApparatusMorphism {Q1 Q2 : Type*} [Setoid Q1] [Setoid Q2]
   ∀ x y : Q1, x ≈ y → f x ≈ f y
 
 -- ============================================================
--- §2. Lift — quotient-level map
--- ============================================================
-
-/-- An inter-apparatus morphism lifts to a well-defined map between quotients.
-
-`lift hf : Quotient s1 → Quotient s2`  with  `lift hf ⟦q⟧ = ⟦f q⟧`.
-
-**Well-definedness**: if `a ≈₁ b` then `f a ≈₂ f b` (by `hf`), so
-`⟦f a⟧ = ⟦f b⟧` (by `Quotient.sound`). Hence `Quotient.lift` is well-defined.
-
-**noncomputable**: follows the convention for quotient-based lifting
-(parallel to `ReferenceOperationality.modeA_liftFn`).
-
-## Axiom profile: [] -/
-noncomputable def InterApparatusMorphism.lift {Q1 Q2 : Type*}
-    [s1 : Setoid Q1] [s2 : Setoid Q2]
-    {f : Q1 → Q2} (hf : InterApparatusMorphism f) :
-    Quotient s1 → Quotient s2 :=
-  Quotient.lift (fun q => Quotient.mk s2 (f q))
-    (fun a b hab => Quotient.sound (hf a b hab))
-
-/-- Computation rule: the lift at a representative equals the quotient of the image.
-
-`hf.lift ⟦q⟧ = ⟦f q⟧`
-
-**Proof**: `rfl` — `Quotient.lift` is definitional at representatives.
-
-**@[simp]**: reduces `hf.lift ⟦q⟧` to `⟦f q⟧`. Loop-safe: strictly eliminates
-the `lift` wrapper, rewriting to the simpler quotient constructor form.
-
-## Axiom profile: [] -/
-@[simp]
-theorem InterApparatusMorphism.lift_mk {Q1 Q2 : Type*}
-    [s1 : Setoid Q1] [s2 : Setoid Q2]
-    {f : Q1 → Q2} (hf : InterApparatusMorphism f) (q : Q1) :
-    hf.lift (Quotient.mk s1 q) = Quotient.mk s2 (f q) :=
-  rfl
-
--- ============================================================
--- §3. Relationship to Mode A — Finding S2-A
--- ============================================================
-
-/-- A same-setoid inter-apparatus morphism yields a Mode A map.
-
-If `f : Q → Q` satisfies `InterApparatusMorphism f` (with the SAME setoid `s`
-for both source and target), then the post-composed map
-  `fun q => ⟦f q⟧ : Q → Quotient s`
-is `ReferenceOperationality.IsModeAOp` (i.e., `a ≈ b → ⟦f a⟧ = ⟦f b⟧`).
-
-**Proof**: from `hf a b hab : f a ≈ f b`, apply `Quotient.sound`.
-
-**Finding S2-A — layered architecture** (see module header for full discussion):
-This theorem bridges the two levels of Tier 3 morphisms, but the bridging
-requires post-composition with `Quotient.mk s`: the IAM condition lives at
-the representative level (Q → Q), while Mode A lives at the quotient level
-(Q → Quotient s). The two concepts are COMPLEMENTARY, not hierarchical:
-
-  IAM (representative level): `f : Q → Q`,  `a ≈ b → f a ≈ f b`
-                                  ↓  post-compose with Quotient.mk s
-  Mode A (quotient level):    `fun q => ⟦f q⟧ : Q → Quotient s`,
-                               `a ≈ b → ⟦f a⟧ = ⟦f b⟧`
-
-The reverse direction does NOT hold: a Mode A map `g : Q → Quotient s` is
-NOT directly an IAM because IAM requires `f : Q → Q` (representative-level),
-while g targets the quotient Quotient s, not Q. The types are incompatible.
-
-## Axiom profile: [] -/
-theorem IsModeAOp_of_interApparatus {Q : Type*} [s : Setoid Q]
-    {f : Q → Q} (hf : InterApparatusMorphism f) :
-    ReferenceOperationality.IsModeAOp (fun q => Quotient.mk s (f q)) :=
-  fun a b hab => Quotient.sound (hf a b hab)
-
--- ============================================================
 -- §4. Composition
 -- ============================================================
 
@@ -211,121 +142,6 @@ theorem InterApparatusMorphism.compose {Q1 Q2 Q3 : Type*}
     InterApparatusMorphism (g ∘ f) :=
   fun x y hxy => hg _ _ (hf x y hxy)
 
-/-- Lifts distribute over composition.
-
-`(hf.compose hg).lift = hg.lift ∘ hf.lift`
-
-**Proof**: for any representative `a : Q1`, both sides reduce definitionally to
-`⟦g (f a)⟧` (by `lift_mk` applied twice, each a `rfl`-reduction). So `rfl` closes
-the goal at the representative level; `Quotient.inductionOn` discharges the quotient
-universal quantifier.
-
-**Functor law**: this is the composition axiom for the functor
-`(apparatus, IAM) → (Quotient-types, maps)`: composition maps to composition.
-
-## Axiom profile: [] -/
-theorem InterApparatusMorphism.lift_compose {Q1 Q2 Q3 : Type*}
-    [Setoid Q1] [s2 : Setoid Q2] [Setoid Q3]
-    {f : Q1 → Q2} {g : Q2 → Q3}
-    (hf : InterApparatusMorphism f) (hg : InterApparatusMorphism g) :
-    (hf.compose hg).lift = hg.lift ∘ hf.lift := by
-  funext q
-  exact Quotient.inductionOn q (fun _ => rfl)
-
--- ============================================================
--- §5. Canonical instance: ZFC → ZFA representative embedding
--- ============================================================
-
-/-- The ZFC→ZFA representative embedding `embedPSet : PSet → CoPSet` is an
-inter-apparatus morphism from the ZFC apparatus `(PSet, PSet.setoid)` to the
-ZFA apparatus `(CoPSet, CoPSet.instSetoid)`.
-
-**Condition**: `PSet.Equiv x y → CoPSet.Equiv (embedPSet x) (embedPSet y)`.
-
-**Proof**: `embedPSet_congr` from VR-Sets-ZFA Embedding.lean (Stage 3 of that work).
-The bisimulation argument establishing forward faithfulness of the embedding
-is precisely the IAM certificate. `fun x y hxy => VR.SetsZFA.embedPSet_congr hxy`.
-
-**Apparatus reading**:
-  Source: `(PSet, PSet.setoid)` — ZFC reference apparatus (instRefOpPSet, Instances.lean).
-  Target: `(CoPSet, CoPSet.instSetoid)` — ZFA reference apparatus (instRefOpCoPSet, Reference.lean).
-
-**Methodological re-reading of v0.1.0**:
-  `embedPSet_congr_modeA_pattern` (Instances.lean, Group D) stated the same congruence
-  as a direct theorem, without the IAM wrapper. The v0.1.0 observation that this was
-  "the cross-apparatus Mode A pattern" is now formalised: it IS an IAM certificate.
-  Stage 5 (v0.1.0) identified the gap; Stage 2 (v1.0.0) fills it.
-
-## Axiom profile: [propext, Classical.choice, Quot.sound]
-  Inherited from CoPSet.instSetoid/OSetZFA infrastructure:
-  PFunctor.M (coinductive M-type) pulls Classical.choice.
-  Quot.sound: quotient reasoning. propext: standard ceiling. -/
-theorem embedPSet_isInterApparatus :
-    @InterApparatusMorphism PSet VR.SetsZFA.CoPSet
-      PSet.setoid VR.SetsZFA.CoPSet.instSetoid
-      VR.SetsZFA.embedPSet :=
-  fun _ _ hxy => VR.SetsZFA.embedPSet_congr hxy
-
--- ============================================================
--- §6. embedOSet as inter-apparatus lift
--- ============================================================
-
-/-- The ZFC→ZFA quotient embedding `embedOSet : ZFSet → OSetZFA` equals the
-lift of the inter-apparatus morphism `embedPSet`.
-
-`embedOSet = embedPSet_isInterApparatus.lift`
-
-**Proof**: for any representative `p : PSet`:
-  - LHS: `embedOSet ⟦p⟧ = OSetZFA.mk (embedPSet p)` (by `embedOSet_mk`, `rfl`).
-  - RHS: `embedPSet_isInterApparatus.lift ⟦p⟧ = Quotient.mk CoPSet.instSetoid (embedPSet p)`
-    (by `lift_mk`, `rfl`). And `OSetZFA.mk = Quotient.mk CoPSet.instSetoid` definitionally.
-Both sides are `rfl` at representatives; `Quotient.inductionOn` discharges the quotient.
-
-**Architectural content**:
-  VR-Sets-ZFA's `embedOSet` was constructed via `Quotient.lift` with `embedPSet_congr`
-  as the well-definedness proof (Embedding.lean §5). The IAM framework re-reads this:
-    `embedOSet` = the categorical lift of the IAM `embedPSet`.
-  The v0.1.0 construction IS the v1.0.0 IAM lift — the framework retroactively
-  formalises the existing embedding in apparatus terms.
-
-**Type note**:
-  `ZFSet = Quotient PSet.setoid` (mathlib definition, definitional equality).
-  `OSetZFA = Quotient CoPSet.instSetoid` (VR-Sets-ZFA definition, definitional equality).
-  Both sides have type `Quotient PSet.setoid → Quotient CoPSet.instSetoid`
-  (= `ZFSet → OSetZFA`). No coercion needed.
-
-## Axiom profile: [propext, Classical.choice, Quot.sound]
-  Inherited from `embedPSet_isInterApparatus` (CoPSet infrastructure). -/
-theorem embedOSet_eq_interApparatus_lift :
-    VR.SetsZFA.embedOSet = embedPSet_isInterApparatus.lift := by
-  funext q
-  exact Quotient.inductionOn q (fun _ => rfl)
-
--- ============================================================
--- §7. Verification examples
--- ============================================================
-
--- Identity map is always an IAM (reflexivity of ≈).
-example {Q : Type*} [s : Setoid Q] :
-    @InterApparatusMorphism Q Q s s id :=
-  fun _ _ h => h
-
--- Composition: identity ∘ embedPSet = embedPSet, certified as IAM.
-example : @InterApparatusMorphism PSet VR.SetsZFA.CoPSet
-    PSet.setoid VR.SetsZFA.CoPSet.instSetoid (id ∘ VR.SetsZFA.embedPSet) :=
-  embedPSet_isInterApparatus.compose (fun _ _ h => h)
-
--- lift_mk computation: lift at a PSet representative.
-example (p : PSet) :
-    embedPSet_isInterApparatus.lift (Quotient.mk PSet.setoid p) =
-    Quotient.mk VR.SetsZFA.CoPSet.instSetoid (VR.SetsZFA.embedPSet p) :=
-  rfl
-
--- IsModeAOp_of_interApparatus: identity IAM → Mode A map fun q => ⟦q⟧.
-example {Q : Type*} [s : Setoid Q] :
-    ReferenceOperationality.IsModeAOp (fun q => Quotient.mk s q) :=
-  IsModeAOp_of_interApparatus (fun _ _ h => h)
-
 -- ============================================================
 -- Axiom audit — Stage 2, InterMorphism.lean
 -- ============================================================
@@ -347,12 +163,6 @@ example {Q : Type*} [s : Setoid Q] :
 -- CHECKS: no sorry, no admit.
 
 #print axioms InterApparatusMorphism
-#print axioms InterApparatusMorphism.lift
-#print axioms InterApparatusMorphism.lift_mk
-#print axioms IsModeAOp_of_interApparatus
 #print axioms InterApparatusMorphism.compose
-#print axioms InterApparatusMorphism.lift_compose
-#print axioms embedPSet_isInterApparatus
-#print axioms embedOSet_eq_interApparatus_lift
 
 end VR.Apparatus

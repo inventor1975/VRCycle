@@ -19,6 +19,7 @@
 -- the operational domain (Finding CONT-4 addressed for that domain).
 
 import VRCycle.Continuum.UniformContinuity
+import Mathlib.Data.Nat.Find   -- Nat.find (on [])
 
 namespace VRCycle.Continuum
 -- No auto-generated `injEq` lemmas (they carry `propext`); the empty axiom list is the bar (2026-09-12).

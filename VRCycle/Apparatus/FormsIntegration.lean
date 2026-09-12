@@ -88,7 +88,7 @@
 -- - Stage 1 reads VR-Forms through apparatus lens; does not rewrite it.
 -- - Apparatus.lean updated to import this file.
 
-import VRCycle.Apparatus.Numbers
+import VRCycle.Apparatus.Composition
 import VRCycle.Forms.Transit
 
 namespace VR.Apparatus

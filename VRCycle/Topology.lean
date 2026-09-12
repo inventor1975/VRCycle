@@ -13,4 +13,3 @@ import VRCycle.Topology.Continuous
 import VRCycle.Topology.Product
 import VRCycle.Topology.Compact
 import VRCycle.Topology.Tychonoff
-import VRCycle.Topology.Bridge

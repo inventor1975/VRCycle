@@ -354,31 +354,19 @@ import VRCycle.Apparatus.Wrapping
 import VRCycle.Apparatus.Reference
 import VRCycle.Apparatus.ModeA
 import VRCycle.Apparatus.ModeB
-import VRCycle.Apparatus.Instances
 import VRCycle.Apparatus.Factorisation
-import VRCycle.Apparatus.Separability
 import VRCycle.Apparatus.InterMorphism
 import VRCycle.Apparatus.Composition
-import VRCycle.Apparatus.Numbers
 import VRCycle.Apparatus.FormsIntegration
 
 -- ============================================================
 -- Cross-apparatus verification (requires both Wrapping + Reference)
 -- ============================================================
 
--- These examples require IsComputableReal (from Wrapping) and
--- OSetZFA (from Reference), so they live here in the module index.
+-- The concrete cross-apparatus examples (IsComputableReal over ℝ, OSetZFA) moved to
+-- VRClassical/Apparatus.lean on 2026-09-12 (integrity programme: the core stays on []).
 
 namespace VR.Apparatus
-
-/-- The predicate-wrapping apparatus (IsComputableReal) has AsPoint identity. -/
-example : @PredicateOperationality.identityNature ℝ VR.Audit.IsComputableReal _ =
-    IdentityNature.AsPoint := rfl
-
-/-- The reference semantics apparatus (OSetZFA) has AsReference identity. -/
-example : @ReferenceOperationality.identityNature
-    VR.SetsZFA.CoPSet VR.SetsZFA.CoPSet.instSetoid instRefOpCoPSet =
-    IdentityNature.AsReference := rfl
 
 /-- The two apparatus modes are categorically distinct. -/
 example : IdentityNature.AsPoint ≠ IdentityNature.AsReference := by decide
@@ -393,18 +381,9 @@ section SpotCheckAxioms
 #print axioms IsModeBOp.lift_val
 -- Expected: 'VR.Apparatus.IsModeBOp.lift_val' does not depend on any axioms
 
--- Tier 2: [Quot.sound] (representative: IAM lift — NEW tier in v1.0.0)
-#print axioms InterApparatusMorphism.lift_mk
--- Expected: 'VR.Apparatus.InterApparatusMorphism.lift_mk' depends on axioms: [Quot.sound]
-
 -- Tier 3: [propext, Quot.sound] (representative: VR-Forms integration)
 #print axioms instPredicateOpFormalTerm
 -- Expected: 'VR.Apparatus.instPredicateOpFormalTerm' depends on axioms: [propext, Quot.sound]
-
--- Tier 4: [propext, Classical.choice, Quot.sound] (representative: concrete Mode B)
-#print axioms riesz_extension_isModeBOp
--- Expected: 'VR.Apparatus.riesz_extension_isModeBOp' depends on axioms:
---           [propext, Classical.choice, Quot.sound]
 
 end SpotCheckAxioms
 

@@ -10,7 +10,7 @@
 -- predicates on formal terms — Lean `Prop`s at the meta level, not a third register.
 -- Integrity programme, step 3 (2026-09-12): operational register = `OpSet`; the ZFC-register
 -- junction (`mixed_AFA_two_registers`) reads the ZFA boundary correctly as a MODE boundary.
-import VRCycle.Forms.Bridge
+import VRCycle.Forms.Transit
 
 namespace VR.Forms
 
@@ -26,19 +26,10 @@ operational correlate. -/
 theorem mixed_omega_two_register : (OpSet.vn 0).Mem OpSet.omega ∧ isRealisable ⌜"omega"⌝ :=
   ⟨OpSet.empty_mem_omega, isRealisable_omega⟩
 
-/-- §VII.2 junction formula, corrected by the operational universe: ⌜AFA⌝ is realised in `OpSet`
-(the formal register's anti-foundation description has an operational correlate — `OpSet.afa`),
-while its ZFC-register reading is refuted in Mathlib's well-founded universe.  The ZFA boundary of
-VR-Sets (Part X §X.3 B.5) is thereby located: a boundary of groundedness (a mode), not of
-operationality. -/
-theorem mixed_AFA_two_registers :
-    isRealisable ⌜"AFA"⌝ ∧ ¬isRealisableZFC ⌜"AFA_Statement"⌝ := afa_two_registers
-
 #print axioms not_isRealisable_Russell
 #print axioms not_isRealisable_Vitali
 #print axioms not_isRealisable_classical_R
 #print axioms not_isRealisable_classical_powerset_N
 #print axioms mixed_omega_two_register
-#print axioms mixed_AFA_two_registers
 
 end VR.Forms

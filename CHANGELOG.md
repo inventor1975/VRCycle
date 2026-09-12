@@ -1,5 +1,53 @@
 # Changelog
 
+## The perimeter: `VRCycle` = VR proper on `[]`, `VRClassical` = the classical register — 2026-09-12
+
+The curator's question after the integrity programme: "can I say VR in Lean is without axioms?" The
+answer was "not as one sentence — 51 of 111 modules", because VR proper and the classical material
+around it (Mathlib's ℝ, `ZFSet`, `PSet`, Hahn–Banach, Brouwer over ℝ, the quotient bridges) lived in
+one library. This commit draws the perimeter IN CODE:
+
+* **Two Lake libraries in one package.** `VRCycle` is VR proper: `VR.lean`, the witnessed numbers
+  (`Numbers/Integers` = `IntExpr`/`intEq` and its operations, `IntegersOp`, `IntegersOrd`,
+  `RationalsOp`, `RealsOp`), `SetsZTL`, `SetsOp`, the forms (`Language`, `Realisability`, `Transit`,
+  `Substrate`, `Examples`, `Conservativity*`), the topology tower (`FormalTopology` … `Tychonoff`), the
+  continuum (`Branch`, `Spread`, `Cover`, `BarSound`, `Cantor`, `Cardinal`, `Choice`, `Model`,
+  `Registers`, `UnitInterval`, `UniformContinuity`, `ListCore`), the apparatus (`Identity`, `Wrapping`,
+  `Reference`, `ModeA`, `ModeB`, `Factorisation`, `InterMorphism`, `Composition`, `FormsIntegration`)
+  and the instruments (`Meta/CSRNorm`, `Meta/DependsOn`). `VRClassical` depends on it and holds
+  everything stated ABOUT Mathlib objects or lifted to Lean's `Quotient`: `Algebra`, `Audit`,
+  `Brouwer`, `Sets` (ZFC over `ZFSet`), `SetsZFA`, `Transit`, the old `Numbers/{Rationals,Reals,Complex}`
+  over Mathlib and the new `Numbers/IntegersBridge` (`ℤ_VR := Quotient …` and Theorem II.6 ≅ `Int`,
+  split out of `Integers.lean`), `Continuum/{Rational,Real,GaussianRational,Spectrum,ClassicalBoundary}`,
+  `Forms/Bridge` (with `mixed_AFA_two_registers`), `Topology/Bridge` and `_attic`, `Apparatus/{Instances,
+  Numbers,Separability}`, the classical instances split out of the apparatus files
+  (`VRClassical/Apparatus/{Wrapping,Reference,ModeA,ModeB,Factorisation,InterMorphism}` — ℝ/`IsComputableReal`,
+  `OSetZFA`, Riesz, `embedPSet`), the apparatus QUOTIENT BRIDGE (`VRClassical/Apparatus/QuotientBridge`:
+  `InterApparatusMorphism.lift`, `lift_mk`, `lift_compose`, `IsModeAOp_of_interApparatus`,
+  `IsModeAOp_quotientMk`, `modeA_liftFn_quotientMk_eq_id`, `modeA_liftFn_comp_interApparatus`, all
+  `[Quot.sound]`), `Meta/DoingNotBeing` and `Examples/`. Module names: `VRCycle.X` → `VRClassical.X`;
+  imports rewritten; `defaultTargets` builds both.
+* **The guard.** `VRCycle/Guard.lean` (imported by the root) runs `#assert_axiom_free_library VRCycle`
+  (new command in `Meta/DependsOn.lean`): the build of the core FAILS if any declaration of any
+  `VRCycle.*` module carries `propext`, `Quot.sound`, `Classical.choice` or `sorryAx`; structural
+  constants and meta code (anything mentioning a `Lean.*` constant) are skipped. Measured on this
+  commit: **1516 declarations checked, all on `[]`**. The sentence "VR is formalised in Lean 4 with an
+  empty axiom list" is now a build invariant of the `VRCycle` library, not a claim.
+* **Last residues repaid.** `SetsOp/Describable`: the enumeration of finite descriptions no longer
+  uses Mathlib's `deriving Encodable` (`Classical.choice` via `Nat.unpair_pair`); it is built by nested
+  finite stages (`stage n` = every description of depth ≤ n, a list) and a diagonal `descEnum k` =
+  `k`-th entry of stage `k`; surjectivity by structural induction with the `[]` list lemmas of
+  `ListCore` — the 2026-06-08 "decision (A)" flag is closed. `Continuum/Choice` no longer imports
+  `ClassicalBoundary` (the formal-register contrast `not_continuity` is classical by design and lives
+  in `VRClassical`). `SetsOp/Becoming` imports `Mathlib.Data.Nat.Init` directly instead of the whole
+  continuum. `Apparatus/FormsIntegration` no longer depends on the Mathlib-number instances.
+* **What "without axioms" means here, stated once:** without the three declared axioms of Lean
+  (`propext`, `Quot.sound`, `Classical.choice`) and without `sorry`. Lean's type theory — the
+  calculus of inductive constructions with its `Prop`, universes and the `Quot` primitive — is the
+  proof checker, not an axiom of VR; that is the curator's reading and the honest one.
+* Not done: the per-module README prose still cites the old paths for the classical modules; the
+  blueprint likewise. Cosmetic, to be swept separately.
+
 ## Integrity programme, steps 4–5: topology verdict and the witnessed apparatus — 2026-09-12
 
 * **Step 4 — topology.** Verdict recorded in the header of `Topology/Bridge.lean`: the operational

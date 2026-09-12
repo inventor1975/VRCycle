@@ -292,4 +292,5 @@ theorem filter_mem_subl {α : Type _} (p : α → Bool) : ∀ (l : List α), l.f
       rw [List.filter_cons_of_neg (fun e => Bool.noConfusion (hp.symm.trans e))]
       exact (mem_append_iff).mpr (Or.inl (filter_mem_subl p l))
 
+
 end VRCycle.Continuum.ListCore

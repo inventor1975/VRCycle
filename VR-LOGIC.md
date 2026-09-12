@@ -70,8 +70,14 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 >    endomorphism + congruence certificate, identity `id`, laws pointwise up to `≈`, all on `[]`;
 >    the three `Quotient` theorems remain as the quotient bridge (`[Quot.sound]`). The reverse
 >    bridge (from `Q → Quotient s` back to a witnessed map) needs `Quotient.out` — the T→O absence
->    in miniature; not provided. The programme 1→5 is complete; what remains outside `[]` is
->    bridges (kind 3) and the Mathlib-object instances (`ZFSet`, `PSet`, `Finset`, `AddSubgroup`).
+>    in miniature; not provided. The programme 1→5 is complete. **The perimeter (same day):** the repository
+>    is now two Lake libraries — `VRCycle` = VR proper, `VRClassical` = the classical register and
+>    the bridges (everything stated about Mathlib objects or lifted to `Quotient`). The core is
+>    guarded at build time (`VRCycle/Guard.lean`, `#assert_axiom_free_library`): any declaration of
+>    any `VRCycle.*` module carrying `propext`, `Quot.sound`, `Classical.choice` or `sorryAx` fails
+>    the build. Measured 2026-09-12: 1516 declarations, all on `[]`. So "VR is formalised in Lean 4
+>    with an empty axiom list" is a build invariant of the `VRCycle` library; "without axioms" means
+>    without Lean's three declared axioms — Lean's type theory is the checker, not an axiom of VR.
 > 3. *Wired in — the limit* — statements about Mathlib's own objects: `ZFSet` (VR-Sets, VR-Forms
 >    realisability), `AddSubgroup` (Algebra), `Finset` (Transit), `Set.ext` in the bridge theorems,
 >    and the isomorphisms with Mathlib's `ℤ`/`ℚ`/`ℝ` (`Rat.add` itself carries `Classical.choice`).

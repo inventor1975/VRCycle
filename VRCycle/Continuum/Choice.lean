@@ -29,7 +29,6 @@
 
 import VRCycle.Continuum.ListCore
 import VRCycle.Continuum.Model              -- NbhdFun, continuity_of_nbhd  (operational Continuity TRUE)
-import VRCycle.Continuum.ClassicalBoundary  -- not_continuity               (formal Continuity FALSE)
 import Mathlib.Data.List.Range
 
 namespace VRCycle.Continuum
@@ -240,7 +239,7 @@ theorem no_unique_leader (f : S → S → S → S) (L R : Fin m → Fin m)
 -- ============================================================
 #print axioms operational_dependent_choice
 #print axioms operational_choice_available
-#print axioms not_continuity   -- the formal-register contrast: classical by design
+-- (`not_continuity`, the formal-register contrast, lives in VRClassical/Continuum/ClassicalBoundary.lean)
 #print axioms no_symmetric_selector
 #print axioms socks_no_rule
 #print axioms shoes_rule_exists

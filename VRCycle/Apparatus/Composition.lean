@@ -90,8 +90,9 @@
 --
 -- Integrity step 5 (2026-09-12): the three [Quot.sound] objects are the
 -- QUOTIENT BRIDGE (Lean's `Quotient`, kind 3 in VR-LOGIC §1); the same algebra
--- is stated in the witnessed register in §2b on []. 15 objects axiom-free [];
--- 3 bridge objects [Quot.sound]. No propext, no Classical.choice.
+-- is stated in the witnessed register in §2b on []. The bridge objects moved to
+-- VRClassical/Apparatus/QuotientBridge.lean (same day, library split); every
+-- object left in this file is on [] — enforced by VRCycle/Guard.lean.
 --
 -- ## Productive triviality — fifth through seventh instances
 -- Identity proofs (A1, A3, A4) are one-liners; B1 is one-liner.
@@ -149,43 +150,6 @@ namespace VR.Apparatus
 theorem PredicateOperationality.IsModeAOp_id {T : Type*} {P : T → Prop} :
     @PredicateOperationality.IsModeAOp T P id :=
   fun _ hx => hx
-
-/-- Reference Mode A identity: `Quotient.mk s` is a Mode A map for `(Q, s)`.
-
-`IsModeAOp (Quotient.mk s) = ∀ a b : Q, a ≈ b → Quotient.mk s a = Quotient.mk s b`
-
-**Proof**: `fun a b hab => Quotient.sound hab`. Equivalent representatives give
-equal quotient elements — Quotient.sound exactly.
-
-**Compositional role**: identity element of the Level 2 composition monoid.
-Unlike Levels 1, 3, 4 where `id` is the identity, Level 2's identity element
-is `Quotient.mk s` (type: Q → Quotient s, not Q → Q), because Level 2 maps
-are Q → Quotient s, not endomorphisms on Q. The lifted identity is `id` on
-Quotient s (see `modeA_liftFn_quotientMk_eq_id`).
-
-## Axiom profile: [Quot.sound] -/
-theorem ReferenceOperationality.IsModeAOp_quotientMk {Q : Type*} [s : Setoid Q] :
-    ReferenceOperationality.IsModeAOp (Quotient.mk s) :=
-  fun _ _ hab => Quotient.sound hab
-
-/-- The Mode A lift of `Quotient.mk s` is the identity on `Quotient s`.
-
-`modeA_liftFn IsModeAOp_quotientMk = id`
-
-**Proof**: `modeA_liftFn IsModeAOp_quotientMk ⟦a⟧ = Quotient.mk s a = ⟦a⟧`.
-`rfl` at representative level; `Quotient.inductionOn` discharges the quotient.
-
-**Identity certificate**: completes the Level 2 identity element story.
-`IsModeAOp_quotientMk`: "Quotient.mk s is Mode A."
-`modeA_liftFn_quotientMk_eq_id`: "its lift is the identity function on Quotient s."
-
-## Axiom profile: [Quot.sound] -/
-theorem ReferenceOperationality.modeA_liftFn_quotientMk_eq_id
-    {Q : Type*} [s : Setoid Q] :
-    ReferenceOperationality.modeA_liftFn
-      (@ReferenceOperationality.IsModeAOp_quotientMk Q s) = id := by
-  funext q
-  exact Quotient.inductionOn q (fun _ => rfl)
 
 /-- IAM identity: `id` is an inter-apparatus morphism for any apparatus.
 
@@ -378,35 +342,6 @@ theorem interApparatus_comp_modeA_wd
     ∀ a b : Q1, a ≈ b → (g ∘ f) a = (g ∘ f) b :=
   fun a b hab => hg _ _ (hf a b hab)
 
-/-- Functor law: Mode A lift ∘ IAM lift = direct Quotient.lift of composition.
-
-`modeA_liftFn hg ∘ hf.lift = Quotient.lift (g ∘ f) (interApparatus_comp_modeA_wd hf hg)`
-
-**Proof**: for representative `a : Q1`:
-  - LHS: `(modeA_liftFn hg ∘ hf.lift) ⟦a⟧ = modeA_liftFn hg ⟦f a⟧ = g(f a)`.
-  - RHS: `Quotient.lift (g ∘ f) _ ⟦a⟧ = (g ∘ f) a = g(f a)`.
-Both reduce to `g(f a)` definitionally. `rfl` closes; `Quotient.inductionOn` discharges.
-
-**Two functor laws in the reference track**:
-  Level 3 ∘ Level 3 at quotient: `lift_compose` (Stage 2).
-  Level 3 + Level 2 at quotient: `modeA_liftFn_comp_interApparatus` (Stage 3 B2).
-Together: quotient-level maps respect both within-level and cross-level composition.
-
-**Parallel to**: `InterApparatusMorphism.lift_compose` from Stage 2 (which is the
-IAM ∘ IAM version of this functor law).
-
-## Axiom profile: [Quot.sound]
-  Quotient.inductionOn uses Quot.sound. -/
-theorem modeA_liftFn_comp_interApparatus
-    {Q1 Q2 : Type*} [s1 : Setoid Q1] [s2 : Setoid Q2]
-    {f : Q1 → Q2} {g : Q2 → Quotient s2}
-    (hf : InterApparatusMorphism f)
-    (hg : @ReferenceOperationality.IsModeAOp Q2 s2 g) :
-    ReferenceOperationality.modeA_liftFn hg ∘ hf.lift =
-    Quotient.lift (g ∘ f) (interApparatus_comp_modeA_wd hf hg) := by
-  funext q
-  exact Quotient.inductionOn q (fun _ => rfl)
-
 -- ============================================================
 -- §4. Finding S3-A — Two parallel tracks (non-composability)
 -- ============================================================
@@ -472,27 +407,6 @@ example {T : Type*} {P : T → Prop} {f : T → T}
     @PredicateOperationality.IsModeAOp T P (f ∘ id) :=
   hf
 
--- Level 2 identity: the lift of IsModeAOp_quotientMk is id on Quotient.
-example {Q : Type*} [s : Setoid Q] (q : Quotient s) :
-    ReferenceOperationality.modeA_liftFn
-      (@ReferenceOperationality.IsModeAOp_quotientMk Q s) q = q := by
-  simp [ReferenceOperationality.modeA_liftFn_quotientMk_eq_id]
-
--- Level 3 identity: lift of id_isInterApparatus is id on the quotient.
-example {Q : Type*} [s : Setoid Q] :
-    (@InterApparatusMorphism.id_isInterApparatus Q s).lift = id := by
-  funext q
-  exact Quotient.inductionOn q (fun _ => rfl)
-
--- Cross-level B1: embedPSet_isInterApparatus + IsModeAOp_quotientMk.
--- Well-definedness for composing embedPSet (IAM) with Quotient.mk CoPSet.instSetoid (Mode A).
-example :
-    ∀ a b : PSet, a ≈ b →
-      (Quotient.mk VR.SetsZFA.CoPSet.instSetoid ∘ VR.SetsZFA.embedPSet) a =
-      (Quotient.mk VR.SetsZFA.CoPSet.instSetoid ∘ VR.SetsZFA.embedPSet) b :=
-  interApparatus_comp_modeA_wd embedPSet_isInterApparatus
-    ReferenceOperationality.IsModeAOp_quotientMk
-
 -- ============================================================
 -- §6. Axiom audit — Stage 3, Composition.lean
 -- ============================================================
@@ -517,12 +431,9 @@ example :
 -- CHECKS: no sorry, no admit.
 
 #print axioms PredicateOperationality.IsModeAOp_id
-#print axioms ReferenceOperationality.IsModeAOp_quotientMk
-#print axioms ReferenceOperationality.modeA_liftFn_quotientMk_eq_id
 #print axioms InterApparatusMorphism.id_isInterApparatus
 #print axioms IsModeBOp_id
 #print axioms interApparatus_comp_modeA_wd
-#print axioms modeA_liftFn_comp_interApparatus
 #print axioms ReferenceOperationality.IsModeAOpW_id
 #print axioms ReferenceOperationality.IsModeAOpW.compose
 #print axioms ReferenceOperationality.IsModeAOpW.of_pointwise

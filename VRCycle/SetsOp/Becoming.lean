@@ -11,7 +11,7 @@
 -- `universe_not_enumerable` are now axiom-free).
 
 import VRCycle.SetsOp.Congruence
-import VRCycle.Continuum
+import Mathlib.Data.Nat.Init   -- Nat.strong_induction_on (on [])
 
 namespace VRCycle.SetsOp
 

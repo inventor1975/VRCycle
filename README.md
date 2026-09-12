@@ -15,6 +15,20 @@
 
 Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, a domain extension demonstrating apparatus generality in algebra, and constructive predicative formal topology with the binary Tychonoff theorem. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra **v1.0.0** — stable release, git tag `v1.12-vr-operational-algebra-v1.0.0`) and **ninth work** (VR-Topology **v1.0.0**, git tag `v1.13-vr-topology-v1.0.0`) in this repository (both pending Zenodo submission); and a **tenth work** (VR-Transit **v1.0.0**, transit conservativity and a bounded witness library, git tag `v1.15-vr-transit-v1.0.0`, code cited by git tag, no Zenodo by curatorial decision). Algebra: 64 public objects, Findings A0–A19, closed Recognition Discipline Loop. Topology: ~85+ public objects, binary Tychonoff, zero `Classical.choice` including Order.Frame bridge.
 
+## Two libraries: `VRCycle` (VR proper, axiom-free by construction) and `VRClassical`
+
+Since 2026-09-12 the package builds **two Lake libraries**:
+
+| library | what it is | axiom profile |
+|---|---|---|
+| **`VRCycle`** | VR proper: `VR.lean`, the witnessed numbers ℤ→ℚ→ℝ on their own pairs (`Numbers/*Op`), the ZTL and operational set universes (`SetsZTL/`, `SetsOp/`), the forms (`Forms/`), the topology tower (`Topology/` up to Tychonoff), the Brouwer continuum (`Continuum/`), the apparatus (`Apparatus/`), the instruments (`Meta/`) | **`[]` for every declaration** — enforced at build time by `VRCycle/Guard.lean` (`#assert_axiom_free_library VRCycle`); `lake build VRCycle` fails otherwise. 2026-09-12: 1516 declarations checked. |
+| **`VRClassical`** | the classical register and the bridges: the old ℤ/ℚ/ℝ/ℂ over Mathlib and their isomorphisms, ZFC/ZFA (`Sets/`, `SetsZFA/`), Brouwer's fixed point over Mathlib's ℝ, the Hilbert/Hahn–Banach audit, algebra instances, transit examples, the quotient bridges of the continuum (`Qop`, `GaussQ`, `Real`) and of the apparatus, the Mathlib Frame bridge of the topology, the ZFC reading of the forms, apparatus instances over ℝ/`PSet` | the standard Lean/Mathlib axioms, declared per object |
+
+`VRClassical` depends on `VRCycle`; nothing in `VRCycle` depends on it. "Axiom-free" means free of Lean's
+three declared axioms (`propext`, `Quot.sound`, `Classical.choice`) and of `sorry`; Lean's type theory is
+the checker. Paths in the per-module sections below that name `Sets/`, `SetsZFA/`, `Audit/`, `Brouwer/`,
+`Algebra/`, `Transit/`, `Numbers/{Rationals,Reals,Complex}`, `*/Bridge.lean` now live under `VRClassical/`.
+
 ## Publications
 
 Fourteen Zenodo records (seven works × Lean + preprint). Two further works (Operational Algebra v1.0.0, VR-Topology v1.0.0) are in this repository under the git tags below, pending Zenodo submission. All Lean formalisations are in this repository under the listed git tags.

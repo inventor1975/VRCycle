@@ -20,7 +20,6 @@
 import VRCycle.Forms.Language
 import VRCycle.Forms.Realisability
 import VRCycle.Forms.Transit
-import VRCycle.Forms.Bridge
 import VRCycle.Forms.Examples
 import VRCycle.Forms.Substrate
 import VRCycle.Forms.Conservativity
