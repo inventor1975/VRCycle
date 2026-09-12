@@ -1,5 +1,33 @@
 # Changelog
 
+## Integrity programme, step 1a: `csr_ring` and the witnessed rationals — 2026-09-12
+
+The curator's programme (2026-09-12): VR must stand on itself from arithmetic to the top — numbers
+on `[]` as witnessed layers, then sets = `SetsZTL`/`SetsOp`, forms over them, topology over them,
+apparatus with witnessed identity. Step 1 is the number floor.
+
+* **New instrument `Meta/CSRNorm.lean` — `csr_ring`, a `ring` on `[]` up to an equivalence.**
+  A structure `CSR α` (an equivalence `r` that is a congruence for `add`/`mul`/`neg`, and the
+  commutative-ring laws up to `r`); polynomial expressions reified into `PE`, normalised into
+  sorted signed monomials by a computable `norm`; `norm_sound` proved once from the fields;
+  `eq_of_norm` closes `r lhs rhs` when the normal forms coincide (equality decided by kernel
+  evaluation, `Nat.decEq`/`instDecidableEqList`, both on `[]`). Measured: the four-pair identity
+  that `simp`-driven AC-rewriting could not finish in 300 s closes in the blink of an eye, whole
+  test file 1.6 s; `#print axioms` empty. No cancellation `m + (−m) = 0` (done by hand where
+  needed). Found on the way: `List.getD` and overlapping-pattern `match` splitters carry `propext`.
+  Instances: `VRObj.csr` (`vr_ring`), `IntExpr.csr` up to `intEq` (`int_ring` — pairs as atoms,
+  no unfolding), `QExpr.csr` up to `qEq` (`rat_ring`).
+* **`Numbers/IntegersOp.lean` extended:** `vmul_right_cancel` (through `O`/`O_inv` and
+  `Nat.eq_of_mul_eq_mul_right`), canonical-form products, `imul_ne_zero`, **`imul_cancel_right`**
+  (`e·g ≈ f·g`, `g ≉ 0` ⟹ `e ≈ f`), `imul_eq_zero`, decidable equality of `VRObj` and of `intEq`.
+* **New `Numbers/RationalsOp.lean` — ℚ_VR with witnessed identity on `[]`:** `QExpr` (numerator
+  and denominator as integer pairs, denominator `≉ 0`), `qEq` by cross-multiplication, `qEq_trans`
+  by cancellation, `qadd`/`qneg`/`qmul`/`qinv`/`qofInt` with their congruences (`num_nz_respects`:
+  a non-zero numerator is a property of the class), the field laws up to `qEq`, `qzero_ne_one`,
+  the embedding `qofInt` a ring homomorphism. Every theorem on `[]` (offenders 0/0/0). Still to
+  come for this floor: the order (positive denominators, `qle`/`qlt`, trichotomy, decidability) and
+  ℝ_VR; then the continuum's `Qop`/`Real` are moved onto these.
+
 ## Empty-list sweep, waves 4–8 — 2026-09-12
 
 Census: modules with no axiom at all 36 → **43** (of 107; 47 carry `Classical.choice` through

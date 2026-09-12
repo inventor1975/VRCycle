@@ -4,6 +4,7 @@
 -- each level is built strictly over the previous one.
 import VRCycle.Numbers.Integers
 import VRCycle.Numbers.IntegersOp
+import VRCycle.Numbers.RationalsOp
 import VRCycle.Numbers.Rationals
 import VRCycle.Numbers.Reals
 import VRCycle.Numbers.Complex
