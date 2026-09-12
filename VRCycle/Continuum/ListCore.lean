@@ -174,4 +174,122 @@ theorem nth_of_mem {α : Type _} {x : α} : ∀ {l : List α}, x ∈ l → ∃ n
       match nth_of_mem h with
       | ⟨n, hn⟩ => ⟨n + 1, hn⟩
 
+-- ------------------------------------------------------------
+-- Membership, on `[]` (added for Topology.Tychonoff, 2026-09-12).  Core's `List.mem_cons`,
+-- `mem_append`, `mem_map`, `mem_filter`, `mem_flatMap`, `mem_sublists`, `Bool.not_eq_true'`,
+-- `decide_eq_false_iff_not` and the `Decidable (a ∈ l)` instance all reach `propext`.
+-- These are the same statements by induction on the list / cases on `List.Mem`.
+-- NOTE: rewrite with them only through `.mp` / `.mpr` — `rw` with an `Iff` goes through `propext`.
+-- ------------------------------------------------------------
+
+theorem mem_cons_iff {α : Type _} {a b : α} {l : List α} : a ∈ b :: l ↔ a = b ∨ a ∈ l :=
+  ⟨fun h => match h with
+    | List.Mem.head _ => Or.inl rfl
+    | List.Mem.tail _ h' => Or.inr h',
+   fun h => match h with
+    | Or.inl e => e ▸ List.Mem.head l
+    | Or.inr h' => List.Mem.tail b h'⟩
+
+theorem mem_append_iff {α : Type _} {a : α} : ∀ {l m : List α}, a ∈ l ++ m ↔ a ∈ l ∨ a ∈ m
+  | [], m => ⟨fun h => Or.inr h, fun h => match h with
+      | Or.inl h' => nomatch h'
+      | Or.inr h' => h'⟩
+  | b :: l, m =>
+    ⟨fun h => match mem_cons_iff.mp h with
+      | Or.inl e => Or.inl (e ▸ List.Mem.head l)
+      | Or.inr h' => match (mem_append_iff (l := l) (m := m)).mp h' with
+        | Or.inl hl => Or.inl (List.Mem.tail b hl)
+        | Or.inr hm => Or.inr hm,
+     fun h => match h with
+      | Or.inl hl => match mem_cons_iff.mp hl with
+        | Or.inl e => e ▸ List.Mem.head (l ++ m)
+        | Or.inr hl' => List.Mem.tail b ((mem_append_iff (l := l) (m := m)).mpr (Or.inl hl'))
+      | Or.inr hm => List.Mem.tail b ((mem_append_iff (l := l) (m := m)).mpr (Or.inr hm))⟩
+
+theorem mem_map_iff {α β : Type _} {f : α → β} {b : β} :
+    ∀ {l : List α}, b ∈ l.map f ↔ ∃ a, a ∈ l ∧ f a = b
+  | [] => ⟨(fun h => nomatch h), (fun ⟨_, h, _⟩ => nomatch h)⟩
+  | a :: l =>
+    ⟨fun h => match mem_cons_iff.mp h with
+      | Or.inl e => ⟨a, List.Mem.head l, e.symm⟩
+      | Or.inr h' => match (mem_map_iff (l := l)).mp h' with
+        | ⟨a', ha', e⟩ => ⟨a', List.Mem.tail a ha', e⟩,
+     fun ⟨a', ha', e⟩ => match mem_cons_iff.mp ha' with
+      | Or.inl e' => by rw [← e, e']; exact List.Mem.head _
+      | Or.inr h' => List.Mem.tail (f a) ((mem_map_iff (l := l)).mpr ⟨a', h', e⟩)⟩
+
+theorem mem_filter_iff {α : Type _} {p : α → Bool} {a : α} :
+    ∀ {l : List α}, a ∈ l.filter p ↔ a ∈ l ∧ p a = true
+  | [] => ⟨(fun h => nomatch h), (fun ⟨h, _⟩ => nomatch h)⟩
+  | b :: l => by
+    cases hb : p b with
+    | true =>
+      rw [List.filter_cons_of_pos hb]
+      exact ⟨fun h => match mem_cons_iff.mp h with
+          | Or.inl e => ⟨e ▸ List.Mem.head l, e ▸ hb⟩
+          | Or.inr h' => match (mem_filter_iff (l := l)).mp h' with
+            | ⟨hl, hp⟩ => ⟨List.Mem.tail b hl, hp⟩,
+        fun ⟨h, hp⟩ => match mem_cons_iff.mp h with
+          | Or.inl e => e ▸ List.Mem.head _
+          | Or.inr h' => List.Mem.tail b ((mem_filter_iff (l := l)).mpr ⟨h', hp⟩)⟩
+    | false =>
+      rw [List.filter_cons_of_neg (fun e => Bool.noConfusion (hb.symm.trans e))]
+      exact ⟨fun h => match (mem_filter_iff (l := l)).mp h with
+          | ⟨hl, hp⟩ => ⟨List.Mem.tail b hl, hp⟩,
+        fun ⟨h, hp⟩ => match mem_cons_iff.mp h with
+          | Or.inl e => absurd (e ▸ hp) (fun e' => Bool.noConfusion (hb.symm.trans e'))
+          | Or.inr h' => (mem_filter_iff (l := l)).mpr ⟨h', hp⟩⟩
+
+theorem mem_flatMap_iff {α β : Type _} {f : α → List β} {b : β} :
+    ∀ {l : List α}, b ∈ l.flatMap f ↔ ∃ a, a ∈ l ∧ b ∈ f a
+  | [] => ⟨(fun h => nomatch h), (fun ⟨_, h, _⟩ => nomatch h)⟩
+  | a :: l =>
+    ⟨fun h => match (mem_append_iff (l := f a) (m := l.flatMap f)).mp h with
+      | Or.inl h' => ⟨a, List.Mem.head l, h'⟩
+      | Or.inr h' => match (mem_flatMap_iff (l := l)).mp h' with
+        | ⟨a', ha', hb⟩ => ⟨a', List.Mem.tail a ha', hb⟩,
+     fun ⟨a', ha', hb⟩ => match mem_cons_iff.mp ha' with
+      | Or.inl e => (mem_append_iff (l := f a) (m := l.flatMap f)).mpr (Or.inl (e ▸ hb))
+      | Or.inr h' => (mem_append_iff (l := f a) (m := l.flatMap f)).mpr
+          (Or.inr ((mem_flatMap_iff (l := l)).mpr ⟨a', h', hb⟩))⟩
+
+/-- `(!b) = true ↔ b = false`, by cases. -/
+theorem bnot_eq_true_iff : ∀ {b : Bool}, (!b) = true ↔ b = false
+  | true => ⟨fun h => Bool.noConfusion h, fun h => Bool.noConfusion h⟩
+  | false => ⟨fun _ => rfl, fun _ => rfl⟩
+
+/-- `(!decide p) = true ↔ ¬ p`. -/
+theorem bnot_decide_eq_true_iff {p : Prop} [Decidable p] : (!decide p) = true ↔ ¬ p :=
+  ⟨fun h => of_decide_eq_false (bnot_eq_true_iff.mp h),
+   fun h => bnot_eq_true_iff.mpr (decide_eq_false h)⟩
+
+/-- Decidable membership by structural recursion (core's instance reaches `propext`
+through `LawfulBEq`). -/
+def decMem {α : Type _} [DecidableEq α] (a : α) : ∀ (l : List α), Decidable (a ∈ l)
+  | [] => isFalse (fun h => nomatch h)
+  | b :: l =>
+    if h : a = b then isTrue (h ▸ List.Mem.head l)
+    else match decMem a l with
+      | isTrue h' => isTrue (List.Mem.tail b h')
+      | isFalse h' => isFalse (fun hm => match mem_cons_iff.mp hm with
+          | Or.inl e => h e
+          | Or.inr hl => h' hl)
+
+/-- All sublists of a list, by structural recursion: `subl (a :: l) = subl l ++ (subl l).map (a :: ·)`. -/
+def subl {α : Type _} : List α → List (List α)
+  | [] => [[]]
+  | a :: l => subl l ++ (subl l).map (a :: ·)
+
+/-- Every filter of `l` is one of its `subl`. -/
+theorem filter_mem_subl {α : Type _} (p : α → Bool) : ∀ (l : List α), l.filter p ∈ subl l
+  | [] => List.Mem.head _
+  | a :: l => by
+    cases hp : p a with
+    | true =>
+      rw [List.filter_cons_of_pos hp]
+      exact (mem_append_iff).mpr (Or.inr ((mem_map_iff).mpr ⟨l.filter p, filter_mem_subl p l, rfl⟩))
+    | false =>
+      rw [List.filter_cons_of_neg (fun e => Bool.noConfusion (hp.symm.trans e))]
+      exact (mem_append_iff).mpr (Or.inl (filter_mem_subl p l))
+
 end VRCycle.Continuum.ListCore

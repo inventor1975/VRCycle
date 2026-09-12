@@ -27,6 +27,18 @@ namespace VRCycle.Topology
 
 universe u
 
+-- Empty-list sweep (2026-09-12): membership facts come from `Continuum/ListCore.lean` (by
+-- induction, on `[]`) and are used only through `.mp` / `.mpr` — `rw` with an `Iff` and core's
+-- `List.mem_*`, `Bool.not_eq_true'`, `List.instDecidableMemOfLawfulBEq`, `mem_sublists` all reach
+-- `propext`.  `S.sublists` is replaced by the structural `subl S` (only `filter_mem_subl` is used).
+open VRCycle.Continuum.ListCore
+
+attribute [-instance] List.instDecidableMemOfLawfulBEq
+
+/-- Decidable list membership by structural recursion (on `[]`). -/
+instance (priority := high) instDecMemList {α : Type*} [DecidableEq α] (a : α) (l : List α) :
+    Decidable (a ∈ l) := decMem a l
+
 -- ============================================================
 -- Section 1: prodF definition (Vickers's decomposition-based F-witness)
 -- ============================================================
@@ -94,7 +106,7 @@ theorem prodF_inhabited
           intro ha_tail
           apply h
           intros a₁ ha₁
-          rcases List.mem_cons.mp ha₁ with rfl | ha₁'
+          rcases mem_cons_iff.mp ha₁ with rfl | ha₁'
           · exact hh
           · exact ha_tail _ ha₁'
         obtain ⟨a₁, ha₁tail, ha₁'⟩ := ih h_tail
@@ -109,8 +121,7 @@ theorem prodF_inhabited
     intro a₁ ha₁
     obtain ⟨a₂, _, hmem⟩ := h a₁ ha₁
     refine ⟨a₁, ?_, T₁.le_refl a₁⟩
-    rw [List.mem_map]
-    exact ⟨(a₁, a₂), hmem, rfl⟩
+    exact mem_map_iff.mpr ⟨(a₁, a₂), hmem, rfl⟩
   · -- Some a₁ has no (a₁, a₂) ∈ T₁_part.  So all (a₁, a₂) ∈ T₂_part, hence S₂ vL T₂_part.snd.
     obtain ⟨a₁, ha₁S₁, h₂⟩ := extract S₁ h
     right
@@ -118,17 +129,13 @@ theorem prodF_inhabited
     intro a₂ ha₂
     have hT : (a₁, a₂) ∈ T_witness := by
       change (a₁, a₂) ∈ S₁.flatMap (fun a₁ => S₂.map (fun a₂ => (a₁, a₂)))
-      rw [List.mem_flatMap]
-      refine ⟨a₁, ha₁S₁, ?_⟩
-      rw [List.mem_map]
-      exact ⟨a₂, ha₂, rfl⟩
+      exact mem_flatMap_iff.mpr ⟨a₁, ha₁S₁, mem_map_iff.mpr ⟨a₂, ha₂, rfl⟩⟩
     have h_in : (a₁, a₂) ∈ T₁_part ∨ (a₁, a₂) ∈ T₂_part := (hdecomp (a₁, a₂)).mp hT
     rcases h_in with hin1 | hin2
     · exfalso
       exact h₂ a₂ ha₂ hin1
     · refine ⟨a₂, ?_, T₂.le_refl a₂⟩
-      rw [List.mem_map]
-      exact ⟨(a₁, a₂), hin2, rfl⟩
+      exact mem_map_iff.mpr ⟨(a₁, a₂), hin2, rfl⟩
 
 -- ============================================================
 -- Section 3: prodF_upper_closed (PLAN §3.1)
@@ -173,47 +180,39 @@ theorem prodF_upper_closed
     · intro hp
       by_cases h : ∃ b ∈ B₁_part, FormalTopology.prodLe T₁ T₂ p b
       · left
-        rw [List.mem_filter]
-        exact ⟨hp, decide_eq_true h⟩
+        exact mem_filter_iff.mpr ⟨hp, decide_eq_true h⟩
       · right
-        rw [List.mem_filter]
-        refine ⟨hp, ?_⟩
-        rw [Bool.not_eq_true', decide_eq_false_iff_not]
-        exact h
+        exact mem_filter_iff.mpr ⟨hp, bnot_decide_eq_true_iff.mpr h⟩
     · intro hp
       rcases hp with hp1 | hp2
-      · exact (List.mem_filter.mp hp1).1
-      · exact (List.mem_filter.mp hp2).1
+      · exact (mem_filter_iff.mp hp1).1
+      · exact (mem_filter_iff.mp hp2).1
   -- Apply hA
   rcases hA A₁_part A₂_part hAdecomp with hcase1 | hcase2
   · left
     apply w₁.upper_closed (A₁_part.map (·.1)) hcase1 (B₁_part.map (·.1))
     intro x hx
-    rw [List.mem_map] at hx
-    obtain ⟨a, haA1, hax⟩ := hx
-    have hfilt := List.mem_filter.mp haA1
+    obtain ⟨a, haA1, hax⟩ := mem_map_iff.mp hx
+    have hfilt := mem_filter_iff.mp haA1
     have hwit : ∃ b ∈ B₁_part, FormalTopology.prodLe T₁ T₂ a b :=
       of_decide_eq_true hfilt.2
     obtain ⟨b, hbB1, hle⟩ := hwit
     refine ⟨b.1, ?_, ?_⟩
-    · rw [List.mem_map]; exact ⟨b, hbB1, rfl⟩
+    · exact mem_map_iff.mpr ⟨b, hbB1, rfl⟩
     · rw [← hax]; exact hle.1
   · right
     apply w₂.upper_closed (A₂_part.map (·.2)) hcase2 (B₂_part.map (·.2))
     intro y hy
-    rw [List.mem_map] at hy
-    obtain ⟨a, haA2, hay⟩ := hy
-    have hfilt := List.mem_filter.mp haA2
+    obtain ⟨a, haA2, hay⟩ := mem_map_iff.mp hy
+    have hfilt := mem_filter_iff.mp haA2
     have hno : ¬ ∃ b ∈ B₁_part, FormalTopology.prodLe T₁ T₂ a b := by
-      have h2 : (!decide (∃ b ∈ B₁_part, FormalTopology.prodLe T₁ T₂ a b)) = true := hfilt.2
-      rw [Bool.not_eq_true', decide_eq_false_iff_not] at h2
-      exact h2
+      exact bnot_decide_eq_true_iff.mp hfilt.2
     obtain ⟨b, hbB, hle⟩ := hAB a hfilt.1
     have hbsplit : b ∈ B₁_part ∨ b ∈ B₂_part := (hdecomp b).mp hbB
     rcases hbsplit with hbB1 | hbB2
     · exfalso; exact hno ⟨b, hbB1, hle⟩
     · refine ⟨b.2, ?_, ?_⟩
-      · rw [List.mem_map]; exact ⟨b, hbB2, rfl⟩
+      · exact mem_map_iff.mpr ⟨b, hbB2, rfl⟩
       · rw [← hay]; exact hle.2
 
 -- ============================================================
@@ -249,7 +248,7 @@ theorem cov_meet_iter (T : FormalTopology) (a : T.S) :
     intro w hw
     obtain ⟨v, hv, m, hm, hwv, hwm⟩ := hw
     intro U' hU'
-    rcases List.mem_cons.mp hU' with rfl | hU'rest
+    rcases mem_cons_iff.mp hU' with rfl | hU'rest
     · exact ⟨v, hv, hwv⟩
     · obtain ⟨u, hu, hmu⟩ := hm U' hU'rest
       exact ⟨u, hu, T.le_trans _ _ _ hwm hmu⟩
@@ -303,20 +302,17 @@ theorem product_decomposition_lemma
   have hdecomp : ∀ p ∈ S, p ∈ S₁_part ∨ p ∈ S₂_part := by
     intro p hp
     by_cases hle : T₁.le u₁ p.1
-    · right; rw [List.mem_filter]; exact ⟨hp, decide_eq_true hle⟩
-    · left; rw [List.mem_filter]; refine ⟨hp, ?_⟩
-      rw [Bool.not_eq_true', decide_eq_false_iff_not]; exact hle
+    · right; exact mem_filter_iff.mpr ⟨hp, decide_eq_true hle⟩
+    · left; exact mem_filter_iff.mpr ⟨hp, bnot_decide_eq_true_iff.mpr hle⟩
   rcases hyp S₁_part S₂_part hdecomp with ⟨p, hpmem, hpr⟩ | ⟨p, hpmem, hpr⟩
   · -- First disjunct: p ∈ S₁_part has T₁.le u₁ p.1, contradicting filter.
     exfalso
-    have hfilt := List.mem_filter.mp hpmem
+    have hfilt := mem_filter_iff.mp hpmem
     have hno : ¬ T₁.le u₁ p.1 := by
-      have h2 := hfilt.2
-      rw [Bool.not_eq_true', decide_eq_false_iff_not] at h2
-      exact h2
+      exact bnot_decide_eq_true_iff.mp hfilt.2
     exact hno hpr
   · -- Second disjunct: p ∈ S₂_part means T₁.le u₁ p.1; combined with hpr.
-    have hfilt := List.mem_filter.mp hpmem
+    have hfilt := mem_filter_iff.mp hpmem
     have hT₁ : T₁.le u₁ p.1 := of_decide_eq_true hfilt.2
     exact ⟨p, hfilt.1, hT₁, hpr⟩
 
@@ -360,60 +356,46 @@ private theorem buildVStar
     obtain ⟨V₁s, V₂s, hV₁s, hV₂s, hFs⟩ := ih hrest
     refine ⟨V₁_d ++ V₁s, V₂_d ++ V₂s, ?_, ?_, ?_⟩
     · intros x hx
-      rw [List.mem_append] at hx
-      rcases hx with hx | hx
+      rcases mem_append_iff.mp hx with hx | hx
       · exact hV₁_d x hx
       · exact hV₁s x hx
     · intros x hx
-      rw [List.mem_append] at hx
-      rcases hx with hx | hx
+      rcases mem_append_iff.mp hx with hx | hx
       · exact hV₂_d x hx
       · exact hV₂s x hx
     · intros d' hd'
-      rcases List.mem_cons.mp hd' with rfl | hd'_rest
+      rcases mem_cons_iff.mp hd' with rfl | hd'_rest
       · refine ⟨?_, ?_⟩
         · apply upper_α _ hF₁_d
           intro x hx
-          rw [List.mem_append] at hx
-          rcases hx with hx | hx
+          rcases mem_append_iff.mp hx with hx | hx
           · refine ⟨x, ?_, le_α_refl x⟩
-            rw [List.mem_append, List.mem_append]
-            left; left; exact hx
+            exact List.mem_append_left _ (List.mem_append_left _ hx)
           · refine ⟨x, ?_, le_α_refl x⟩
-            rw [List.mem_append, List.mem_append]
-            right; exact hx
+            exact List.mem_append_right _ hx
         · apply upper_β _ hF₂_d
           intro x hx
-          rw [List.mem_append] at hx
-          rcases hx with hx | hx
+          rcases mem_append_iff.mp hx with hx | hx
           · refine ⟨x, ?_, le_β_refl x⟩
-            rw [List.mem_append, List.mem_append]
-            left; left; exact hx
+            exact List.mem_append_left _ (List.mem_append_left _ hx)
           · refine ⟨x, ?_, le_β_refl x⟩
-            rw [List.mem_append, List.mem_append]
-            right; exact hx
+            exact List.mem_append_right _ hx
       · obtain ⟨hF₁_d', hF₂_d'⟩ := hFs d' hd'_rest
         refine ⟨?_, ?_⟩
         · apply upper_α _ hF₁_d'
           intro x hx
-          rw [List.mem_append] at hx
-          rcases hx with hx | hx
+          rcases mem_append_iff.mp hx with hx | hx
           · refine ⟨x, ?_, le_α_refl x⟩
-            rw [List.mem_append, List.mem_append]
-            left; right; exact hx
+            exact List.mem_append_left _ (List.mem_append_right _ hx)
           · refine ⟨x, ?_, le_α_refl x⟩
-            rw [List.mem_append, List.mem_append]
-            right; exact hx
+            exact List.mem_append_right _ hx
         · apply upper_β _ hF₂_d'
           intro x hx
-          rw [List.mem_append] at hx
-          rcases hx with hx | hx
+          rcases mem_append_iff.mp hx with hx | hx
           · refine ⟨x, ?_, le_β_refl x⟩
-            rw [List.mem_append, List.mem_append]
-            left; right; exact hx
+            exact List.mem_append_left _ (List.mem_append_right _ hx)
           · refine ⟨x, ?_, le_β_refl x⟩
-            rw [List.mem_append, List.mem_append]
-            right; exact hx
+            exact List.mem_append_right _ hx
 
 -- ============================================================
 -- Section 7: Helper — cov_via_vL (cover transfer through vL refinement)
@@ -441,7 +423,7 @@ For any `S ∈ prodF` and any generator `g = (g₁, g₂)`, the product cover
 relation `(T_prod).cov g {x | x ∈ S}` holds.
 
 Proof structure:
-1. Enumerate canonical sublists `D₀_subs := S.sublists.filter (Fπ₁ ∈ F₁)`,
+1. Enumerate canonical sublists `D₀_subs := (subl S).filter (Fπ₁ ∈ F₁)`,
    `D₀₀_subs` similar for `F₂`.
 2. Define `U_1 := manyMeet T₁.le [Fπ₁(sub) for sub ∈ D₀_subs]`, `U_2` similar.
 3. By `cov_meet_iter` + `w_i.generators_covered`: `T_i.cov g.i U_i`.
@@ -463,10 +445,10 @@ theorem prodF_generators_covered
   intro S hS g
   -- D₀_subs: sublists of S with Fπ₁ in F₁
   let D₀_subs : List (List (T₁.S × T₂.S)) :=
-    S.sublists.filter (fun sub => decide (sub.map (·.1) ∈ w₁.F))
+    (subl S).filter (fun sub => decide (sub.map (·.1) ∈ w₁.F))
   -- D₀₀_subs: sublists of S with Fπ₂ in F₂
   let D₀₀_subs : List (List (T₁.S × T₂.S)) :=
-    S.sublists.filter (fun sub => decide (sub.map (·.2) ∈ w₂.F))
+    (subl S).filter (fun sub => decide (sub.map (·.2) ∈ w₂.F))
   -- U_1, U_2 as manyMeet over respective sublists
   let U_1 : Set T₁.S :=
     manyMeet T₁.le (D₀_subs.map (fun sub => {x | x ∈ sub.map (·.1)}))
@@ -476,20 +458,18 @@ theorem prodF_generators_covered
   have hU_1 : T₁.cov g.1 U_1 := by
     apply cov_meet_iter
     intro V hV
-    rw [List.mem_map] at hV
-    obtain ⟨sub, hsub, hVeq⟩ := hV
+    obtain ⟨sub, hsub, hVeq⟩ := mem_map_iff.mp hV
     subst hVeq
-    have hsub_filt := List.mem_filter.mp hsub
+    have hsub_filt := mem_filter_iff.mp hsub
     have hF : sub.map (·.1) ∈ w₁.F := of_decide_eq_true hsub_filt.2
     exact w₁.generators_covered _ hF g.1
   -- Step 4b: T₂.cov g.2 U_2
   have hU_2 : T₂.cov g.2 U_2 := by
     apply cov_meet_iter
     intro V hV
-    rw [List.mem_map] at hV
-    obtain ⟨sub, hsub, hVeq⟩ := hV
+    obtain ⟨sub, hsub, hVeq⟩ := mem_map_iff.mp hV
     subst hVeq
-    have hsub_filt := List.mem_filter.mp hsub
+    have hsub_filt := mem_filter_iff.mp hsub
     have hF : sub.map (·.2) ∈ w₂.F := of_decide_eq_true hsub_filt.2
     exact w₂.generators_covered _ hF g.2
   -- Step 5: T_prod.cov g (U_1 × U_2)
@@ -517,77 +497,65 @@ theorem prodF_generators_covered
       constructor
       · intro hq
         rcases hdecomp q hq with h₁ | h₂
-        · left; rw [List.mem_filter]; exact ⟨h₁, decide_eq_true hq⟩
-        · right; rw [List.mem_filter]; exact ⟨h₂, decide_eq_true hq⟩
+        · left; exact mem_filter_iff.mpr ⟨h₁, decide_eq_true hq⟩
+        · right; exact mem_filter_iff.mpr ⟨h₂, decide_eq_true hq⟩
       · intro h
         rcases h with h | h
-        · exact of_decide_eq_true (List.mem_filter.mp h).2
-        · exact of_decide_eq_true (List.mem_filter.mp h).2
+        · exact of_decide_eq_true (mem_filter_iff.mp h).2
+        · exact of_decide_eq_true (mem_filter_iff.mp h).2
     rcases hS S₁' S₂' hdecomp_iff with hF₁ | hF₂
     · -- F₁ side: find canonical sub
       left
       let sub : List (T₁.S × T₂.S) := S.filter (fun x => decide (x ∈ S₁'))
-      have hsub_sublist : sub ∈ S.sublists :=
-        List.mem_sublists.mpr List.filter_sublist
+      have hsub_sublist : sub ∈ subl S :=
+        filter_mem_subl _ _
       -- Fπ₁(sub) ∈ F₁ via upper_closed (same set as Fπ₁(S₁'))
       have hFsub : sub.map (·.1) ∈ w₁.F := by
         apply w₁.upper_closed (S₁'.map (·.1)) hF₁ (sub.map (·.1))
         intro x hxs1
-        rw [List.mem_map] at hxs1
-        obtain ⟨y, hy_S₁', hy_eq⟩ := hxs1
-        have hyS : y ∈ S := of_decide_eq_true (List.mem_filter.mp hy_S₁').2
-        refine ⟨x, ?_, T₁.le_refl x⟩
-        rw [List.mem_map]
-        refine ⟨y, ?_, hy_eq⟩
-        rw [List.mem_filter]
-        exact ⟨hyS, decide_eq_true hy_S₁'⟩
+        obtain ⟨y, hy_S₁', hy_eq⟩ := mem_map_iff.mp hxs1
+        have hyS : y ∈ S := of_decide_eq_true (mem_filter_iff.mp hy_S₁').2
+        exact ⟨x, mem_map_iff.mpr ⟨y, mem_filter_iff.mpr ⟨hyS, decide_eq_true hy_S₁'⟩, hy_eq⟩,
+               T₁.le_refl x⟩
       -- sub ∈ D₀_subs
       have hsub_D₀ : sub ∈ D₀_subs := by
-        rw [List.mem_filter]
-        exact ⟨hsub_sublist, decide_eq_true hFsub⟩
+        exact mem_filter_iff.mpr ⟨hsub_sublist, decide_eq_true hFsub⟩
       -- Apply U_1 property
       have hmap_in : ({x | x ∈ sub.map (·.1)} : Set T₁.S) ∈
           D₀_subs.map (fun sub => {x | x ∈ sub.map (·.1)}) := by
-        rw [List.mem_map]; exact ⟨sub, hsub_D₀, rfl⟩
+        exact mem_map_iff.mpr ⟨sub, hsub_D₀, rfl⟩
       obtain ⟨s, hs_mem, hs_le⟩ := hp1 _ hmap_in
       -- s ∈ sub.map (·.1) → ∃ q ∈ sub, q.1 = s
       rw [show ({x | x ∈ sub.map (·.1)} : Set T₁.S) = {x | x ∈ sub.map (·.1)} from rfl] at hs_mem
       have hs_mem' : s ∈ sub.map (·.1) := hs_mem
-      rw [List.mem_map] at hs_mem'
-      obtain ⟨q, hq_sub, hq_eq⟩ := hs_mem'
-      have hq_S₁' : q ∈ S₁' := of_decide_eq_true (List.mem_filter.mp hq_sub).2
-      have hq_S₁_part : q ∈ S₁_part := (List.mem_filter.mp hq_S₁').1
+      obtain ⟨q, hq_sub, hq_eq⟩ := mem_map_iff.mp hs_mem'
+      have hq_S₁' : q ∈ S₁' := of_decide_eq_true (mem_filter_iff.mp hq_sub).2
+      have hq_S₁_part : q ∈ S₁_part := (mem_filter_iff.mp hq_S₁').1
       refine ⟨q, hq_S₁_part, ?_⟩
       rw [← hq_eq] at hs_le
       exact hs_le
     · -- F₂ side: symmetric
       right
       let sub : List (T₁.S × T₂.S) := S.filter (fun x => decide (x ∈ S₂'))
-      have hsub_sublist : sub ∈ S.sublists :=
-        List.mem_sublists.mpr List.filter_sublist
+      have hsub_sublist : sub ∈ subl S :=
+        filter_mem_subl _ _
       have hFsub : sub.map (·.2) ∈ w₂.F := by
         apply w₂.upper_closed (S₂'.map (·.2)) hF₂ (sub.map (·.2))
         intro x hxs2
-        rw [List.mem_map] at hxs2
-        obtain ⟨y, hy_S₂', hy_eq⟩ := hxs2
-        have hyS : y ∈ S := of_decide_eq_true (List.mem_filter.mp hy_S₂').2
-        refine ⟨x, ?_, T₂.le_refl x⟩
-        rw [List.mem_map]
-        refine ⟨y, ?_, hy_eq⟩
-        rw [List.mem_filter]
-        exact ⟨hyS, decide_eq_true hy_S₂'⟩
+        obtain ⟨y, hy_S₂', hy_eq⟩ := mem_map_iff.mp hxs2
+        have hyS : y ∈ S := of_decide_eq_true (mem_filter_iff.mp hy_S₂').2
+        exact ⟨x, mem_map_iff.mpr ⟨y, mem_filter_iff.mpr ⟨hyS, decide_eq_true hy_S₂'⟩, hy_eq⟩,
+               T₂.le_refl x⟩
       have hsub_D₀₀ : sub ∈ D₀₀_subs := by
-        rw [List.mem_filter]
-        exact ⟨hsub_sublist, decide_eq_true hFsub⟩
+        exact mem_filter_iff.mpr ⟨hsub_sublist, decide_eq_true hFsub⟩
       have hmap_in : ({x | x ∈ sub.map (·.2)} : Set T₂.S) ∈
           D₀₀_subs.map (fun sub => {x | x ∈ sub.map (·.2)}) := by
-        rw [List.mem_map]; exact ⟨sub, hsub_D₀₀, rfl⟩
+        exact mem_map_iff.mpr ⟨sub, hsub_D₀₀, rfl⟩
       obtain ⟨s, hs_mem, hs_le⟩ := hp2 _ hmap_in
       have hs_mem' : s ∈ sub.map (·.2) := hs_mem
-      rw [List.mem_map] at hs_mem'
-      obtain ⟨q, hq_sub, hq_eq⟩ := hs_mem'
-      have hq_S₂' : q ∈ S₂' := of_decide_eq_true (List.mem_filter.mp hq_sub).2
-      have hq_S₂_part : q ∈ S₂_part := (List.mem_filter.mp hq_S₂').1
+      obtain ⟨q, hq_sub, hq_eq⟩ := mem_map_iff.mp hs_mem'
+      have hq_S₂' : q ∈ S₂' := of_decide_eq_true (mem_filter_iff.mp hq_sub).2
+      have hq_S₂_part : q ∈ S₂_part := (mem_filter_iff.mp hq_S₂').1
       refine ⟨q, hq_S₂_part, ?_⟩
       rw [← hq_eq] at hs_le
       exact hs_le
@@ -637,7 +605,7 @@ theorem prodF_cover_closure_head
   haveI : DecidableEq (T₁.S × T₂.S) := inferInstance
   -- Enumerate decompositions of T' as canonical (sub, T'\sub) pairs
   let decomps : List (List (T₁.S × T₂.S) × List (T₁.S × T₂.S)) :=
-    T'.sublists.map (fun sub => (sub, T'.filter (fun x => !decide (x ∈ sub))))
+    (subl T').map (fun sub => (sub, T'.filter (fun x => !decide (x ∈ sub))))
   -- D₀_pairs: decompositions where both F₁ and F₂ extensions hold
   let D₀_pairs : List (List (T₁.S × T₂.S) × List (T₁.S × T₂.S)) :=
     decomps.filter (fun d =>
@@ -650,10 +618,9 @@ theorem prodF_cover_closure_head
       (∀ x ∈ V₁, x ∈ U₁_set) ∧ (∀ x ∈ V₂, x ∈ U₂_set) ∧
       (V₁ ++ p.1 ∈ w₁.F) ∧ (V₂ ++ p.2 ∈ w₂.F) := by
     intros p hp
-    rw [List.mem_map] at hp
-    obtain ⟨d, hd, hd_eq⟩ := hp
+    obtain ⟨d, hd, hd_eq⟩ := mem_map_iff.mp hp
     subst hd_eq
-    have hd_filt := List.mem_filter.mp hd
+    have hd_filt := mem_filter_iff.mp hd
     have hd_and := of_decide_eq_true hd_filt.2
     obtain ⟨hF₁, hF₂⟩ := hd_and
     obtain ⟨V₁, S₁', hV₁_sub, _hS₁'_lower, hS₁'_upper, hF₁_concat⟩ :=
@@ -663,27 +630,25 @@ theorem prodF_cover_closure_head
     have hF₁_target : V₁ ++ d.1.map (·.1) ∈ w₁.F := by
       apply w₁.upper_closed _ hF₁_concat
       intro x hx
-      rw [List.mem_append] at hx
-      rcases hx with hx | hxS₁'
+      rcases mem_append_iff.mp hx with hx | hxS₁'
       · refine ⟨x, ?_, T₁.le_refl x⟩
-        rw [List.mem_append]; left; exact hx
+        exact List.mem_append_left _ hx
       · have ⟨h_in_S, h_ne⟩ := hS₁'_upper x hxS₁'
-        rcases List.mem_cons.mp h_in_S with heq | hxd
+        rcases mem_cons_iff.mp h_in_S with heq | hxd
         · exact absurd heq h_ne
         · refine ⟨x, ?_, T₁.le_refl x⟩
-          rw [List.mem_append]; right; exact hxd
+          exact List.mem_append_right _ hxd
     have hF₂_target : V₂ ++ d.2.map (·.2) ∈ w₂.F := by
       apply w₂.upper_closed _ hF₂_concat
       intro x hx
-      rw [List.mem_append] at hx
-      rcases hx with hx | hxS₂'
+      rcases mem_append_iff.mp hx with hx | hxS₂'
       · refine ⟨x, ?_, T₂.le_refl x⟩
-        rw [List.mem_append]; left; exact hx
+        exact List.mem_append_left _ hx
       · have ⟨h_in_S, h_ne⟩ := hS₂'_upper x hxS₂'
-        rcases List.mem_cons.mp h_in_S with heq | hxd
+        rcases mem_cons_iff.mp h_in_S with heq | hxd
         · exact absurd heq h_ne
         · refine ⟨x, ?_, T₂.le_refl x⟩
-          rw [List.mem_append]; right; exact hxd
+          exact List.mem_append_right _ hxd
     exact ⟨V₁, V₂, hV₁_sub, hV₂_sub, hF₁_target, hF₂_target⟩
   -- Apply buildVStar
   obtain ⟨V₁_tot, V₂_tot, hV₁_tot_sub, hV₂_tot_sub, hFtot⟩ :=
@@ -697,10 +662,8 @@ theorem prodF_cover_closure_head
   · -- V₀ ⊆ U
     intro x hx
     rw [hUeq]
-    rw [List.mem_flatMap] at hx
-    obtain ⟨v₁, hv₁, hmap⟩ := hx
-    rw [List.mem_map] at hmap
-    obtain ⟨v₂, hv₂, hv_eq⟩ := hmap
+    obtain ⟨v₁, hv₁, hmap⟩ := mem_flatMap_iff.mp hx
+    obtain ⟨v₂, hv₂, hv_eq⟩ := mem_map_iff.mp hmap
     rw [← hv_eq]
     exact ⟨hV₁_tot_sub v₁ hv₁, hV₂_tot_sub v₂ hv₂⟩
   · -- V₀ ++ T' ∈ prodF — the heavy case analysis (Step 8)
@@ -713,26 +676,21 @@ theorem prodF_cover_closure_head
     -- Helper: every elt of T' is in X or Y (from V₀ ++ T' decomp)
     have hT'_split : ∀ p ∈ T', p ∈ X ∨ p ∈ Y := by
       intro p hp
-      have hpVT : p ∈ V₀ ++ T' := List.mem_append.mpr (Or.inr hp)
+      have hpVT : p ∈ V₀ ++ T' := mem_append_iff.mpr (Or.inr hp)
       exact (hdecomp_V0 p).mp hpVT
     -- Helper: X_T elements are in T' and X
     have hX_T_in : ∀ p ∈ X_T, p ∈ T' ∧ p ∈ X := by
       intro p hp
-      have := List.mem_filter.mp hp
+      have := mem_filter_iff.mp hp
       exact ⟨this.1, of_decide_eq_true this.2⟩
     -- Helper: T'_compl elements are in T' and Y (since not in X_T, hence not in X, so in Y)
     have hT'_compl_in : ∀ p ∈ T'_compl, p ∈ T' ∧ p ∈ Y := by
       intro p hp
-      have hfilt := List.mem_filter.mp hp
+      have hfilt := mem_filter_iff.mp hp
       have hpT : p ∈ T' := hfilt.1
       have hpX_neg : ¬ (p ∈ X) := by
         intro hpX
-        have hbool := hfilt.2
-        rw [Bool.not_eq_true', decide_eq_false_iff_not] at hbool
-        apply hbool
-        -- p ∈ X_T iff p ∈ T' ∧ p ∈ X.
-        rw [List.mem_filter]
-        exact ⟨hpT, decide_eq_true hpX⟩
+        exact bnot_decide_eq_true_iff.mp hfilt.2 (mem_filter_iff.mpr ⟨hpT, decide_eq_true hpX⟩)
       rcases hT'_split p hpT with hpX | hpY
       · exact absurd hpX hpX_neg
       · exact ⟨hpT, hpY⟩
@@ -743,10 +701,7 @@ theorem prodF_cover_closure_head
       · intro hq
         by_cases hqXT : q ∈ X_T
         · left; exact hqXT
-        · right; rw [List.mem_filter]
-          refine ⟨hq, ?_⟩
-          rw [Bool.not_eq_true', decide_eq_false_iff_not]
-          exact hqXT
+        · right; exact mem_filter_iff.mpr ⟨hq, bnot_decide_eq_true_iff.mpr hqXT⟩
       · intro hq
         rcases hq with hq | hq
         · exact (hX_T_in q hq).1
@@ -756,14 +711,14 @@ theorem prodF_cover_closure_head
       intro q
       constructor
       · intro hq
-        rcases List.mem_cons.mp hq with rfl | hqT
+        rcases mem_cons_iff.mp hq with rfl | hqT
         · left; exact List.mem_cons_self
         · rcases (hT'_decomp q).mp hqT with hXT | hCT
           · left; exact List.mem_cons_of_mem _ hXT
           · right; exact hCT
       · intro hq
         rcases hq with hq | hq
-        · rcases List.mem_cons.mp hq with rfl | hqXT
+        · rcases mem_cons_iff.mp hq with rfl | hqXT
           · exact List.mem_cons_self
           · exact List.mem_cons_of_mem _ (hX_T_in q hqXT).1
         · exact List.mem_cons_of_mem _ (hT'_compl_in q hq).1
@@ -771,7 +726,7 @@ theorem prodF_cover_closure_head
       intro q
       constructor
       · intro hq
-        rcases List.mem_cons.mp hq with rfl | hqT
+        rcases mem_cons_iff.mp hq with rfl | hqT
         · right; exact List.mem_cons_self
         · rcases (hT'_decomp q).mp hqT with hXT | hCT
           · left; exact hXT
@@ -779,7 +734,7 @@ theorem prodF_cover_closure_head
       · intro hq
         rcases hq with hq | hq
         · exact List.mem_cons_of_mem _ (hX_T_in q hq).1
-        · rcases List.mem_cons.mp hq with rfl | hqCT
+        · rcases mem_cons_iff.mp hq with rfl | hqCT
           · exact List.mem_cons_self
           · exact List.mem_cons_of_mem _ (hT'_compl_in q hqCT).1
     have hEq_i := hS (a :: X_T) T'_compl hCov_i
@@ -788,15 +743,12 @@ theorem prodF_cover_closure_head
     by_cases hD₀ : (a.1 :: X_T.map (·.1)) ∈ w₁.F ∧ (a.2 :: T'_compl.map (·.2)) ∈ w₂.F
     · -- D₀ case: this canonical decomp is in D₀_pairs
       have hPairInDecomps : (X_T, T'_compl) ∈ decomps := by
-        rw [List.mem_map]
-        exact ⟨X_T, List.mem_sublists.mpr List.filter_sublist, rfl⟩
+        exact mem_map_iff.mpr ⟨X_T, filter_mem_subl _ _, rfl⟩
       have hPairInD₀ : (X_T, T'_compl) ∈ D₀_pairs := by
-        rw [List.mem_filter]
-        exact ⟨hPairInDecomps, decide_eq_true hD₀⟩
+        exact mem_filter_iff.mpr ⟨hPairInDecomps, decide_eq_true hD₀⟩
       -- Mapped pair is in mapped_pairs
       have hMappedIn : (X_T.map (·.1), T'_compl.map (·.2)) ∈ mapped_pairs := by
-        rw [List.mem_map]
-        exact ⟨(X_T, T'_compl), hPairInD₀, rfl⟩
+        exact mem_map_iff.mpr ⟨(X_T, T'_compl), hPairInD₀, rfl⟩
       -- buildVStar conclusion for this pair
       have ⟨hFtot₁, hFtot₂⟩ := hFtot _ hMappedIn
       -- Sub-sub-case: does V₁_tot ⊆ Fπ₁(X_V)?
@@ -807,21 +759,17 @@ theorem prodF_cover_closure_head
         left
         apply w₁.upper_closed (V₁_tot ++ X_T.map (·.1)) hFtot₁
         intro x hx
-        rw [List.mem_append] at hx
-        rcases hx with hxV | hxXT
+        rcases mem_append_iff.mp hx with hxV | hxXT
         · -- x ∈ V₁_tot ⊆ Fπ₁(X_V) ⊆ Fπ₁(X)
           obtain ⟨q, hqXV, hqx⟩ := hSubset x hxV
-          have hqX : q ∈ X := (List.mem_filter.mp hqXV).1
+          have hqX : q ∈ X := (mem_filter_iff.mp hqXV).1
           refine ⟨x, ?_, T₁.le_refl x⟩
-          rw [List.mem_map]
-          exact ⟨q, hqX, hqx⟩
+          exact mem_map_iff.mpr ⟨q, hqX, hqx⟩
         · -- x ∈ X_T.map (·.1), so x = q.1 for q ∈ X_T ⊆ X
-          rw [List.mem_map] at hxXT
-          obtain ⟨q, hqXT, hqx⟩ := hxXT
+          obtain ⟨q, hqXT, hqx⟩ := mem_map_iff.mp hxXT
           have hqX : q ∈ X := (hX_T_in q hqXT).2
           refine ⟨x, ?_, T₁.le_refl x⟩
-          rw [List.mem_map]
-          exact ⟨q, hqX, hqx⟩
+          exact mem_map_iff.mpr ⟨q, hqX, hqx⟩
       · -- Sub-case B2: ∃ v₁* ∈ V₁_tot with no q ∈ X_V having q.1 = v₁*
         right
         -- Constructive extraction: ¬ ∀ → ∃ ¬ via list induction (no Classical).
@@ -839,7 +787,7 @@ theorem prodF_cover_closure_head
                 intro ha_tail
                 apply h
                 intros v hv
-                rcases List.mem_cons.mp hv with rfl | hv'
+                rcases mem_cons_iff.mp hv with rfl | hv'
                 · exact hh
                 · exact ha_tail _ hv'
               obtain ⟨v, hv, hv'⟩ := ih h_tail
@@ -855,40 +803,31 @@ theorem prodF_cover_closure_head
         have hV₂_in_YV : ∀ v₂ ∈ V₂_tot, (v₁_star, v₂) ∈ Y_V := by
           intro v₂ hv₂
           have hpairV₀ : (v₁_star, v₂) ∈ V₀ := by
-            rw [List.mem_flatMap]
-            refine ⟨v₁_star, hv₁_tot, ?_⟩
-            rw [List.mem_map]
-            exact ⟨v₂, hv₂, rfl⟩
+            exact mem_flatMap_iff.mpr ⟨v₁_star, hv₁_tot, mem_map_iff.mpr ⟨v₂, hv₂, rfl⟩⟩
           have hpairVT : (v₁_star, v₂) ∈ V₀ ++ T' :=
-            List.mem_append.mpr (Or.inl hpairV₀)
+            mem_append_iff.mpr (Or.inl hpairV₀)
           have hpair_in := (hdecomp_V0 (v₁_star, v₂)).mp hpairVT
           rcases hpair_in with hpairX | hpairY
           · -- Contradiction: (v₁_star, v₂) ∈ X ∧ ∈ V₀ → ∈ X_V → v₁_star ∈ Fπ₁(X_V)
             exfalso
             have hpairXV : (v₁_star, v₂) ∈ X_V := by
-              rw [List.mem_filter]
-              exact ⟨hpairX, decide_eq_true hpairV₀⟩
+              exact mem_filter_iff.mpr ⟨hpairX, decide_eq_true hpairV₀⟩
             exact hv₁_not (v₁_star, v₂) hpairXV rfl
           · -- (v₁_star, v₂) ∈ Y. Combined with ∈ V₀, it's ∈ Y_V.
-            rw [List.mem_filter]
-            exact ⟨hpairY, decide_eq_true hpairV₀⟩
+            exact mem_filter_iff.mpr ⟨hpairY, decide_eq_true hpairV₀⟩
         apply w₂.upper_closed (V₂_tot ++ T'_compl.map (·.2)) hFtot₂
         intro x hx
-        rw [List.mem_append] at hx
-        rcases hx with hxV₂ | hxCT
+        rcases mem_append_iff.mp hx with hxV₂ | hxCT
         · -- x ∈ V₂_tot. Take pair (v₁_star, x) ∈ Y_V. y_part = x.
           have hpairYV := hV₂_in_YV x hxV₂
-          have hpairY : (v₁_star, x) ∈ Y := (List.mem_filter.mp hpairYV).1
+          have hpairY : (v₁_star, x) ∈ Y := (mem_filter_iff.mp hpairYV).1
           refine ⟨x, ?_, T₂.le_refl x⟩
-          rw [List.mem_map]
-          exact ⟨(v₁_star, x), hpairY, rfl⟩
+          exact mem_map_iff.mpr ⟨(v₁_star, x), hpairY, rfl⟩
         · -- x ∈ T'_compl.map (·.2). x = q.2 for q ∈ T'_compl ⊆ T'∩Y.
-          rw [List.mem_map] at hxCT
-          obtain ⟨q, hqCT, hqx⟩ := hxCT
+          obtain ⟨q, hqCT, hqx⟩ := mem_map_iff.mp hxCT
           have hqY : q ∈ Y := (hT'_compl_in q hqCT).2
           refine ⟨x, ?_, T₂.le_refl x⟩
-          rw [List.mem_map]
-          exact ⟨q, hqY, hqx⟩
+          exact mem_map_iff.mpr ⟨q, hqY, hqx⟩
     · -- ¬D₀: Apply Eq (i) or (ii) directly
       -- Constructive De Morgan: ¬ (A ∧ B) → A → ¬ B.
       have hD₀' : (a.1 :: X_T.map (·.1)) ∈ w₁.F →
@@ -902,12 +841,10 @@ theorem prodF_cover_closure_head
           left
           apply w₁.upper_closed (X_T.map (·.1)) hF₁_XT
           intro x hx
-          rw [List.mem_map] at hx
-          obtain ⟨q, hqXT, hqx⟩ := hx
+          obtain ⟨q, hqXT, hqx⟩ := mem_map_iff.mp hx
           have hqX : q ∈ X := (hX_T_in q hqXT).2
           refine ⟨x, ?_, T₁.le_refl x⟩
-          rw [List.mem_map]
-          exact ⟨q, hqX, hqx⟩
+          exact mem_map_iff.mpr ⟨q, hqX, hqx⟩
         · exact absurd hF₂_with_a hF₂_neg
       · -- ¬first. From Eq (i): (a.1 :: Fπ₁(X_T)) ∈ F₁ ∨ Fπ₂(T'_compl) ∈ F₂. First fails, so second.
         rcases hEq_i with hF₁_with_a | hF₂_CT
@@ -915,12 +852,10 @@ theorem prodF_cover_closure_head
         · right
           apply w₂.upper_closed (T'_compl.map (·.2)) hF₂_CT
           intro x hx
-          rw [List.mem_map] at hx
-          obtain ⟨q, hqCT, hqx⟩ := hx
+          obtain ⟨q, hqCT, hqx⟩ := mem_map_iff.mp hx
           have hqY : q ∈ Y := (hT'_compl_in q hqCT).2
           refine ⟨x, ?_, T₂.le_refl x⟩
-          rw [List.mem_map]
-          exact ⟨q, hqY, hqx⟩
+          exact mem_map_iff.mpr ⟨q, hqY, hqx⟩
 
 -- ============================================================
 -- Section 10: prodF permutation invariance + T17 wrap
@@ -942,11 +877,11 @@ lemma prodF_set_invariant
   · intro hS S₁ S₂ hcov
     apply hS S₁ S₂
     intro p
-    rw [h]; exact hcov p
+    exact (h p).trans (hcov p)
   · intro hT S₁ S₂ hcov
     apply hT S₁ S₂
     intro p
-    rw [← h]; exact hcov p
+    exact (h p).symm.trans (hcov p)
 
 /-- **T17-form `cover_closure` for product `prodF`**: any element `a ∈ S`
 (not required at head), with `opProdBasicCov a U` and `S ∈ prodF`,
@@ -980,22 +915,20 @@ theorem prodF_cover_closure
       by_cases hxa : x = a
       · rw [hxa]; exact List.mem_cons_self
       · apply List.mem_cons_of_mem
-        rw [List.mem_filter]
-        exact ⟨hx, decide_eq_true hxa⟩
+        exact mem_filter_iff.mpr ⟨hx, decide_eq_true hxa⟩
     · intro hx
-      rcases List.mem_cons.mp hx with rfl | hxS'
+      rcases mem_cons_iff.mp hx with rfl | hxS'
       · exact haS
-      · exact (List.mem_filter.mp hxS').1
+      · exact (mem_filter_iff.mp hxS').1
   have hConsInF : (a :: S') ∈ prodF T₁ T₂ w₁ w₂ :=
     (prodF_set_invariant T₁ T₂ w₁ w₂ S (a :: S') hSame).mp hS
   obtain ⟨V₀, hV_sub, hV_prod⟩ :=
     prodF_cover_closure_head T₁ T₂ w₁ w₂ hbasic hConsInF
   refine ⟨V₀, S', hV_sub, ?_, ?_, hV_prod⟩
   · intros y hyS hne
-    rw [List.mem_filter]
-    exact ⟨hyS, decide_eq_true hne⟩
+    exact mem_filter_iff.mpr ⟨hyS, decide_eq_true hne⟩
   · intros y hyS'
-    have hfilt := List.mem_filter.mp hyS'
+    have hfilt := mem_filter_iff.mp hyS'
     exact ⟨hfilt.1, of_decide_eq_true hfilt.2⟩
 
 -- ============================================================
