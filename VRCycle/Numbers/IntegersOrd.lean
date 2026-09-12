@@ -373,6 +373,39 @@ theorem intPos_mul_self {e : IntExpr} (h : ¬ e ≈ᵢ zeroI) : intPos (imul e e
 
 theorem intLe_of_lt {e f : IntExpr} (h : e <ᵢ f) : e ≤ᵢ f := (intLt_iff_le_not_le.mp h).1
 
+-- ============================================================
+-- §4. Integer pairs as an ordered ring up to `intEq` — `int_linarith`
+-- ============================================================
+
+theorem intPos_numeral_succ : ∀ c : Nat, intPos (VR.CSR.CR.numeral IntExpr.cr (c + 1))
+  | 0 => intPos_respects (intEq_symm _ _ (iadd_zero oneI)) intPos_one
+  | c + 1 => intPos_add intPos_one (intPos_numeral_succ c)
+
+/-- Integer pairs as an ordered commutative ring up to `intEq`. -/
+def IntExpr.ocr : VR.CSR.OCR IntExpr :=
+  { IntExpr.cr with
+    le := intLe
+    lt := intLt
+    lt_def := fun _ _ => Iff.rfl
+    le_respects := fun h1 h2 h => intLe_respects h1 h2 h
+    le_refl := intLe_refl
+    le_trans := fun h1 h2 => intLe_trans h1 h2
+    le_add_right := fun c h => intLe_add_right c h
+    zero_le_one := intLe_of_lt intPos_one
+    le_of_smul := fun c x h => by
+      have hN := intPos_numeral_succ c
+      have h' : imul zeroI (VR.CSR.CR.numeral IntExpr.cr (c + 1))
+          ≤ᵢ imul x (VR.CSR.CR.numeral IntExpr.cr (c + 1)) :=
+        intLe_respects (intEq_symm _ _ (zero_imul _)) (imul_comm _ _) h
+      exact intLe_of_mul_le_mul_right hN h' }
+
+/-- `int_linarith`: linear consequences of `≤ᵢ`/`<ᵢ` hypotheses between integer pairs, by a
+Farkas certificate checked by reflection (`Meta/CSRNorm.lean`), on `[]`. -/
+syntax "int_linarith" (" [" term,* "]")? : tactic
+macro_rules
+  | `(tactic| int_linarith) => `(tactic| cr_linarith VR.Numbers.IntExpr.ocr)
+  | `(tactic| int_linarith [$ts,*]) => `(tactic| cr_linarith VR.Numbers.IntExpr.ocr [$ts,*])
+
 #print axioms vle_total
 #print axioms vle.decidable
 #print axioms intLe_trans

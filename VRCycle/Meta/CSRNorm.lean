@@ -649,4 +649,403 @@ syntax (name := crRing) "cr_ring " term : tactic
       (fun α envE e₁ e₂ hpf => pure (mkApp5 (mkApp (mkConst ``CR.eq_of_normC) α) R envE e₁ e₂ hpf))
   | _ => throwUnsupportedSyntax
 
+
+-- ============================================================
+-- Ordered rings up to an equivalence: linear arithmetic by Farkas certificates
+-- ============================================================
+
+/-- An ordered commutative ring up to `r`: `le` respects `r`, is a preorder, is translation
+invariant, `0 ≤ 1`, and a positive numeral factor can be cancelled from `0 ≤ c·x`.  `lt` is
+whatever the instance calls strict order, with `lt a b ↔ le (a + 1) b` (discrete orders; a dense
+instance may set `lt` to that definition). -/
+structure OCR (α : Type) extends CR α where
+  le : α → α → Prop
+  lt : α → α → Prop
+  lt_def : ∀ a b, lt a b ↔ le (add a one) b
+  le_respects : ∀ {a a' b b'}, r a a' → r b b' → le a b → le a' b'
+  le_refl : ∀ a, le a a
+  le_trans : ∀ {a b c}, le a b → le b c → le a c
+  le_add_right : ∀ {a b} (c : α), le a b → le (add a c) (add b c)
+  zero_le_one : le zero one
+  le_of_smul : ∀ (c : Nat) {x : α}, le zero (mul (CR.numeral toCR (c + 1)) x) → le zero x
+
+namespace OCR
+
+variable {α : Type} (S : OCR α)
+
+theorem sub_nonneg_of_le {a b : α} (h : S.le a b) : S.le S.zero (S.add b (S.neg a)) :=
+  S.le_respects (S.add_neg a) (S.refl _) (S.le_add_right (S.neg a) h)
+
+theorem le_of_sub_nonneg {a b : α} (h : S.le S.zero (S.add b (S.neg a))) : S.le a b := by
+  have h1 := S.le_add_right a h
+  refine S.le_respects (S.zero_add a) ?_ h1
+  cr_ring S.toCR
+
+theorem nonneg_add {x y : α} (hx : S.le S.zero x) (hy : S.le S.zero y) : S.le S.zero (S.add x y) :=
+  S.le_trans (S.le_respects (S.refl _) (S.symm (S.zero_add y)) hy) (S.le_add_right y hx)
+
+theorem nonneg_numeral : ∀ n : Nat, S.le S.zero (CR.numeral S.toCR n)
+  | 0 => S.le_refl _
+  | n + 1 => nonneg_add S S.zero_le_one (nonneg_numeral n)
+
+theorem nonneg_smul : ∀ (c : Nat) {x : α}, S.le S.zero x → S.le S.zero (S.mul (CR.numeral S.toCR c) x)
+  | 0, x, _ => S.le_respects (S.refl _) (S.symm (S.zero_mul x)) (S.le_refl _)
+  | c + 1, x, hx => by
+      have h1 : S.le S.zero (S.add x (S.mul (CR.numeral S.toCR c) x)) :=
+        nonneg_add S hx (nonneg_smul c hx)
+      refine S.le_respects (S.refl _) ?_ h1
+      change S.r _ (S.mul (S.add S.one (CR.numeral S.toCR c)) x)
+      cr_ring S.toCR
+
+variable (env : Nat → α)
+
+/-- The hypotheses, as pairs of reified sides. -/
+def hypsOK : List (CSR.PE × CSR.PE) → Prop
+  | [] => True
+  | (A, B) :: t => S.le (CSR.eval S.toCSR env A) (CSR.eval S.toCSR env B) ∧ hypsOK t
+
+/-- `k` as a polynomial expression. -/
+def natPE : Nat → CSR.PE
+  | 0 => .zero
+  | k + 1 => .add .one (natPE k)
+
+theorem eval_natPE : ∀ k : Nat, CSR.eval S.toCSR env (natPE k) = CR.numeral S.toCR k
+  | 0 => rfl
+  | k + 1 => by
+      show S.add S.one (CSR.eval S.toCSR env (natPE k)) = S.add S.one (CR.numeral S.toCR k)
+      rw [eval_natPE k]
+
+/-- `Σ cᵢ · (Bᵢ − Aᵢ)`. -/
+def combo : List (CSR.PE × CSR.PE) → List Nat → CSR.PE
+  | [], _ => .zero
+  | _, [] => .zero
+  | (A, B) :: t, c :: cs => .add (.mul (natPE c) (.add B (.neg A))) (combo t cs)
+
+theorem combo_nonneg : ∀ (hyps : List (CSR.PE × CSR.PE)) (cs : List Nat),
+    hypsOK S env hyps → S.le S.zero (CSR.eval S.toCSR env (combo hyps cs))
+  | [], _, _ => S.le_refl _
+  | _ :: _, [], _ => S.le_refl _
+  | (A, B) :: t, c :: cs, ⟨h, ht⟩ => by
+      show S.le S.zero (S.add (S.mul (CSR.eval S.toCSR env (natPE c)) _) _)
+      rw [eval_natPE]
+      exact nonneg_add S (nonneg_smul S c (sub_nonneg_of_le S h)) (combo_nonneg t cs ht)
+
+/-- **The certificate theorem**: if `(c₀+1)·(R − L) − Σ cᵢ (Bᵢ − Aᵢ)` normalises to the numeral
+`k`, then `L ≤ R` follows from the hypotheses. -/
+theorem le_of_cert (hyps : List (CSR.PE × CSR.PE)) (cs : List Nat) (c₀ k : Nat) (L R : CSR.PE)
+    (hh : hypsOK S env hyps)
+    (hcert : CR.cancelP (CR.normC (.add (.mul (natPE (c₀ + 1)) (.add R (.neg L)))
+                                          (.neg (combo hyps cs))))
+           = CR.cancelP (CR.normC (natPE k))) :
+    S.le (CSR.eval S.toCSR env L) (CSR.eval S.toCSR env R) := by
+  have h1 := CR.eq_of_normC S.toCR env _ _ hcert
+  -- h1 : r (eval (c₀' (R − L)) + −eval combo) (eval (natPE k))
+  change S.r (S.add (S.mul (CSR.eval S.toCSR env (natPE (c₀ + 1)))
+      (S.add (CSR.eval S.toCSR env R) (S.neg (CSR.eval S.toCSR env L))))
+      (S.neg (CSR.eval S.toCSR env (combo hyps cs)))) (CSR.eval S.toCSR env (natPE k)) at h1
+  rw [eval_natPE, eval_natPE] at h1
+  have h2 : S.le S.zero (S.add (CR.numeral S.toCR k) (CSR.eval S.toCSR env (combo hyps cs))) :=
+    nonneg_add S (nonneg_numeral S k) (combo_nonneg S env hyps cs hh)
+  have h3 : S.r (S.add (CR.numeral S.toCR k) (CSR.eval S.toCSR env (combo hyps cs)))
+      (S.mul (CR.numeral S.toCR (c₀ + 1))
+        (S.add (CSR.eval S.toCSR env R) (S.neg (CSR.eval S.toCSR env L)))) := by
+    refine S.trans (S.add_congr (S.symm h1) (S.refl _)) ?_
+    cr_ring S.toCR
+  have h4 := S.le_respects (S.refl _) h3 h2
+  exact le_of_sub_nonneg S (S.le_of_smul c₀ h4)
+
+end OCR
+
+-- ------------------------------------------------------------
+-- The tactic `cr_linarith S`: Fourier–Motzkin certificate search, reflective check
+-- ------------------------------------------------------------
+
+/-- A meta mirror of `PE`, kept alongside the `Expr` during reification. -/
+inductive MPE where
+  | atom : Nat → MPE
+  | zero | one : MPE
+  | add : MPE → MPE → MPE
+  | mul : MPE → MPE → MPE
+  | neg : MPE → MPE
+  deriving Inhabited, Repr
+
+/-- Linear forms over monomials (sorted atom lists), rational coefficients. -/
+abbrev LinForm := List (List Nat × Rat)
+
+private def lfAdd : LinForm → LinForm → LinForm
+  | [], q => q
+  | p, [] => p
+  | (m, a) :: p, (n, b) :: q =>
+    if m = n then
+      let c := a + b
+      if c == 0 then lfAdd p q else (m, c) :: lfAdd p q
+    else if CSR.leA m n then (m, a) :: lfAdd p ((n, b) :: q)
+    else (n, b) :: lfAdd ((m, a) :: p) q
+
+private def lfScale (c : Rat) (p : LinForm) : LinForm :=
+  if c == 0 then [] else p.map (fun (m, a) => (m, c * a))
+
+private def lfMulMono (m : List Nat) (c : Rat) (p : LinForm) : LinForm :=
+  p.foldl (fun acc (n, b) => lfAdd acc [(CSR.mergeA m n, c * b)]) []
+
+private def lfMul (p q : LinForm) : LinForm :=
+  p.foldl (fun acc (m, a) => lfAdd acc (lfMulMono m a q)) []
+
+private def mnorm : MPE → LinForm
+  | .atom i => [([i], 1)]
+  | .zero => []
+  | .one => [([], 1)]
+  | .add p q => lfAdd (mnorm p) (mnorm q)
+  | .mul p q => lfMul (mnorm p) (mnorm q)
+  | .neg p => lfScale (-1) (mnorm p)
+
+private def mpeToExpr : MPE → Expr
+  | .atom i => mkApp (mkConst ``CSR.PE.atom) (mkNatLit i)
+  | .zero => mkConst ``CSR.PE.zero
+  | .one => mkConst ``CSR.PE.one
+  | .add p q => mkApp2 (mkConst ``CSR.PE.add) (mpeToExpr p) (mpeToExpr q)
+  | .mul p q => mkApp2 (mkConst ``CSR.PE.mul) (mpeToExpr p) (mpeToExpr q)
+  | .neg p => mkApp (mkConst ``CSR.PE.neg) (mpeToExpr p)
+
+partial def reifyM (ops : Ops) (e : Expr) : StateT (Array Expr) MetaM MPE := do
+  let e ← instantiateMVars e
+  if let some fn := e.getAppFn.constName? then
+    let args := e.getAppArgs
+    if fn == ops.add.1 && args.size == ops.add.2 then
+      return .add (← reifyM ops args[args.size - 2]!) (← reifyM ops args[args.size - 1]!)
+    if fn == ops.mul.1 && args.size == ops.mul.2 then
+      return .mul (← reifyM ops args[args.size - 2]!) (← reifyM ops args[args.size - 1]!)
+    if let some (n, ar) := ops.neg then
+      if fn == n && args.size == ar then
+        return .neg (← reifyM ops (lastArg e))
+  if ← withNewMCtxDepth (withReducible (isDefEq e ops.zero)) then return .zero
+  if ← withNewMCtxDepth (withReducible (isDefEq e ops.one)) then return .one
+  if let some fn := e.getAppFn.constName? then
+    if ops.succ == some fn && e.getAppNumArgs == 1 then
+      return .add (← reifyM ops e.appArg!) .one
+  let atoms ← get
+  for i in [:atoms.size] do
+    if ← withNewMCtxDepth (withReducible (isDefEq e atoms[i]!)) then
+      return .atom i
+  set (atoms.push e)
+  return .atom atoms.size
+
+/-- A Fourier–Motzkin row: linear form, multipliers per input (index 0 = negated goal), strictness. -/
+private structure Row where
+  form : LinForm
+  lam : Array Rat
+  strict : Bool
+  deriving Inhabited
+
+private def ratPos (r : Rat) : Bool := r.num > 0
+private def ratNeg (r : Rat) : Bool := r.num < 0
+
+private def coeffOf (v : List Nat) (f : LinForm) : Rat :=
+  match f.find? (fun (m, _) => m = v) with
+  | some (_, a) => a
+  | none => 0
+
+private def rowComb (a : Rat) (r : Row) (b : Rat) (s : Row) : Row :=
+  { form := lfAdd (lfScale a r.form) (lfScale b s.form)
+    lam := (r.lam.zip s.lam).map (fun (x, y) => a * x + b * y)
+    strict := r.strict || s.strict }
+
+/-- Eliminate one variable. -/
+private def fmStep (v : List Nat) (rows : List Row) : List Row :=
+  let pos := rows.filter (fun r => ratPos (coeffOf v r.form))
+  let neg := rows.filter (fun r => ratNeg (coeffOf v r.form))
+  let zero := rows.filter (fun r => (coeffOf v r.form).num == 0)
+  let combos := pos.foldl (fun acc p =>
+    neg.foldl (fun acc n =>
+      let cp := coeffOf v p.form
+      let cn := coeffOf v n.form
+      rowComb (-cn) p cp n :: acc) acc) []
+  zero ++ combos
+
+private def variablesOf (rows : List Row) : List (List Nat) :=
+  let all := rows.foldl (fun acc r => r.form.foldl (fun acc (m, _) => if m = [] then acc else
+    if acc.contains m then acc else m :: acc) acc) []
+  all
+
+/-- Search: returns the multipliers (index 0 = goal) of a contradictory row, if any. -/
+private def fmSearch (rows : List Row) : Option (Array Rat) := Id.run do
+  let mut rs := rows
+  for v in variablesOf rows do
+    rs := fmStep v rs
+    if rs.length > 4000 then return none
+  for r in rs do
+    let c := coeffOf [] r.form
+    let contra := if r.strict then c.num ≤ 0 else c.num < 0
+    if contra && ratPos r.lam[0]! then return some r.lam
+  return none
+
+private def natLcm (a b : Nat) : Nat := a * b / Nat.gcd a b
+
+/-- `cr_linarith S`, `cr_linarith S [t₁, …]`: closes `S.le L R` / `S.lt L R` from the `le`/`lt`
+hypotheses in context (and the extra terms), by a Farkas certificate found by Fourier–Motzkin and
+checked by reflection (`OCR.le_of_cert`) — on `[]`. -/
+syntax (name := crLinarith) "cr_linarith " term (" [" term,* "]")? : tactic
+
+@[tactic crLinarith] def evalCrLinarith : Tactic := fun stx => do
+  match stx with
+  | `(tactic| cr_linarith $St:term $[[$extra,*]]?) => withMainContext do
+    let S ← Tactic.elabTerm St none
+    let Sty ← whnf (← inferType S)
+    let α := Sty.appArg!
+    let toCR := mkApp2 (mkConst ``OCR.toCR) α S
+    let toCSR := mkApp2 (mkConst ``CR.toCSR) α toCR
+    -- operations of the semiring reduct
+    let Sv ← whnf toCSR
+    let env ← getEnv
+    let fields := getStructureFields env ``VR.CSR.CSR
+    let getOp (f : Name) (arity : Nat) : MetaM (Expr × Option (Name × Nat)) := do
+      let some idx := fields.idxOf? f | throwError "cr_linarith: no field {f}"
+      let e ← whnfCore (Expr.proj ``VR.CSR.CSR idx Sv)
+      if e.isProj then
+        let projFn := ``VR.CSR.CSR ++ f
+        pure (mkApp2 (mkConst projFn) α toCSR, some (projFn, arity + 2))
+      else
+        match e.constName? with
+        | some n => pure (e, some (n, arity))
+        | none => pure (e, none)
+    let (_, addOp) ← getOp `add 2
+    let (_, mulOp) ← getOp `mul 2
+    let (negE, negOp) ← getOp `neg 1
+    let (zeroE, _) ← getOp `zero 0
+    let (oneE, _) ← getOp `one 0
+    let some addN := addOp | throwError "cr_linarith: no add"
+    let some mulN := mulOp | throwError "cr_linarith: no mul"
+    let negN : Option (Name × Nat) := match negOp with
+      | some (n, ar) => if negE.isConstOf ``id then none else some (n, ar)
+      | none => none
+    let succN : Option Name ← do
+      match oneE.getAppFn.constName?, oneE.getAppArgs with
+      | some n, #[z] => if ← withNewMCtxDepth (isDefEq z zeroE) then pure (some n) else pure none
+      | _, _ => pure none
+    let ops : Ops := { add := addN, mul := mulN, neg := negN, succ := succN,
+                       zero := zeroE, one := oneE }
+    -- the order relations of S
+    let ofields := getStructureFields env ``VR.CSR.OCR
+    let Sov ← whnf S
+    let getRel (f : Name) : MetaM (Name × Nat) := do
+      let some idx := ofields.idxOf? f | throwError "cr_linarith: no field {f}"
+      let e ← whnfCore (Expr.proj ``VR.CSR.OCR idx Sov)
+      if e.isProj then pure (``VR.CSR.OCR ++ f, 4)
+      else match e.constName? with
+        | some n => pure (n, 2)
+        | none => throwError "cr_linarith: {f} is not a constant: {e}"
+    let (leN, leAr) ← getRel `le
+    let (ltN, ltAr) ← getRel `lt
+    let isRel (n : Name) (ar : Nat) (t : Expr) : Bool :=
+      t.getAppFn.constName? == some n && t.getAppNumArgs == ar
+    -- collect hypotheses: (proof, a, b, isLt) — an `lt a b` hypothesis is used as
+    -- `le (a + 1) b` via `S.lt_def`, and reified as `add (reify a) one`
+    let mut hyps : Array (Expr × Expr × Expr × Bool) := #[]
+    let addHyp (h : Expr) (t : Expr) (hyps : Array (Expr × Expr × Expr × Bool)) :
+        MetaM (Array (Expr × Expr × Expr × Bool)) := do
+      let t := (← instantiateMVars t).consumeMData
+      let args := t.getAppArgs
+      if isRel leN leAr t then
+        return hyps.push (h, args[args.size - 2]!, args[args.size - 1]!, false)
+      else if isRel ltN ltAr t then
+        let a := args[args.size - 2]!
+        let b := args[args.size - 1]!
+        let ltDef ← mkAppM ``OCR.lt_def #[S, a, b]
+        let pf ← mkAppM ``Iff.mp #[ltDef, h]
+        return hyps.push (pf, a, b, true)
+      else return hyps
+    for d in (← getLCtx) do
+      if d.isImplementationDetail then continue
+      hyps ← addHyp d.toExpr d.type hyps
+    if let some extra := extra then
+      for t in extra.getElems do
+        let h ← Tactic.elabTerm t none
+        hyps ← addHyp h (← inferType h) hyps
+    -- the goal
+    let g ← getMainGoal
+    let gt := (← instantiateMVars (← g.getType)).consumeMData
+    let gargs := gt.getAppArgs
+    let (L, R, wrapLt) ← do
+      if isRel leN leAr gt then pure (gargs[gargs.size - 2]!, gargs[gargs.size - 1]!, false)
+      else if isRel ltN ltAr gt then
+        pure (gargs[gargs.size - 2]!, gargs[gargs.size - 1]!, true)
+      else throwError "cr_linarith: goal is not `le`/`lt` of {St}: {gt}"
+    -- reify everything with one atom table
+    let ((mL, mR, mhyps), atoms) ← (do
+      let mL ← reifyM ops L
+      let mL := if wrapLt then MPE.add mL .one else mL
+      let mR ← reifyM ops R
+      let mut mh : Array (MPE × MPE) := #[]
+      for (_, A, B, isLt) in hyps do
+        let mA ← reifyM ops A
+        let mA := if isLt then MPE.add mA .one else mA
+        mh := mh.push (mA, ← reifyM ops B)
+      return (mL, mR, mh)).run #[]
+    -- Fourier–Motzkin
+    let n := hyps.size
+    let unit (i : Nat) : Array Rat := (Array.range (n + 1)).map (fun j => if j == i then 1 else 0)
+    let goalRow : Row := { form := lfAdd (mnorm mL) (lfScale (-1) (mnorm mR)), lam := unit 0, strict := true }
+    let hypRows : List Row := (List.range n).map (fun i =>
+      let (A, B) := mhyps[i]!
+      { form := lfAdd (mnorm B) (lfScale (-1) (mnorm A)), lam := unit (i + 1), strict := false })
+    let some lam := fmSearch (goalRow :: hypRows)
+      | throwError "cr_linarith: no certificate (goal {gt}; {n} hypotheses)"
+    -- scale to naturals
+    let D := lam.foldl (fun d q => natLcm d q.den) 1
+    let cs : Array Nat := lam.map (fun q => (q.num * (D : Int) / (q.den : Int)).toNat)
+    let c0 := cs[0]!
+    unless c0 ≥ 1 do throwError "cr_linarith: degenerate certificate"
+    -- k = −(constant of the combination) · D
+    let combForm := (List.range (n + 1)).foldl (fun acc i =>
+      let r := if i == 0 then goalRow else hypRows[i - 1]!
+      lfAdd acc (lfScale lam[i]! r.form)) []
+    let cst := coeffOf [] combForm
+    let k : Nat := ((-cst.num) * (D : Int) / (cst.den : Int)).toNat
+    -- Lean-level data
+    let peL := mpeToExpr mL
+    let peR := mpeToExpr mR
+    let pePair := mkApp2 (mkConst ``Prod [levelZero, levelZero]) (mkConst ``CSR.PE) (mkConst ``CSR.PE)
+    let hypList ← mkListLit pePair ((List.range n).map (fun i =>
+      let (A, B) := mhyps[i]!
+      mkApp4 (mkConst ``Prod.mk [levelZero, levelZero]) (mkConst ``CSR.PE) (mkConst ``CSR.PE)
+        (mpeToExpr A) (mpeToExpr B)))
+    let csList ← mkListLit (mkConst ``Nat) ((List.range n).map (fun i => mkNatLit cs[i + 1]!))
+    let envE := mkApp3 (mkConst ``envOf) α zeroE (← mkListLit α atoms.toList)
+    -- hypsOK proof: nested And.intro (mkAppM infers the Props)
+    let mut hh : Expr := mkConst ``True.intro
+    for i in (List.range n).reverse do
+      let (pf, _, _, _) := hyps[i]!
+      hh ← mkAppM ``And.intro #[pf, hh]
+    -- certificate equation, decided by evaluation
+    let c0m1 := mkNatLit (c0 - 1)
+    let kE := mkNatLit k
+    let lhsPE := mkApp2 (mkConst ``CSR.PE.add)
+      (mkApp2 (mkConst ``CSR.PE.mul) (mkApp (mkConst ``OCR.natPE) (mkNatLit c0))
+        (mkApp2 (mkConst ``CSR.PE.add) peR (mkApp (mkConst ``CSR.PE.neg) peL)))
+      (mkApp (mkConst ``CSR.PE.neg) (mkApp2 (mkConst ``OCR.combo) hypList csList))
+    let n₁ := mkApp (mkConst ``CR.cancelP) (mkApp (mkConst ``CR.normC) lhsPE)
+    let n₂ := mkApp (mkConst ``CR.cancelP) (mkApp (mkConst ``CR.normC) (mkApp (mkConst ``OCR.natPE) kE))
+    let hEq ← mkEq n₁ n₂
+    let inst ← synthInstance (mkApp (mkConst ``Decidable) hEq)
+    let dec := mkApp2 (mkConst ``Decidable.decide) hEq inst
+    let r ← withDefault (whnf dec)
+    unless r.isConstOf ``Bool.true do
+      throwError "cr_linarith: certificate does not check:\n  {← reduce n₁}\n  {← reduce n₂}"
+    let hcert := mkApp3 (mkConst ``of_decide_eq_true) hEq inst
+      (mkApp2 (mkConst ``Eq.refl [levelOne]) (mkConst ``Bool) (mkConst ``Bool.true))
+    let pfLe := mkAppN (mkApp (mkConst ``OCR.le_of_cert) α)
+      #[S, envE, hypList, csList, c0m1, kE, peL, peR, hh, hcert]
+    let pf ← if wrapLt then
+        let a := gargs[gargs.size - 2]!
+        let b := gargs[gargs.size - 1]!
+        let ltDef ← mkAppM ``OCR.lt_def #[S, a, b]
+        mkAppM ``Iff.mpr #[ltDef, pfLe]
+      else pure pfLe
+    let pt ← inferType pf
+    unless ← isDefEq gt pt do
+      throwError "cr_linarith: the goal is not the evaluation of its reification:\n{gt}\n{pt}"
+    g.assign pf
+    replaceMainGoal []
+  | _ => throwUnsupportedSyntax
+
 end VR.CSR

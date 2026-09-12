@@ -48,7 +48,17 @@ apparatus with witnessed identity. Step 1 is the number floor.
   `z̄/|z|²`, `gmul_inv_cancel` on `[]`) and the quotient bridge `GaussQ` (`CommRing`, `Inv`,
   `DecidableEq`, `mul_inv_cancel` on `[Quot.sound]`). `Spectrum.lean` table and guards updated
   (`Qop.ofRat` now asserted choice-free). Full build green.
-  Next: ℝ_VR — the Cauchy layer over ℚ_VR (the large part; `Real.lean`/`UnitInterval.lean` are
+* **Instruments for the real layer (same day).** `cr_ring`: the ring normaliser WITH cancellation
+  (`CR` = `CSR` + `a + (−a) ≈ 0`; coefficient monomials, merge, cancel), so `int_ring`/`rat_ring`/
+  `gauss_ring` now close `x + (−x) ≈ 0`-type identities too; the tactic also works for a variable
+  structure (projection matching by arity), which is what its own soundness proofs use.
+  **`cr_linarith`**: linear arithmetic on `[]` — `OCR` (ordered commutative ring up to `≈`: `le`
+  respects `≈`, preorder, translation-invariant, `0 ≤ 1`, positive numerals cancel), the certificate
+  theorem `OCR.le_of_cert` (`(c₀+1)(R − L) − Σ cᵢ(Bᵢ − Aᵢ)` normalises to a numeral `k` ⟹ `L ≤ R`),
+  Fourier–Motzkin certificate search in meta code over `Rat`, hypotheses collected from the context
+  (`lt a b` used as `le (a+1) b`). `int_linarith` (`IntExpr.ocr`) and `rat_linarith` (`QExpr.ocr`).
+  This replaces `omega`/`linarith` (both `propext`) for the ℤ/ℚ inequality reasoning of the reals.
+  Next: ℝ_VR — the Cauchy layer over VR's integer pairs (`Real.lean`/`UnitInterval.lean` are
   still over Mathlib's `ℤ`), then `Real` as its bridge.
 
 ## Empty-list sweep, waves 4–8 — 2026-09-12

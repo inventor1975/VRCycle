@@ -414,6 +414,41 @@ def QExpr.csr : VR.CSR.CSR QExpr where
 
 def QExpr.cr : VR.CSR.CR QExpr := { QExpr.csr with add_neg := qadd_neg }
 
+theorem qone_pos : qlt qzero qone := (qpos_iff qone).mpr intPos_one
+
+theorem qnumeral_succ_pos : ∀ c : Nat, qlt qzero (VR.CSR.CR.numeral QExpr.cr (c + 1))
+  | 0 => qlt_respects (qEq_refl _) (qEq_symm (qadd_zero qone)) qone_pos
+  | c + 1 => qadd_pos qone_pos (qnumeral_succ_pos c)
+
+/-- Pre-rationals as an ordered commutative ring up to `qEq` (dense: `lt` is just `le (a+1) b`
+here, the genuine `qlt` is handled by `qlt_iff_le_not_le`). -/
+def QExpr.ocr : VR.CSR.OCR QExpr :=
+  { QExpr.cr with
+    le := qle
+    lt := fun a b => qle (qadd a qone) b
+    lt_def := fun _ _ => Iff.rfl
+    le_respects := fun h1 h2 h => qle_respects h1 h2 h
+    le_refl := qle_refl
+    le_trans := fun h1 h2 => qle_trans h1 h2
+    le_add_right := fun c h => qle_add_right c h
+    zero_le_one := qle_of_qlt qone_pos
+    le_of_smul := fun c x h => by
+      have hN : intPos (VR.CSR.CR.numeral QExpr.cr (c + 1)).num :=
+        (qpos_iff _).mp (qnumeral_succ_pos c)
+      have h1 : zeroI ≤ᵢ imul (VR.CSR.CR.numeral QExpr.cr (c + 1)).num x.num :=
+        (qnonneg_iff _).mp h
+      have h2 : imul zeroI (VR.CSR.CR.numeral QExpr.cr (c + 1)).num
+          ≤ᵢ imul x.num (VR.CSR.CR.numeral QExpr.cr (c + 1)).num :=
+        intLe_respects (intEq_symm _ _ (zero_imul _)) (imul_comm _ _) h1
+      exact (qnonneg_iff x).mpr (intLe_of_mul_le_mul_right hN h2) }
+
+/-- `rat_linarith`: linear consequences of `qle` hypotheses between pre-rationals (a strict
+hypothesis `qlt a b` is fed as `qle a b` by hand: `qle_of_qlt`), on `[]`. -/
+syntax "rat_linarith" (" [" term,* "]")? : tactic
+macro_rules
+  | `(tactic| rat_linarith) => `(tactic| cr_linarith VR.Numbers.QExpr.ocr)
+  | `(tactic| rat_linarith [$ts,*]) => `(tactic| cr_linarith VR.Numbers.QExpr.ocr [$ts,*])
+
 /-- `rat_ring`: ring identities between pre-rationals up to `qEq`, pre-rationals as atoms, with
 cancellation. -/
 syntax "rat_ring" : tactic
