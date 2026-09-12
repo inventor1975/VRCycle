@@ -80,12 +80,11 @@
 --
 -- ## Axiom profile overview
 --   PredicateOperationality.IsModeAOp_id                  []
---   ReferenceOperationality.IsModeAOp_quotientMk           [Quot.sound]
---   ReferenceOperationality.modeA_liftFn_quotientMk_eq_id  [Quot.sound]
+--   (IsModeAOp_quotientMk, modeA_liftFn_quotientMk_eq_id, modeA_liftFn_comp_interApparatus —
+--    in VRClassical/Apparatus/QuotientBridge.lean, [Quot.sound])
 --   InterApparatusMorphism.id_isInterApparatus              []
 --   IsModeBOp_id                                            []
 --   interApparatus_comp_modeA_wd                            []
---   modeA_liftFn_comp_interApparatus                        [Quot.sound]
 --   §2b witnessed Mode A (IsModeAOpW, 11 objects)          []
 --
 -- Integrity step 5 (2026-09-12): the three [Quot.sound] objects are the
@@ -426,8 +425,7 @@ example {T : Type _} {P : T → Prop} {f : T → T}
 -- AXIOM AUDIT:
 --   [] (15): IsModeAOp_id, id_isInterApparatus, IsModeBOp_id, interApparatus_comp_modeA_wd,
 --            and the 11 objects of §2b
---   [Quot.sound] (3, quotient bridge): IsModeAOp_quotientMk, modeA_liftFn_quotientMk_eq_id,
---                     modeA_liftFn_comp_interApparatus
+--   (the 3 quotient-bridge objects are in VRClassical/Apparatus/QuotientBridge.lean)
 -- CHECKS: no sorry, no admit.
 
 #print axioms PredicateOperationality.IsModeAOp_id

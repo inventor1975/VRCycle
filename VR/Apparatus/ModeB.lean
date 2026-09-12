@@ -64,8 +64,8 @@
 -- IsModeBOp.lift (def): [].
 -- IsModeAOp_iff_IsModeBOp (theorem): [].
 -- IsModeBOp.compose (theorem): [].
--- riesz_extension_map (noncomputable def): [propext, Classical.choice, Quot.sound].
--- riesz_extension_isModeBOp (theorem): [propext, Classical.choice, Quot.sound].
+-- riesz_extension_map, riesz_extension_isModeBOp: moved to VRClassical/Apparatus/ModeB.lean
+--   (2026-09-12; Mathlib's profile there). Everything in this file: [].
 
 import VR.Apparatus.ModeA
 
@@ -208,12 +208,8 @@ theorem IsModeBOp.compose {A B C : Type _}
 --   PredicateOperationality.IsModeAOp_iff_IsModeBOp (theorem, iff)
 --   PredicateOperationality.IsModeAOp.toModeBOp     (theorem)
 --   IsModeBOp.compose               (theorem)
---   riesz_extension_map             (noncomputable def, VR-Audit-1 concrete)
---   riesz_extension_isModeBOp       (theorem, VR-Audit-1 concrete)
---   riesz_mode_b_lift               (noncomputable def, end-to-end demo)
--- AXIOM AUDIT:
---   abstract infrastructure: [].
---   VR-Audit-1 concrete: [propext, Classical.choice, Quot.sound].
+--   (riesz_extension_map, riesz_extension_isModeBOp, riesz_mode_b_lift — in VRClassical/Apparatus/ModeB.lean)
+-- AXIOM AUDIT: every object in this file [].
 -- CHECKS: no sorry, no admit.
 
 #print axioms IsModeBOp

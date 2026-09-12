@@ -7,8 +7,8 @@
 -- Theorem 0.6).  Built directly on the decomposition-based F-witness
 -- (not upper closure of cartesian products).
 --
--- Architectural commitment: zero `Classical.choice`.  Target axiom
--- profile: `[propext, Quot.sound]`.  Decidability hypotheses are
+-- Architectural commitment: zero `Classical.choice`.  Axiom
+-- profile: `[]` (since the 2026-09-12 sweep; the v1.0.0 target was `[propext, Quot.sound]`).  Decidability hypotheses are
 -- explicit (Finding T16) — Vickers's Kuratowski-finite setting carried
 -- them implicitly; Lean 4 List encoding requires them as explicit
 -- typeclass instances.
@@ -968,8 +968,8 @@ compact**.
 
 This is Mode B audit object for VR-Topology v1.0.0: multi-step
 constructive proof (~480 active lines across helpers + four `prodF.*`
-theorems + assembly), zero `Classical.choice`.  Target axiom profile
-`[propext, Quot.sound]` achieved. -/
+theorems + assembly), zero `Classical.choice`.  Axiom profile `[]`
+(the v1.0.0 target `[propext, Quot.sound]` was surpassed in the 2026-09-12 sweep). -/
 def tychonoff_binary
     (T₁ T₂ : FormalTopology)
     [inst₁ : OperationalFormalTopology T₁]

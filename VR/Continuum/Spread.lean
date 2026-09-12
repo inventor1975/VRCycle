@@ -21,7 +21,7 @@
 --   * the space of all branches is non-enumerable, witnessed structurally by the
 --     spread's infinite branching, not by any enumeration.
 --
--- ## Axiom profile: expected constructive (no `Classical.choice`)
+-- ## Axiom profile: `[]` (measured; guarded)
 -- `CoverGen` is a `Prop`-valued inductive; the spread carries no choice.  This is the
 -- "safe core is genuinely constructive" check (cf. VR-Topology binary Tychonoff).
 

@@ -8,7 +8,7 @@
 -- UNIFORMLY continuous (one modulus `N` works for all branches).  This is Brouwer's
 -- "every function on Cantor space is uniformly continuous", derived from the two
 -- principles carried AS HYPOTHESES — never adopted.  The axiom audit shows the result
--- adds no global axiom: it depends only on `[propext]` (+ Quot.sound), the principles
+-- adds no global axiom: it is on `[]`; the principles
 -- live in the statement.  This is the whole point of the chosen vehicle.
 --
 -- ## Proof shape
@@ -56,7 +56,7 @@ theorem take_le_eq {α β : Branch} {m : Nat} :
 /-- **Brouwer's uniform continuity theorem, hypothesis-tracked.**  Under `Continuity`
 (WC-N) and `FanTheorem` — both carried as hypotheses, never adopted — every operation
 `F : Branch → Nat` has a single modulus `N` good for all branches.  No global axiom is
-added (audit: `[propext]`-tier); the principles live in the statement.  This exhibits
+added (audit: `[]`); the principles live in the statement.  This exhibits
 the chosen vehicle: a genuinely Brouwerian result, consistently, over classical Lean. -/
 theorem uniform_continuity (hC : Continuity) (hF : FanTheorem) (F : Branch → Nat) :
     ∃ N, ∀ α β : Branch, α.take N = β.take N → F α = F β := by

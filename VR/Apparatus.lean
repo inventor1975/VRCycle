@@ -5,6 +5,12 @@
 -- v1.0.0: 68 public objects, 3430 lines across 12 implementation files.
 --         33 new objects across 6 new files. Zero sorry. Zero warnings.
 --
+-- STATUS 2026-09-13 (integrity programme): this index is the CORE half of the apparatus —
+-- every declaration reachable from it is on the empty axiom list (guarded by VR/Guard.lean).
+-- The tier tables and Findings below describe v1.0.0 as measured then; the objects they place
+-- in the [Quot.sound] / [P,Q] / [P,C,Q] tiers now live in VRClassical/Apparatus/ (instances
+-- over ℝ/PSet, Riesz, QuotientBridge). Read the tiers as history of the design.
+--
 -- ============================================================
 -- ## Architecture overview — v1.0.0
 -- ============================================================
@@ -381,9 +387,9 @@ section SpotCheckAxioms
 #print axioms IsModeBOp.lift_val
 -- Expected: 'VR.Apparatus.IsModeBOp.lift_val' does not depend on any axioms
 
--- Tier 3: [propext, Quot.sound] (representative: VR-Forms integration)
+-- VR-Forms integration (Tier 3 in v1.0.0; on [] since VR-Forms moved onto OpSet, 2026-09-12)
 #print axioms instPredicateOpFormalTerm
--- Expected: 'VR.Apparatus.instPredicateOpFormalTerm' depends on axioms: [propext, Quot.sound]
+-- Expected: 'VR.Apparatus.instPredicateOpFormalTerm' does not depend on any axioms
 
 end SpotCheckAxioms
 

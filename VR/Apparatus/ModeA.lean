@@ -56,8 +56,8 @@
 -- ## Axiom profile
 -- IsModeAOp, IsModeAOp₂, modeA_liftFn*, modeA_lift*:  [].
 -- IsModeAOp.compose (both modes):                       [].
--- isComputableReal_add_isModeA:  [propext, Classical.choice, Quot.sound].
--- osetZFA_singleton_isModeA:     [propext, Classical.choice, Quot.sound].
+-- isComputableReal_add_isModeA, osetZFA_singleton_isModeA: moved to VRClassical/Apparatus/ModeA.lean
+--   (2026-09-12; Mathlib's profile there). Everything in this file: [].
 
 import VR.Apparatus.Wrapping
 import VR.Apparatus.Reference
@@ -242,9 +242,8 @@ end ReferenceOperationality
 --   ReferenceOperationality.modeA_liftFn  (noncomputable def, Quotient.lift)
 --   ReferenceOperationality.modeA_lift    (theorem, rfl)
 --   ReferenceOperationality.IsModeAOp.compose (theorem)
---   isComputableReal_add_isModeA          (theorem, Case 1)
---   osetZFA_singleton_isModeA             (theorem, Case 2)
--- AXIOM AUDIT: infrastructure [], concrete instances [propext, Classical.choice, Quot.sound].
+--   (isComputableReal_add_isModeA, osetZFA_singleton_isModeA — in VRClassical/Apparatus/ModeA.lean)
+-- AXIOM AUDIT: every object in this file [].
 
 #print axioms PredicateOperationality.IsModeAOp
 #print axioms PredicateOperationality.IsModeAOp₂

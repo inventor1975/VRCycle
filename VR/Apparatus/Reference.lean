@@ -39,13 +39,8 @@
 -- ## Axiom profile
 -- ReferenceOperationality class itself: [].
 -- identityNature def: [].
--- Instance for CoPSet (OSetZFA): [propext, Classical.choice, Quot.sound].
---   propext: from OSetZFA.ext (used in CoPSet.mem_congr via propext).
---   Quot.sound: from OSetZFA.Mem (liftOn₂) and OSetZFA.ext (Quotient.sound).
---   Classical.choice: from CoPSet = PFunctor.M (mathlib M-type uses choice).
---   Note: Classical.choice enters via transitive import of PFunctor.M,
---   not from OSetZFA operations directly. This is the standard ceiling
---   for VR-Sets-ZFA work. Within axiom ceiling [propext, Classical.choice, Quot.sound].
+-- Instance for CoPSet (OSetZFA): moved to VRClassical/Apparatus/Reference.lean (2026-09-12;
+--   Mathlib's [propext, Classical.choice, Quot.sound] there, via PFunctor.M). Everything here: [].
 -- Cross-apparatus examples live in Apparatus.lean (requires both Wrapping + Reference).
 
 import VR.Apparatus.Identity
@@ -145,13 +140,10 @@ def ReferenceOperationality.identityNature
 -- LEAN OBJECTS (1 class, 1 def, 1 instance):
 --   ReferenceOperationality (class, 2 fields: membership, ext)
 --   ReferenceOperationality.identityNature (def)
---   instRefOpCoPSet : @ReferenceOperationality CoPSet CoPSet.instSetoid
+--   (instRefOpCoPSet — in VRClassical/Apparatus/Reference.lean)
 -- AXIOM AUDIT:
 --   ReferenceOperationality:      [].
 --   identityNature:               [].
---   instRefOpCoPSet:              [propext, Classical.choice, Quot.sound].
---     Classical.choice: transitive via PFunctor.M (CoPSet infrastructure).
---     This is the standard ceiling for VR-Sets-ZFA. Acceptable.
 -- CHECKS: no sorry, no admit.
 
 #print axioms ReferenceOperationality

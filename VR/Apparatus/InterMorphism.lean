@@ -73,17 +73,12 @@
 --
 -- ## Axiom profile overview
 --   InterApparatusMorphism                       []
---   InterApparatusMorphism.lift                  []
---   InterApparatusMorphism.lift_mk               []
---   IsModeAOp_of_interApparatus                  []
 --   InterApparatusMorphism.compose               []
---   InterApparatusMorphism.lift_compose          []
---   embedPSet_isInterApparatus                   [propext, Classical.choice, Quot.sound]
---   embedOSet_eq_interApparatus_lift             [propext, Classical.choice, Quot.sound]
+--   (lift, lift_mk, IsModeAOp_of_interApparatus, lift_compose — in
+--    VRClassical/Apparatus/QuotientBridge.lean, [Quot.sound]; embedPSet_isInterApparatus,
+--    embedOSet_eq_interApparatus_lift — in VRClassical/Apparatus/InterMorphism.lean, Mathlib's profile)
 --
--- Infrastructure (6 objects): axiom-free [].
--- Concrete instances (2 objects): standard ceiling [propext, Classical.choice, Quot.sound],
--- inherited from CoPSet/OSetZFA infrastructure (PFunctor.M pulls Classical.choice).
+-- Everything in this file: [].
 
 import VR.Apparatus.Factorisation
 
@@ -153,13 +148,9 @@ theorem InterApparatusMorphism.compose {Q1 Q2 Q3 : Type _}
 --   IsModeAOp_of_interApparatus         (theorem, layered architecture bridge)
 --   InterApparatusMorphism.compose      (theorem, composition)
 --   InterApparatusMorphism.lift_compose (theorem, functor law)
---   embedPSet_isInterApparatus          (theorem, canonical ZFC→ZFA instance)
---   embedOSet_eq_interApparatus_lift    (theorem, embedOSet re-derivation)
--- AXIOM AUDIT:
---   Infrastructure []: InterApparatusMorphism, lift, lift_mk,
---                      IsModeAOp_of_interApparatus, compose, lift_compose
---   Standard ceiling [propext, Classical.choice, Quot.sound]:
---                      embedPSet_isInterApparatus, embedOSet_eq_interApparatus_lift
+--   (lift, lift_mk, IsModeAOp_of_interApparatus, lift_compose, embedPSet_isInterApparatus,
+--    embedOSet_eq_interApparatus_lift — moved out, see the note after the imports)
+-- AXIOM AUDIT: every object in this file [] (InterApparatusMorphism, compose).
 -- CHECKS: no sorry, no admit.
 
 #print axioms InterApparatusMorphism

@@ -23,9 +23,8 @@
 -- Bridge to ℘(Nat) / the absence of a completed totality is the NEXT step (essay-level in part;
 -- see VR-LOGIC §3) and is NOT claimed here. This file is the machine-checked core only.
 --
--- ## Axiom profile: choice-free throughout (verified by #print axioms below).
---   operational_register_countable : [propext, Quot.sound] (via decodeNode round-trip)
---   operational_cantor             : [propext, Quot.sound] (carries no_node_surjection's tier)
+-- ## Axiom profile: `[]` throughout (verified by #print axioms below; the 2026-06 tier
+--   `[propext, Quot.sound]` was repaid in the 2026-09-12 empty-list sweep, guarded since).
 
 import VR.Continuum.Registers
 

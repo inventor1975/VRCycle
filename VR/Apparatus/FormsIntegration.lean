@@ -76,11 +76,8 @@
 --   OQ-B: three-way identity nature contrast (comment block, see above).
 --
 -- ## Axiom profile
--- All three objects: [propext, Quot.sound].
--- Inherited from VR-Forms predicates (translate_pi, isRealisable) via VR-Sets/ZFSet
--- infrastructure (propext for iff-reasoning on OSet, Quot.sound for ZFSet quotient).
--- No Classical.choice: VR-Forms avoids classical reasoning throughout.
--- Parallel to all VR-Forms Transit.lean objects [propext, Quot.sound].
+-- All three objects: `[]` (since 2026-09-12: VR-Forms is over `OpSet`, itself on `[]`;
+-- the v1.0.0 profile `[propext, Quot.sound]` came from the ZFSet reading).
 --
 -- ## Scope discipline
 -- - No modifications to VR-Forms files (Language, Realisability, Transit, Bridge, Examples).
@@ -120,10 +117,9 @@ space). The `AsPoint` identity nature reflects this: formal terms are identified
 description string and register marker, not by membership structure. This contrasts with
 the operational apparatus (`instRefOpPSet`, Instances.lean) which is `AsReference`.
 
-## Axiom profile: [propext, Quot.sound]
+## Axiom profile: []
 PredicateOperationality is a marker class (no fields); its axioms are determined by the
-type elaboration context. `isRealisable` depends on VR-Sets ZFSet machinery ([propext, Quot.sound]).
-Classical.choice is NOT used in VR-Forms (DecidableEq FormalTerm avoids classical reasoning). -/
+type elaboration context. `isRealisable` is over `OpSet`, on `[]` (since 2026-09-12). -/
 instance instPredicateOpFormalTerm : PredicateOperationality FormalTerm isRealisable := ⟨⟩
 
 /-- The identity nature of the formal realisability apparatus is AsPoint. -/
@@ -188,9 +184,8 @@ a RECOGNITION that the apparatus framework already covers VR-Forms through Mode 
 - `vr_forms_transit_isModeBOp` connects them: specific → existential via Mode B
 - The converse fails: Mode B is NOT symmetric (existential does not recover specific).
 
-## Axiom profile: [propext, Quot.sound]
-Inherited from `translate_implies_realisable` (Transit.lean: [propext, Quot.sound]).
-No Classical.choice: VR-Forms uses DecidableEq FormalTerm throughout. -/
+## Axiom profile: []
+Inherited from `translate_implies_realisable` (Transit.lean, on `[]`). -/
 theorem vr_forms_transit_isModeBOp :
     IsModeBOp translate_pi isRealisable (fun _ => True) id :=
   fun t h _ => translate_implies_realisable t h
@@ -229,17 +224,17 @@ theorem vr_forms_transit_isModeBOp :
 
 section AxiomAudit
 
--- A1: marker instance; axioms from type elaboration of isRealisable (ZFSet).
+-- A1: marker instance; axioms from type elaboration of isRealisable (OpSet).
 #print axioms instPredicateOpFormalTerm
--- Verified: [propext, Quot.sound]
+-- Verified: []
 
--- A2: marker instance; axioms from type elaboration of translate_pi (ZFSet).
+-- A2: marker instance; axioms from type elaboration of translate_pi (OpSet).
 #print axioms instPredicateOpTranslatePi
--- Verified: [propext, Quot.sound]
+-- Verified: []
 
--- B1: translate_implies_realisable inherits [propext, Quot.sound].
+-- B1: translate_implies_realisable is on [].
 #print axioms vr_forms_transit_isModeBOp
--- Verified: [propext, Quot.sound]
+-- Verified: []
 
 end AxiomAudit
 

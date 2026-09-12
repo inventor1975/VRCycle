@@ -1,7 +1,7 @@
 -- VRCycle/Numbers/IntegersOp.lean
 -- The operational integers with WITNESSED identity, on the empty axiom list.
 --
--- Empty-list sweep, wave 7 (2026-09-12).  `Numbers/Integers.lean` takes the quotient
+-- Empty-list sweep, wave 7 (2026-09-12).  `VRClassical/Numbers/IntegersBridge.lean` (until 2026-09-12 part of `Numbers/Integers.lean`) takes the quotient
 -- `ℤ_VR := Quotient intEqSetoid` and proves its ring laws through the isomorphism with
 -- Mathlib's `Int` (`forward_injective` + `ring`) — every one of those theorems carries
 -- `[propext, Quot.sound]`: the quotient contributes `Quot.sound`, Mathlib's `Int` lemmas and

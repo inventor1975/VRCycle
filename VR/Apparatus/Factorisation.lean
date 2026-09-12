@@ -47,8 +47,7 @@
 --   IsModeBOp_of_factorisable             []
 --   Factorisable.lift                     []
 --   Factorisable.lift_val                 []
---   riesz_extension_factorisable          [propext, Classical.choice, Quot.sound]
---   riesz_extension_isModeBOp'            [propext, Classical.choice, Quot.sound]
+--   (riesz_extension_factorisable, riesz_extension_isModeBOp' — in VRClassical/Apparatus/Factorisation.lean)
 
 import VR.Apparatus.ModeB
 
