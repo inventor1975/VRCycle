@@ -4,7 +4,7 @@
 -- `[]`; the quotient `ℤ_VR := Quotient intEqSetoid`, its lifted operations and the isomorphism
 -- Theorem II.6 with `Int` live here, in the classical library, on `[Quot.sound]`/`[propext, …]`).
 
-import VRCycle.Numbers.Integers
+import VR.Numbers.Integers
 import Mathlib.Tactic
 
 namespace VR.Numbers

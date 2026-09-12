@@ -71,12 +71,13 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 >    the three `Quotient` theorems remain as the quotient bridge (`[Quot.sound]`). The reverse
 >    bridge (from `Q → Quotient s` back to a witnessed map) needs `Quotient.out` — the T→O absence
 >    in miniature; not provided. The programme 1→5 is complete. **The perimeter (same day):** the repository
->    is now two Lake libraries — `VRCycle` = VR proper, `VRClassical` = the classical register and
+>    is now two Lake libraries — `VR` (directory `VR/`, root `VR.lean`; the formal system is
+>    `VR/VRArithmetic.lean`) = VR proper, `VRClassical` = the classical register and
 >    the bridges (everything stated about Mathlib objects or lifted to `Quotient`). The core is
->    guarded at build time (`VRCycle/Guard.lean`, `#assert_axiom_free_library`): any declaration of
->    any `VRCycle.*` module carrying `propext`, `Quot.sound`, `Classical.choice` or `sorryAx` fails
+>    guarded at build time (`VR/Guard.lean`, `#assert_axiom_free_library`): any declaration of
+>    any `VR.*` module carrying `propext`, `Quot.sound`, `Classical.choice` or `sorryAx` fails
 >    the build. Measured 2026-09-12: 1516 declarations, all on `[]`. So "VR is formalised in Lean 4
->    with an empty axiom list" is a build invariant of the `VRCycle` library; "without axioms" means
+>    with an empty axiom list" is a build invariant of the `VR` library; "without axioms" means
 >    without Lean's three declared axioms — Lean's type theory is the checker, not an axiom of VR.
 > 3. *Wired in — the limit* — statements about Mathlib's own objects: `ZFSet` (VR-Sets, VR-Forms
 >    realisability), `AddSubgroup` (Algebra), `Finset` (Transit), `Set.ext` in the bridge theorems,

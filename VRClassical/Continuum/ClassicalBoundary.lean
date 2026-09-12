@@ -23,7 +23,7 @@
 -- `not_continuity` USES classical logic; that it is provable AT ALL classically is
 -- exactly the statement that `Continuity` is classically false.
 
-import VRCycle.Continuum.Branch
+import VR.Continuum.Branch
 import Mathlib.Data.List.Basic
 
 namespace VRCycle.Continuum

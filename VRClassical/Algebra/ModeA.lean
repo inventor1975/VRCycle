@@ -86,7 +86,7 @@
 -- concept such as actual infinity (formal register). This clarification
 -- aligns with the expanded operational position recorded in VR-UNIQUENESS.md.
 
-import VRCycle.Apparatus.ModeA
+import VR.Apparatus.ModeA
 import VRClassical.Algebra.AddGroup
 import VRClassical.Algebra.Instances
 import VRClassical.Algebra.Ring

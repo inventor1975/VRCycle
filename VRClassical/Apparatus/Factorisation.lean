@@ -2,7 +2,7 @@
 -- (split out of VRCycle/Apparatus/Factorisation.lean on 2026-09-12: Factorisable and its theorems
 -- stay in the VR core on `[]`; the Hilbert-space instance lives here).
 
-import VRCycle.Apparatus.Factorisation
+import VR.Apparatus.Factorisation
 import VRClassical.Apparatus.ModeB
 
 namespace VR.Apparatus

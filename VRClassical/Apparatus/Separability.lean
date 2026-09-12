@@ -36,7 +36,7 @@
 --   instHasSepStructOfOpHilbert            [propext, Classical.choice, Quot.sound]
 --   separability_provides_factorisable     []
 
-import VRCycle.Apparatus.Factorisation
+import VR.Apparatus.Factorisation
 import VRClassical.Apparatus.Factorisation   -- Riesz instance, Audit.HahnBanach (Hilbert, Denumerable)
 
 namespace VR.Apparatus

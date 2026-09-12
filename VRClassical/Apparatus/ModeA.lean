@@ -2,7 +2,7 @@
 -- (split out of VRCycle/Apparatus/ModeA.lean on 2026-09-12: the Mode A definitions stay in the VR
 -- core on `[]`; the instances over Mathlib's ℝ and over CoPSet live here).
 
-import VRCycle.Apparatus.ModeA
+import VR.Apparatus.ModeA
 import VRClassical.Apparatus.Wrapping
 import VRClassical.Apparatus.Reference
 import VRClassical.SetsZFA.API

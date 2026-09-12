@@ -2,7 +2,7 @@
 -- (split out of VRCycle/Apparatus/ModeB.lean on 2026-09-12: the Mode B definitions stay in the VR
 -- core on `[]`; the Hilbert-space instance over Mathlib lives here).
 
-import VRCycle.Apparatus.ModeB
+import VR.Apparatus.ModeB
 import VRClassical.Apparatus.Wrapping
 import VRClassical.Audit.HahnBanach
 

@@ -94,7 +94,7 @@
 --   §3 int_ker_...                [propext]              — ℤ, no Quot.sound
 --      int_to_zmod_ker_...        [propext, Quot.sound]  — ZMod ceiling
 
-import VRCycle.Apparatus.ModeB
+import VR.Apparatus.ModeB
 import VRClassical.Algebra.Subgroups
 
 namespace VR.Algebra

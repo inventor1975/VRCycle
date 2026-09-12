@@ -69,7 +69,7 @@
 -- Reason: no natural membership relation on Cauchy sequences.
 -- Forcing synthetic membership would violate the apparatus framework's methodological honesty.
 
-import VRCycle.Apparatus.Composition
+import VR.Apparatus.Composition
 import VRClassical.Apparatus.QuotientBridge
 import VRClassical.Apparatus.Instances
 

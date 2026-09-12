@@ -26,7 +26,7 @@
 -- with finite lists of basics (`ListCore`). Nothing here is hidden behind the
 -- bridge: an operational consumer never needs this file.
 
-import VRCycle.Topology.Tychonoff
+import VR.Topology.Tychonoff
 import Mathlib.Order.CompleteBooleanAlgebra
 
 namespace VRCycle.Topology

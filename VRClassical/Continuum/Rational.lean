@@ -9,7 +9,7 @@
 -- `Nontrivial`) plus the embedding of Mathlib's `ℚ`.  What the quotient costs is exactly
 -- `Quot.sound` (and `propext` for the lifted order, `Classical.choice` for `ofRat`): the bridge's
 -- axioms, not VR's — VR-LOGIC §1, kind 3.
-import VRCycle.Numbers.RationalsOp
+import VR.Numbers.RationalsOp
 import Mathlib.Algebra.Ring.Defs
 import Mathlib.Logic.Nontrivial.Defs
 import Mathlib.Data.Rat.Defs

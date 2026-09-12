@@ -36,7 +36,7 @@
 import VRClassical.Continuum.Rational
 import VRClassical.Continuum.GaussianRational
 import VRClassical.Continuum.Real
-import VRCycle.Meta.DependsOn
+import VR.Meta.DependsOn
 
 open VRCycle.Continuum
 

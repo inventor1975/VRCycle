@@ -2,7 +2,7 @@
 -- (split out of VRCycle/Apparatus/Reference.lean on 2026-09-12: the class stays in the VR core on
 -- `[]`; the instance over CoPSet/PFunctor.M lives here).
 
-import VRCycle.Apparatus.Reference
+import VR.Apparatus.Reference
 import VRClassical.SetsZFA.Membership
 
 namespace VR.Apparatus

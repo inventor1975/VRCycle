@@ -6,8 +6,7 @@
 -- Source: Part V §V.1–§V.4.
 
 import VRClassical.Sets.Modes
-import VRCycle.VR
-
+import VR.VRArithmetic
 namespace VR.Sets
 
 -- ============================================================

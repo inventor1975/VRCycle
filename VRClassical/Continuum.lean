@@ -1,6 +1,6 @@
 -- VRClassical/Continuum.lean — classical-register / bridge modules of Continuum (see VRClassical.lean).
 
-import VRCycle.Continuum
+import VR.Continuum
 import VRClassical.Continuum.ClassicalBoundary
 import VRClassical.Continuum.Real
 import VRClassical.Continuum.Rational

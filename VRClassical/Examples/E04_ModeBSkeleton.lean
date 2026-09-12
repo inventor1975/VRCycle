@@ -27,8 +27,8 @@
 -- See VR-Apparatus preprint (DOI 10.5281/zenodo.20381417) Section IV.
 -- See VRCycle.Audit.HahnBanach for a complete, sorry-free Mode B instance.
 
-import VRCycle.Apparatus.ModeB
-import VRCycle.Apparatus.Factorisation
+import VR.Apparatus.ModeB
+import VR.Apparatus.Factorisation
 
 namespace VRCycle.Examples.E04
 

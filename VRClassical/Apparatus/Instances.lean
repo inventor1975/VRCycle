@@ -61,7 +61,7 @@
 -- D1:      [propext, Classical.choice, Quot.sound] (OSetZFA.sound, CoPSet infra).
 -- B1_rfl:  [] (identityNature rfl verification, no external dependencies).
 
-import VRCycle.Apparatus.ModeB
+import VR.Apparatus.ModeB
 import VRClassical.Apparatus.ModeA   -- ℝ/IsComputableReal and OSetZFA instances, SetsZFA.API
 import VRClassical.Apparatus.ModeB
 

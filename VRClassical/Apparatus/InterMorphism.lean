@@ -2,7 +2,7 @@
 -- (split out of VRCycle/Apparatus/InterMorphism.lean and Composition.lean on 2026-09-12: the IAM
 -- definitions, lifts and laws stay in the VR core on `[]`; the PSet/CoPSet instance lives here).
 
-import VRCycle.Apparatus.Composition
+import VR.Apparatus.Composition
 import VRClassical.Apparatus.QuotientBridge
 import VRClassical.Apparatus.Reference
 import VRClassical.SetsZFA.API

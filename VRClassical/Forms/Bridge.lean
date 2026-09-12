@@ -8,7 +8,7 @@
 -- theorems; they speak of different universes — that is the two-register picture, and
 -- `afa_two_registers` states it in one line.  Axioms here are Mathlib's (`ZFSet`/`PSet`): the
 -- bridge's, not VR's.
-import VRCycle.Forms.Transit
+import VR.Forms.Transit
 import VRClassical.Sets.ZF
 import VRClassical.Sets.Modes
 import VRClassical.Sets.Conjectures

@@ -1,6 +1,6 @@
 -- VRClassical/Apparatus.lean — classical-register / bridge modules of Apparatus (see VRClassical.lean).
 
-import VRCycle.Apparatus
+import VR.Apparatus
 import VRClassical.Apparatus.Instances
 import VRClassical.Apparatus.QuotientBridge
 import VRClassical.Apparatus.Separability

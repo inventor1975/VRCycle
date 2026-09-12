@@ -11,8 +11,8 @@
 -- The order `le`/`lt`, apartness and the reciprocal of a positive real (`Pre.invPos`, with an
 -- explicit positivity witness — Markov's line: no modulus, no inverse) live in the witnessed layer
 -- (`RealsOp` §6) and are lifted here.
-import VRCycle.Continuum.UnitInterval
-import VRCycle.Numbers.RealsOp
+import VR.Continuum.UnitInterval
+import VR.Numbers.RealsOp
 import Mathlib.Algebra.Ring.Defs
 
 namespace VRCycle.Continuum

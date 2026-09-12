@@ -6,7 +6,7 @@
 -- The generic engine lives in `VRCycle.Meta.DependsOn`; this file is just the Brouwer-specific
 -- assertions that gate the build.
 
-import VRCycle.Meta.DependsOn
+import VR.Meta.DependsOn
 import VRClassical.Brouwer.Fixed
 import VRClassical.Brouwer.Convex
 

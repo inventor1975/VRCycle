@@ -8,7 +8,7 @@
 -- same-setoid IAM, the identity element `Quotient.mk s` and the cross-level functor law.
 -- Every object here is on `[Quot.sound]` (Lean's quotient axiom) — kind 3 in VR-LOGIC §1.
 
-import VRCycle.Apparatus.Composition
+import VR.Apparatus.Composition
 
 namespace VR.Apparatus
 

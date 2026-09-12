@@ -1,7 +1,7 @@
 -- VR-Numbers: Rationals ℚ_VR (DOI 10.5281/zenodo.20272743)
 -- Part III. Rationals ℚ as an Operational Superstructure.
 
-import VRCycle.Numbers.Integers
+import VR.Numbers.Integers
 import VRClassical.Numbers.IntegersBridge
 -- Mathlib.Tactic is transitively available via Numbers.Integers.
 

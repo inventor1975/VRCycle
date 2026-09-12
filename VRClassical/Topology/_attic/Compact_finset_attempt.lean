@@ -17,7 +17,7 @@
 --   presentation, only `OperationalFormalTopology` does.  `OperationalCompact`
 --   instantiates `basicCov := self.basicCov` from the operational instance.
 
-import VRCycle.Topology.Product
+import VR.Topology.Product
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Finset.Sort
 import Mathlib.Data.List.Basic

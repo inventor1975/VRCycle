@@ -2,7 +2,7 @@
 -- (split out of VRCycle/Apparatus/Wrapping.lean on 2026-09-12: the class stays in the VR core on
 -- `[]`; the instance over Mathlib's ℝ lives here).
 
-import VRCycle.Apparatus.Wrapping
+import VR.Apparatus.Wrapping
 import VRClassical.Audit.Computable
 
 namespace VR.Apparatus

@@ -22,7 +22,7 @@
 -- boundary itself is a property of doing, not of being.
 
 import Mathlib
-import VRCycle.Meta.DependsOn
+import VR.Meta.DependsOn
 import VRClassical.Algebra.Instances
 
 open VR.Algebra  -- the `OperationalRing` class + the ℤ instance (`IsOperational := fun _ => True`)

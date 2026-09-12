@@ -1,7 +1,7 @@
 name = "VRCycle"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["VRCycle", "VRClassical"]
+defaultTargets = ["VR", "VRClassical"]
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
@@ -19,7 +19,7 @@ name = "checkdecls"
 git = "https://github.com/PatrickMassot/checkdecls.git"
 
 [[lean_lib]]
-name = "VRCycle"
+name = "VR"
 
 [[lean_lib]]
 name = "VRClassical"

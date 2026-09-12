@@ -1,13 +1,15 @@
 # Changelog
 
-## The perimeter: `VRCycle` = VR proper on `[]`, `VRClassical` = the classical register — 2026-09-12
+## The perimeter: library `VR` = VR proper on `[]`, `VRClassical` = the classical register — 2026-09-12/13
 
 The curator's question after the integrity programme: "can I say VR in Lean is without axioms?" The
 answer was "not as one sentence — 51 of 111 modules", because VR proper and the classical material
 around it (Mathlib's ℝ, `ZFSet`, `PSet`, Hahn–Banach, Brouwer over ℝ, the quotient bridges) lived in
 one library. This commit draws the perimeter IN CODE:
 
-* **Two Lake libraries in one package.** `VRCycle` is VR proper: `VR.lean`, the witnessed numbers
+* **Two Lake libraries in one package.** `VR` is VR proper (source directory `VR/`, root `VR.lean`; the
+  library was called `VRCycle` for a few hours on 2026-09-12 — renamed at the curator's word on 09-13,
+  together with the formal system `VR.lean` → `VR/VRArithmetic.lean`): `VRArithmetic.lean`, the witnessed numbers
   (`Numbers/Integers` = `IntExpr`/`intEq` and its operations, `IntegersOp`, `IntegersOrd`,
   `RationalsOp`, `RealsOp`), `SetsZTL`, `SetsOp`, the forms (`Language`, `Realisability`, `Transit`,
   `Substrate`, `Examples`, `Conservativity*`), the topology tower (`FormalTopology` … `Tychonoff`), the
@@ -25,14 +27,14 @@ one library. This commit draws the perimeter IN CODE:
   `OSetZFA`, Riesz, `embedPSet`), the apparatus QUOTIENT BRIDGE (`VRClassical/Apparatus/QuotientBridge`:
   `InterApparatusMorphism.lift`, `lift_mk`, `lift_compose`, `IsModeAOp_of_interApparatus`,
   `IsModeAOp_quotientMk`, `modeA_liftFn_quotientMk_eq_id`, `modeA_liftFn_comp_interApparatus`, all
-  `[Quot.sound]`), `Meta/DoingNotBeing` and `Examples/`. Module names: `VRCycle.X` → `VRClassical.X`;
+  `[Quot.sound]`), `Meta/DoingNotBeing` and `Examples/`. Module names: core `VR.X` (was `VRCycle.X`), classical `VRClassical.X`;
   imports rewritten; `defaultTargets` builds both.
-* **The guard.** `VRCycle/Guard.lean` (imported by the root) runs `#assert_axiom_free_library VRCycle`
+* **The guard.** `VR/Guard.lean` (imported by the root) runs `#assert_axiom_free_library VR`
   (new command in `Meta/DependsOn.lean`): the build of the core FAILS if any declaration of any
-  `VRCycle.*` module carries `propext`, `Quot.sound`, `Classical.choice` or `sorryAx`; structural
+  `VR.*` module carries `propext`, `Quot.sound`, `Classical.choice` or `sorryAx`; structural
   constants and meta code (anything mentioning a `Lean.*` constant) are skipped. Measured on this
   commit: **1516 declarations checked, all on `[]`**. The sentence "VR is formalised in Lean 4 with an
-  empty axiom list" is now a build invariant of the `VRCycle` library, not a claim.
+  empty axiom list" is now a build invariant of the `VR` library, not a claim.
 * **Last residues repaid.** `SetsOp/Describable`: the enumeration of finite descriptions no longer
   uses Mathlib's `deriving Encodable` (`Classical.choice` via `Nat.unpair_pair`); it is built by nested
   finite stages (`stage n` = every description of depth ≤ n, a list) and a diagonal `descEnum k` =
