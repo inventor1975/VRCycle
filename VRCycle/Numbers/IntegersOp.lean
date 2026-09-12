@@ -405,10 +405,14 @@ def IntExpr.csr : VR.CSR.CSR IntExpr where
   neg_neg := fun e => by obtain ⟨a, a'⟩ := e; exact intEq_refl _
   neg_zero := intEq_refl _
 
-/-- `int_ring`: ring identities between integer pairs up to `intEq`, pairs as atoms. -/
+/-- With cancellation `e + (−e) ≈ 0`: a ring. -/
+def IntExpr.cr : VR.CSR.CR IntExpr := { IntExpr.csr with add_neg := iadd_ineg }
+
+/-- `int_ring`: ring identities between integer pairs up to `intEq`, pairs as atoms, with
+cancellation (`cr_ring`, `Meta/CSRNorm.lean`). -/
 syntax "int_ring" : tactic
 macro_rules
-  | `(tactic| int_ring) => `(tactic| csr_ring VR.Numbers.IntExpr.csr)
+  | `(tactic| int_ring) => `(tactic| cr_ring VR.Numbers.IntExpr.cr)
 
 -- ============================================================
 -- §4. The audit: every act of this file is on the empty list

@@ -98,6 +98,13 @@ def GaussE.csr : VR.CSR.CSR GaussE where
   neg_neg := fun z => by g_ring
   neg_zero := by g_ring
 
+def GaussE.cr : VR.CSR.CR GaussE := { GaussE.csr with add_neg := gadd_neg }
+
+/-- `gauss_ring`: ring identities between Gaussian pre-rationals up to `gEq`, with cancellation. -/
+syntax "gauss_ring" : tactic
+macro_rules
+  | `(tactic| gauss_ring) => `(tactic| cr_ring VRCycle.Continuum.GaussE.cr)
+
 /-- `|z|² = re² + im² : QExpr`. -/
 def normSq (z : GaussE) : QExpr := qadd (qmul z.re z.re) (qmul z.im z.im)
 

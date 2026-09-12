@@ -278,10 +278,12 @@ def envOf {α : Type} (d : α) : List α → Nat → α
 -- The tactic: reify, normalise, close
 -- ------------------------------------------------------------
 
+/-- An operation is recognised by head constant and total arity (a projection `CSR.add S a b`
+has arity 4, a plain constant `vadd a b` arity 2); the operands are the last arguments. -/
 structure Ops where
-  add : Name
-  mul : Name
-  neg : Option Name
+  add : Name × Nat
+  mul : Name × Nat
+  neg : Option (Name × Nat)
   /-- a unary constant `s` with `one = s zero` is read as `x ↦ x + 1` (VR's `succ`) -/
   succ : Option Name
   zero : Expr
@@ -293,17 +295,18 @@ partial def reify (ops : Ops) (e : Expr) : StateT (Array Expr) MetaM Expr := do
   let e ← instantiateMVars e
   if let some fn := e.getAppFn.constName? then
     let args := e.getAppArgs
-    if fn == ops.add && args.size ≥ 2 then
+    if fn == ops.add.1 && args.size == ops.add.2 then
       let a ← reify ops args[args.size - 2]!
       let b ← reify ops args[args.size - 1]!
       return mkApp2 (mkConst ``CSR.PE.add) a b
-    if fn == ops.mul && args.size ≥ 2 then
+    if fn == ops.mul.1 && args.size == ops.mul.2 then
       let a ← reify ops args[args.size - 2]!
       let b ← reify ops args[args.size - 1]!
       return mkApp2 (mkConst ``CSR.PE.mul) a b
-    if ops.neg == some fn && args.size ≥ 1 then
-      let a ← reify ops (lastArg e)
-      return mkApp (mkConst ``CSR.PE.neg) a
+    if let some (n, ar) := ops.neg then
+      if fn == n && args.size == ar then
+        let a ← reify ops (lastArg e)
+        return mkApp (mkConst ``CSR.PE.neg) a
   -- no metavariable may be assigned by these checks (`withNewMCtxDepth`)
   if ← withNewMCtxDepth (withReducible (isDefEq e ops.zero)) then return mkConst ``CSR.PE.zero
   if ← withNewMCtxDepth (withReducible (isDefEq e ops.one)) then return mkConst ``CSR.PE.one
@@ -318,71 +321,332 @@ partial def reify (ops : Ops) (e : Expr) : StateT (Array Expr) MetaM Expr := do
   set (atoms.push e)
   return mkApp (mkConst ``CSR.PE.atom) (mkNatLit atoms.size)
 
-/-- `csr_ring S` closes a goal `S.r lhs rhs` (with `S.r`, `S.add`, … unfolding to the goal's
-constants) when `lhs` and `rhs` have the same normal form. -/
+/-- Core of `csr_ring` / `cr_ring`: `S` is the semiring structure used for the operations (for a
+ring `R : CR α` this is `R.toCSR`), `mkProof` builds the closing term from
+`(env, e₁, e₂)` and the normal-form equation it must decide. -/
+def ringCore (S : Expr) (normFn : Expr → Expr) (mkProof : Expr → Expr → Expr → Expr → Expr → MetaM Expr) :
+    TacticM Unit := withMainContext do
+  let Sty ← whnf (← inferType S)
+  let α := Sty.appArg!
+  let Sv ← whnf S
+  let env ← getEnv
+  let fields := getStructureFields env ``VR.CSR.CSR
+  let getOp (f : Name) (arity : Nat) : MetaM (Expr × Option (Name × Nat)) := do
+    let some idx := fields.idxOf? f | throwError "csr_ring: no field {f}"
+    let e ← whnfCore (Expr.proj ``VR.CSR.CSR idx Sv)
+    if e.isProj then
+      let projFn := ``VR.CSR.CSR ++ f
+      let e' := mkApp2 (mkConst projFn) α S
+      pure (e', some (projFn, arity + 2))
+    else
+      match e.constName? with
+      | some n => pure (e, some (n, arity))
+      | none => pure (e, none)
+  let (_, addOp) ← getOp `add 2
+  let (_, mulOp) ← getOp `mul 2
+  let (negE, negOp) ← getOp `neg 1
+  let (zeroE, _) ← getOp `zero 0
+  let (oneE, _) ← getOp `one 0
+  let some addN := addOp | throwError "csr_ring: no add"
+  let some mulN := mulOp | throwError "csr_ring: no mul"
+  let negN : Option (Name × Nat) := match negOp with
+    | some (n, ar) => if negE.isConstOf ``id then none else some (n, ar)
+    | none => none
+  let succN : Option Name ← do
+    match oneE.getAppFn.constName?, oneE.getAppArgs with
+    | some n, #[z] => if ← withNewMCtxDepth (isDefEq z zeroE) then pure (some n) else pure none
+    | _, _ => pure none
+  let ops : Ops := { add := addN, mul := mulN, neg := negN, succ := succN,
+                     zero := zeroE, one := oneE }
+  let g ← getMainGoal
+  let gt := (← instantiateMVars (← g.getType)).consumeMData
+  let gt ← if gt.isApp then pure gt else whnfR gt
+  let args := gt.getAppArgs
+  unless args.size ≥ 2 do throwError "csr_ring: goal is not a binary relation: {gt}"
+  let lhs := args[args.size - 2]!
+  let rhs := args[args.size - 1]!
+  if lhs.hasExprMVar || rhs.hasExprMVar then
+    throwError "csr_ring: the goal still has metavariables (state the equation explicitly): {gt}"
+  let ((e₁, e₂), atoms) ← (do
+    let a ← reify ops lhs
+    let b ← reify ops rhs
+    return (a, b)).run #[]
+  let envE := mkApp3 (mkConst ``envOf) α zeroE (← mkListLit α atoms.toList)
+  let n₁ := normFn e₁
+  let n₂ := normFn e₂
+  let hEq ← mkEq n₁ n₂
+  let inst ← synthInstance (mkApp (mkConst ``Decidable) hEq)
+  let dec := mkApp2 (mkConst ``Decidable.decide) hEq inst
+  let r ← withDefault (whnf dec)
+  unless r.isConstOf ``Bool.true do
+    throwError "csr_ring: normal forms differ:\n  {← reduce n₁}\n  {← reduce n₂}"
+  let hpf := mkApp3 (mkConst ``of_decide_eq_true) hEq inst
+    (mkApp2 (mkConst ``Eq.refl [levelOne]) (mkConst ``Bool) (mkConst ``Bool.true))
+  let pf ← mkProof α envE e₁ e₂ hpf
+  let pt ← inferType pf
+  unless ← isDefEq gt pt do
+    throwError "csr_ring: the goal is not the evaluation of its reification:\n{gt}\n{pt}"
+  g.assign pf
+  replaceMainGoal []
+
+/-- `csr_ring S` (`S : CSR α`): semiring identities up to `S.r`, no cancellation. -/
 syntax (name := csrRing) "csr_ring " term : tactic
 
 @[tactic csrRing] def evalCsrRing : Tactic := fun stx => do
   match stx with
   | `(tactic| csr_ring $St:term) => withMainContext do
     let S ← Tactic.elabTerm St none
-    let Sty ← whnf (← inferType S)
-    let α := Sty.appArg!
-    -- unfold the structure constant to its literal once, then project WITHOUT further delta
-    -- (a plain `whnf` would unfold `iadd` itself into its `match`).
-    let Sv ← whnf S
-    let env ← getEnv
-    let fields := getStructureFields env ``VR.CSR.CSR
-    let getOp (f : Name) : MetaM Expr := do
-      let some idx := fields.idxOf? f | throwError "csr_ring: no field {f}"
-      whnfCore (Expr.proj ``VR.CSR.CSR idx Sv)
-    let addE ← getOp `add
-    let mulE ← getOp `mul
-    let negE ← getOp `neg
-    let zeroE ← getOp `zero
-    let oneE ← getOp `one
-    let some addN := addE.constName? | throwError "csr_ring: add is not a constant: {addE}"
-    let some mulN := mulE.constName? | throwError "csr_ring: mul is not a constant: {mulE}"
-    let negN : Option Name := match negE.constName? with
-      | some n => if n == ``id then none else some n
-      | none => none
-    let succN : Option Name ← do
-      match oneE.getAppFn.constName?, oneE.getAppArgs with
-      | some n, #[z] => if ← withNewMCtxDepth (isDefEq z zeroE) then pure (some n) else pure none
-      | _, _ => pure none
-    let ops : Ops := { add := addN, mul := mulN, neg := negN, succ := succN,
-                       zero := zeroE, one := oneE }
-    let g ← getMainGoal
-    let gt := (← instantiateMVars (← g.getType)).consumeMData
-    let gt ← if gt.isApp then pure gt else whnfR gt
-    let args := gt.getAppArgs
-    unless args.size ≥ 2 do throwError "csr_ring: goal is not a binary relation: {gt}"
-    let lhs := args[args.size - 2]!
-    let rhs := args[args.size - 1]!
-    if lhs.hasExprMVar || rhs.hasExprMVar then
-      throwError "csr_ring: the goal still has metavariables (state the equation explicitly): {gt}"
-    let ((e₁, e₂), atoms) ← (do
-      let a ← reify ops lhs
-      let b ← reify ops rhs
-      return (a, b)).run #[]
-    let envE := mkApp3 (mkConst ``envOf) α zeroE (← mkListLit α atoms.toList)
-    let n₁ := mkApp (mkConst ``CSR.norm) e₁
-    let n₂ := mkApp (mkConst ``CSR.norm) e₂
-    let hEq ← mkEq n₁ n₂
-    -- decide the equality of normal forms HERE (by evaluation), before building the proof term
-    let inst ← synthInstance (mkApp (mkConst ``Decidable) hEq)
-    let dec := mkApp2 (mkConst ``Decidable.decide) hEq inst
-    let r ← withDefault (whnf dec)
-    unless r.isConstOf ``Bool.true do
-      throwError "csr_ring: normal forms differ:\n  {← reduce n₁}\n  {← reduce n₂}"
-    let hpf := mkApp3 (mkConst ``of_decide_eq_true) hEq inst
-      (mkApp2 (mkConst ``Eq.refl [levelOne]) (mkConst ``Bool) (mkConst ``Bool.true))
-    let pf := mkApp5 (mkApp (mkConst ``CSR.CSR.eq_of_norm) α) S envE e₁ e₂ hpf
-    let pt ← inferType pf
-    unless ← isDefEq gt pt do
-      throwError "csr_ring: the goal is not the evaluation of its reification:\n{gt}\n{pt}"
-    g.assign pf
-    replaceMainGoal []
+    ringCore S (fun e => mkApp (mkConst ``CSR.norm) e)
+      (fun α envE e₁ e₂ hpf => pure (mkApp5 (mkApp (mkConst ``CSR.CSR.eq_of_norm) α) S envE e₁ e₂ hpf))
+  | _ => throwUnsupportedSyntax
+
+-- ============================================================
+-- Rings with cancellation: `a + (−a) ≈ 0` — normal form with integer coefficients
+-- ============================================================
+
+/-- A commutative ring up to an equivalence: a `CSR` with cancellation. -/
+structure CR (α : Type) extends CSR α where
+  add_neg : ∀ a, r (add a (neg a)) zero
+
+namespace CR
+
+variable {α : Type} (S : CR α)
+
+/-- `n` copies of one. -/
+def numeral : Nat → α
+  | 0 => S.zero
+  | n + 1 => S.add S.one (numeral n)
+
+theorem numeral_add : ∀ a b : Nat, S.r (numeral S (a + b)) (S.add (numeral S a) (numeral S b))
+  | 0, b => by rw [Nat.zero_add]; exact S.symm (S.zero_add _)
+  | a + 1, b => by
+      rw [Nat.succ_add]
+      exact S.trans (S.add_congr (S.refl _) (numeral_add a b)) (S.symm (S.add_assoc _ _ _))
+
+theorem numeral_mul : ∀ a b : Nat, S.r (numeral S (a * b)) (S.mul (numeral S a) (numeral S b))
+  | 0, b => by rw [Nat.zero_mul]; exact S.symm (S.zero_mul _)
+  | a + 1, b => by
+      rw [Nat.succ_mul]
+      exact S.trans (numeral_add S (a * b) b)
+        (S.trans (S.add_congr (numeral_mul a b) (S.symm (S.one_mul _)))
+          (S.trans (S.add_comm _ _) (S.symm (S.add_mul _ _ _))))
+
+/-- A monomial with an integer coefficient `p − q`. -/
+abbrev CMono := List Nat × Nat × Nat
+
+variable (env : Nat → α)
+
+def evalCM (m : CMono) : α :=
+  S.add (S.mul (numeral S m.2.1) (CSR.evalA S.toCSR env m.1))
+        (S.neg (S.mul (numeral S m.2.2) (CSR.evalA S.toCSR env m.1)))
+
+def evalCP : List CMono → α
+  | [] => S.zero
+  | m :: p => S.add (evalCM S env m) (evalCP p)
+
+def insertC : CMono → List CMono → List CMono
+  | m, [] => [m]
+  | (a, p, q), (a', p', q') :: rest =>
+    if a = a' then (a, p + p', q + q') :: rest
+    else if CSR.leA a a' then (a, p, q) :: (a', p', q') :: rest
+    else (a', p', q') :: insertC (a, p, q) rest
+
+def addCP : List CMono → List CMono → List CMono
+  | [], q => q
+  | m :: p, q => insertC m (addCP p q)
+
+def mulCM (m n : CMono) : CMono :=
+  (CSR.mergeA m.1 n.1, m.2.1 * n.2.1 + m.2.2 * n.2.2, m.2.1 * n.2.2 + m.2.2 * n.2.1)
+
+def mulCMP (m : CMono) : List CMono → List CMono
+  | [] => []
+  | m' :: q => insertC (mulCM m m') (mulCMP m q)
+
+def mulCP : List CMono → List CMono → List CMono
+  | [], _ => []
+  | m :: p, q => addCP (mulCMP m q) (mulCP p q)
+
+def negCP : List CMono → List CMono
+  | [] => []
+  | (a, p, q) :: rest => (a, q, p) :: negCP rest
+
+/-- Cancel common copies (no overlapping patterns — those reach `propext`). -/
+def cancel : Nat → Nat → Nat × Nat
+  | 0, q => (0, q)
+  | p + 1, 0 => (p + 1, 0)
+  | p + 1, q + 1 => cancel p q
+
+def cancelP : List CMono → List CMono
+  | [] => []
+  | (a, p, q) :: rest =>
+    match cancel p q with
+    | (0, 0) => cancelP rest
+    | (p', q') => (a, p', q') :: cancelP rest
+
+def normC : CSR.PE → List CMono
+  | .atom i => [([i], 1, 0)]
+  | .zero => []
+  | .one => [([], 1, 0)]
+  | .add p q => addCP (normC p) (normC q)
+  | .mul p q => mulCP (normC p) (normC q)
+  | .neg p => negCP (normC p)
+
+-- soundness
+
+theorem evalCM_merge (a : List Nat) (p₁ q₁ p₂ q₂ : Nat) :
+    S.r (evalCM S env (a, p₁ + p₂, q₁ + q₂))
+        (S.add (evalCM S env (a, p₁, q₁)) (evalCM S env (a, p₂, q₂))) := by
+  dsimp only [evalCM]
+  refine S.trans (S.add_congr (S.mul_congr (numeral_add S p₁ p₂) (S.refl _))
+    (S.neg_congr (S.mul_congr (numeral_add S q₁ q₂) (S.refl _)))) ?_
+  csr_ring S.toCSR
+
+theorem insertC_sound (m : CMono) :
+    ∀ p : List CMono, S.r (evalCP S env (insertC m p)) (S.add (evalCM S env m) (evalCP S env p))
+  | [] => S.refl _
+  | m' :: p => by
+      obtain ⟨a, pm, qm⟩ := m
+      obtain ⟨a', pm', qm'⟩ := m'
+      by_cases heq : a = a'
+      · subst heq
+        rw [insertC, if_pos rfl]
+        exact S.trans (S.add_congr (evalCM_merge S env a pm qm pm' qm') (S.refl _))
+          (S.add_assoc _ _ _)
+      · rw [insertC, if_neg heq]
+        cases h : CSR.leA a a' with
+        | true =>
+          rw [if_pos rfl]
+          exact S.refl _
+        | false =>
+          rw [if_neg (fun e => Bool.noConfusion e)]
+          exact S.trans (S.add_congr (S.refl _) (insertC_sound (a, pm, qm) p))
+            (S.add_left_comm _ _ _)
+
+theorem addCP_sound :
+    ∀ p q : List CMono, S.r (evalCP S env (addCP p q)) (S.add (evalCP S env p) (evalCP S env q))
+  | [], q => S.symm (S.zero_add _)
+  | m :: p, q =>
+      S.trans (insertC_sound S env m (addCP p q))
+        (S.trans (S.add_congr (S.refl _) (addCP_sound p q)) (S.symm (S.add_assoc _ _ _)))
+
+theorem mulCM_sound (m n : CMono) :
+    S.r (evalCM S env (mulCM m n)) (S.mul (evalCM S env m) (evalCM S env n)) := by
+  obtain ⟨a, p₁, q₁⟩ := m
+  obtain ⟨b, p₂, q₂⟩ := n
+  dsimp only [mulCM, evalCM]
+  refine S.trans (S.add_congr (S.mul_congr (numeral_add S _ _) (CSR.mergeA_sound S.toCSR env a b))
+    (S.neg_congr (S.mul_congr (numeral_add S _ _) (CSR.mergeA_sound S.toCSR env a b)))) ?_
+  refine S.trans (S.add_congr
+      (S.mul_congr (S.add_congr (numeral_mul S p₁ p₂) (numeral_mul S q₁ q₂)) (S.refl _))
+      (S.neg_congr (S.mul_congr (S.add_congr (numeral_mul S p₁ q₂) (numeral_mul S q₁ p₂))
+        (S.refl _)))) ?_
+  csr_ring S.toCSR
+
+theorem mulCMP_sound (m : CMono) :
+    ∀ q : List CMono, S.r (evalCP S env (mulCMP m q)) (S.mul (evalCM S env m) (evalCP S env q))
+  | [] => S.symm (S.mul_zero _)
+  | m' :: q =>
+      S.trans (insertC_sound S env (mulCM m m') (mulCMP m q))
+        (S.trans (S.add_congr (mulCM_sound S env m m') (mulCMP_sound m q))
+          (S.symm (S.mul_add _ _ _)))
+
+theorem mulCP_sound :
+    ∀ p q : List CMono, S.r (evalCP S env (mulCP p q)) (S.mul (evalCP S env p) (evalCP S env q))
+  | [], q => S.symm (S.zero_mul _)
+  | m :: p, q =>
+      S.trans (addCP_sound S env (mulCMP m q) (mulCP p q))
+        (S.trans (S.add_congr (mulCMP_sound S env m q) (mulCP_sound p q))
+          (S.symm (S.add_mul _ _ _)))
+
+theorem negCM_sound (a : List Nat) (p q : Nat) :
+    S.r (evalCM S env (a, q, p)) (S.neg (evalCM S env (a, p, q))) := by
+  dsimp only [evalCM]
+  csr_ring S.toCSR
+
+theorem negCP_sound : ∀ p : List CMono, S.r (evalCP S env (negCP p)) (S.neg (evalCP S env p))
+  | [] => S.symm S.neg_zero
+  | (a, p, q) :: rest =>
+      S.trans (S.add_congr (negCM_sound S env a p q) (negCP_sound rest))
+        (S.symm (S.neg_add _ _))
+
+theorem cancel_sound (a : List Nat) :
+    ∀ p q : Nat, S.r (evalCM S env (a, cancel p q)) (evalCM S env (a, p, q))
+  | 0, q => S.refl _
+  | p + 1, 0 => S.refl _
+  | p + 1, q + 1 => by
+      refine S.trans (cancel_sound a p q) ?_
+      have h1 : S.r (evalCM S env (a, p + 1, q + 1))
+          (S.add (evalCM S env (a, p, q))
+            (S.add (CSR.evalA S.toCSR env a) (S.neg (CSR.evalA S.toCSR env a)))) := by
+        dsimp only [evalCM]
+        change S.r (S.add (S.mul (S.add S.one (numeral S p)) (CSR.evalA S.toCSR env a))
+                          (S.neg (S.mul (S.add S.one (numeral S q)) (CSR.evalA S.toCSR env a)))) _
+        csr_ring S.toCSR
+      exact S.symm (S.trans h1 (S.trans (S.add_congr (S.refl _) (S.add_neg _)) (S.add_zero _)))
+
+theorem evalCM_zero (a : List Nat) : S.r (evalCM S env (a, 0, 0)) S.zero := by
+  dsimp only [evalCM]
+  change S.r (S.add (S.mul S.zero (CSR.evalA S.toCSR env a))
+                    (S.neg (S.mul S.zero (CSR.evalA S.toCSR env a)))) S.zero
+  csr_ring S.toCSR
+
+theorem cancelP_sound : ∀ p : List CMono, S.r (evalCP S env (cancelP p)) (evalCP S env p)
+  | [] => S.refl _
+  | (a, p, q) :: rest => by
+      have hc := cancel_sound S env a p q
+      rw [cancelP]
+      revert hc
+      cases cancel p q with
+      | mk p' q' =>
+        intro hc
+        cases p' with
+        | zero =>
+          cases q' with
+          | zero =>
+            exact S.trans (cancelP_sound rest)
+              (S.trans (S.symm (S.zero_add _))
+                (S.add_congr (S.trans (S.symm (evalCM_zero S env a)) hc) (S.refl _)))
+          | succ q'' =>
+            exact S.add_congr hc (cancelP_sound rest)
+        | succ p'' =>
+          exact S.add_congr hc (cancelP_sound rest)
+
+theorem normC_sound : ∀ e : CSR.PE, S.r (evalCP S env (normC e)) (CSR.eval S.toCSR env e)
+  | .atom i => by
+      -- evalCP [([i],1,0)] = (1·(i·1) + −(0·(i·1))) + 0
+      change S.r (S.add (S.add (S.mul (S.add S.one S.zero) (S.mul (env i) S.one))
+        (S.neg (S.mul S.zero (S.mul (env i) S.one)))) S.zero) (env i)
+      csr_ring S.toCSR
+  | .zero => S.refl _
+  | .one => by
+      change S.r (S.add (S.add (S.mul (S.add S.one S.zero) S.one)
+        (S.neg (S.mul S.zero S.one))) S.zero) S.one
+      csr_ring S.toCSR
+  | .add p q => S.trans (addCP_sound S env _ _) (S.add_congr (normC_sound p) (normC_sound q))
+  | .mul p q => S.trans (mulCP_sound S env _ _) (S.mul_congr (normC_sound p) (normC_sound q))
+  | .neg p => S.trans (negCP_sound S env _) (S.neg_congr (normC_sound p))
+
+/-- **The instrument's theorem, with cancellation.** -/
+theorem eq_of_normC (e₁ e₂ : CSR.PE) (h : cancelP (normC e₁) = cancelP (normC e₂)) :
+    S.r (CSR.eval S.toCSR env e₁) (CSR.eval S.toCSR env e₂) :=
+  S.trans (S.symm (normC_sound S env e₁))
+    (S.trans (S.symm (cancelP_sound S env (normC e₁)))
+      (h ▸ S.trans (cancelP_sound S env (normC e₂)) (normC_sound S env e₂)))
+
+end CR
+
+/-- `cr_ring R` (`R : CR α`): ring identities up to `R.r`, with cancellation. -/
+syntax (name := crRing) "cr_ring " term : tactic
+
+@[tactic crRing] def evalCrRing : Tactic := fun stx => do
+  match stx with
+  | `(tactic| cr_ring $Rt:term) => withMainContext do
+    let R ← Tactic.elabTerm Rt none
+    let Rty ← whnf (← inferType R)
+    let α := Rty.appArg!
+    let S := mkApp2 (mkConst ``CR.toCSR) α R
+    ringCore S (fun e => mkApp (mkConst ``CR.cancelP) (mkApp (mkConst ``CR.normC) e))
+      (fun α envE e₁ e₂ hpf => pure (mkApp5 (mkApp (mkConst ``CR.eq_of_normC) α) R envE e₁ e₂ hpf))
   | _ => throwUnsupportedSyntax
 
 end VR.CSR

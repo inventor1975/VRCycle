@@ -412,10 +412,13 @@ def QExpr.csr : VR.CSR.CSR QExpr where
   neg_neg := fun x => by q_ring
   neg_zero := by q_ring
 
-/-- `rat_ring`: ring identities between pre-rationals up to `qEq`, pre-rationals as atoms. -/
+def QExpr.cr : VR.CSR.CR QExpr := { QExpr.csr with add_neg := qadd_neg }
+
+/-- `rat_ring`: ring identities between pre-rationals up to `qEq`, pre-rationals as atoms, with
+cancellation. -/
 syntax "rat_ring" : tactic
 macro_rules
-  | `(tactic| rat_ring) => `(tactic| csr_ring VR.Numbers.QExpr.csr)
+  | `(tactic| rat_ring) => `(tactic| cr_ring VR.Numbers.QExpr.cr)
 
 -- ============================================================
 -- §5. The audit
