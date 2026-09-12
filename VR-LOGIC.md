@@ -123,7 +123,13 @@ except (a) one intentional teaching skeleton, `Examples/E04_ModeBSkeleton` (a do
   Skolemisation across the existential*. So **one can pass from operational to formal, but
   cannot extract the operational from the formal** (**T→O** has no mechanism). This is the
   logical core of register inheritance: an existential asserts a correlate exists but yields
-  no witness.
+  no witness. **Scope of the asymmetry (2026-09-12, corrected):** it is not absolute. Proof
+  mining (Kohlenbach) extracts moduli from classical proofs of Π₂ statements — uniqueness
+  theorems above all — and that *is* a T→O mechanism for that class. The asymmetry holds
+  exactly where finding **TR-R1** (`T_FINDINGS_TRANSIT.md`) locates it: where the formal
+  step is a *selection with no rule* — a representative under `Classical.choice`, a limit of
+  a subsequence pulled from a bounded family. There nothing is exhibited, so nothing can be
+  mined. Stated in that form the asymmetry is a boundary with a shape, not a slogan.
 - **VR-Apparatus** — the methodology made explicit as Lean typeclasses: two operationality
   modes (`PredicateOperationality`, `ReferenceOperationality`), two transit modes (Mode A =
   closure by `rfl`; Mode B = classical op + `Factorisable` witness), `InterApparatusMorphism`.
@@ -332,9 +338,12 @@ These are genuine questions, stated to be settled by logic, not asserted.
   The reverse — given a formal term, produce its operational correlate — has **no general
   mechanism**: the specific case is machine-checked *impossible* by extraction (no Skolemisation
   across the existential; the converse of `translate_implies_realisable` fails), and the general
-  case is exactly the unformalised conservativity. Whether some formal terms admit a
-  constructive T→O extraction (and which) is open; at present T→O is only ever achieved by
-  building the operational object independently, never by reading it off the formal term.
+  case is exactly the unformalised conservativity. Which formal terms admit a constructive
+  T→O extraction is **partly answered from outside** (2026-09-12): proof mining does it for
+  Π₂/uniqueness statements whose classical proofs use no rule-less selection; it fails exactly
+  at weak-compactness/choice steps (TR-R1's boundary). So T→O is achieved either by mining a
+  proof that never selected without a rule, or by building the operational object
+  independently — never by reading it off an existential that was discharged by a selection.
 - **VR-Sets open conjectures.** `Conjecture_IV_1` (ZFC-mode mutually interpretable with a
   countable ZFC model) is open mathematics, formalised as `Prop`, not proved.
 - **Operational ℝ — what is missing.** A `Real`-level inverse wrapper, an analytic
