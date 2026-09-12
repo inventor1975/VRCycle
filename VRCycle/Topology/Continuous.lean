@@ -48,102 +48,207 @@ namespace IsDescribable
 -- here, locally, with a clean axiom profile.  Bit 2k of `pair m n` is
 -- bit k of m; bit 2k+1 is bit k of n.
 
+-- Empty-list sweep (2026-09-12): `%`, `/` and `omega` reach `propext` through core's Int/Nat
+-- simp lemmas; the pair is rebuilt on `ListCore.halve` (quotient + parity bit by structural
+-- recursion) with fuel, and every inequality is by hand.  Same specification as before:
+-- bit 2k of `pair m n` is bit k of m, bit 2k+1 is bit k of n.
+
+/-- `2q + b`: one bit appended below `q`. -/
+private def bit (q : Nat) : Bool → Nat
+  | false => q + q
+  | true  => q + q + 1
+
+private theorem halve_bit (q : Nat) :
+    ∀ b : Bool, VRCycle.Continuum.ListCore.halve (bit q b) = (q, b)
+  | false => VRCycle.Continuum.ListCore.halve_double q
+  | true  => VRCycle.Continuum.ListCore.halve_double_succ q
+
+private theorem bit_succ (q : Nat) : ∀ b : Bool, bit (q + 1) b = bit q b + 2
+  | false => congrArg Nat.succ (Nat.succ_add q q)
+  | true  => congrArg Nat.succ (congrArg Nat.succ (Nat.succ_add q q))
+
+/-- Recomposition: a number is its half with its parity bit appended. -/
+private theorem bit_halve : ∀ n : Nat,
+    bit (VRCycle.Continuum.ListCore.halve n).1 (VRCycle.Continuum.ListCore.halve n).2 = n
+  | 0 => rfl
+  | 1 => rfl
+  | n + 2 => by
+      show bit ((VRCycle.Continuum.ListCore.halve n).1 + 1)
+          (VRCycle.Continuum.ListCore.halve n).2 = n + 2
+      rw [bit_succ, bit_halve n]
+
+private theorem halve_fst_lt : ∀ n : Nat, 0 < n → (VRCycle.Continuum.ListCore.halve n).1 < n
+  | 0, h => absurd h (Nat.lt_irrefl 0)
+  | 1, _ => Nat.zero_lt_succ 0
+  | n + 2, _ =>
+      Nat.succ_lt_succ (Nat.lt_of_le_of_lt (VRCycle.Continuum.ListCore.halve_fst_le n)
+        (Nat.lt_succ_self n))
+
+private theorem le_bit (q : Nat) : ∀ b : Bool, q ≤ bit q b
+  | false => Nat.le_add_right q q
+  | true  => Nat.le_succ_of_le (Nat.le_add_right q q)
+
+private theorem lt_bit_of_pos {q : Nat} (h : 0 < q) : ∀ b : Bool, q < bit q b
+  | false => Nat.add_lt_add_left h q
+  | true  => Nat.lt_succ_of_lt (Nat.add_lt_add_left h q)
+
+private theorem bit_pos_of_pos {q : Nat} (h : 0 < q) (b : Bool) : 0 < bit q b :=
+  Nat.lt_of_lt_of_le h (le_bit q b)
+
+private theorem bit_true_pos (q : Nat) : 0 < bit q true := Nat.zero_lt_succ _
+
+private theorem add_eq_zero_left : ∀ {m n : Nat}, m + n = 0 → m = 0
+  | 0, _, _ => rfl
+  | k + 1, n, h => by cases (show (k + n) + 1 = 0 from (Nat.succ_add k n).symm.trans h)
+
+private theorem add_eq_zero_right {m n : Nat} (h : m + n = 0) : n = 0 :=
+  add_eq_zero_left ((Nat.add_comm n m).trans h)
+
+private theorem add_lt_add_of_lt_of_le' {a b c d : Nat} (h1 : a < b) (h2 : c ≤ d) :
+    a + c < b + d :=
+  Nat.lt_of_lt_of_le (Nat.add_lt_add_right h1 c) (Nat.add_le_add_left h2 b)
+
+/-- Interleaving pair, with fuel `f ≥ m + n`. -/
+private def pairAux : Nat → Nat → Nat → Nat
+  | 0, _, _ => 0
+  | f + 1, m, n =>
+      if m + n = 0 then 0
+      else bit (bit (pairAux f (VRCycle.Continuum.ListCore.halve m).1
+                              (VRCycle.Continuum.ListCore.halve n).1)
+                    (VRCycle.Continuum.ListCore.halve n).2)
+               (VRCycle.Continuum.ListCore.halve m).2
+
 /-- Constructive bit-interleaving pair on ℕ. -/
-private def pair (m n : ℕ) : ℕ :=
-  if m + n = 0 then 0
-  else (m % 2) + 2 * (n % 2) + 4 * pair (m / 2) (n / 2)
-termination_by m + n
-decreasing_by omega
+private def pair (m n : ℕ) : ℕ := pairAux (m + n) m n
 
-/-- Constructive inverse: extract bits of m at even positions, bits of n
-at odd positions. -/
-private def unpair (k : ℕ) : ℕ × ℕ :=
-  if k = 0 then (0, 0)
-  else
-    let p := unpair (k / 4)
-    (2 * p.1 + k % 2, 2 * p.2 + (k / 2) % 2)
-termination_by k
-decreasing_by omega
+/-- Inverse, with fuel `f ≥ k`: peel two bits, recurse on the quarter. -/
+private def unpairAux : Nat → Nat → Nat × Nat
+  | 0, _ => (0, 0)
+  | f + 1, k =>
+      if k = 0 then (0, 0)
+      else
+        (bit (unpairAux f (VRCycle.Continuum.ListCore.halve
+                (VRCycle.Continuum.ListCore.halve k).1).1).1
+             (VRCycle.Continuum.ListCore.halve k).2,
+         bit (unpairAux f (VRCycle.Continuum.ListCore.halve
+                (VRCycle.Continuum.ListCore.halve k).1).1).2
+             (VRCycle.Continuum.ListCore.halve
+                (VRCycle.Continuum.ListCore.halve k).1).2)
 
-/-- Equational form of `pair` when `m + n > 0`. -/
-private theorem pair_pos_eq (m n : ℕ) (h : m + n ≠ 0) :
-    pair m n = m % 2 + 2 * (n % 2) + 4 * pair (m / 2) (n / 2) := by
-  conv_lhs => rw [pair]
-  rw [if_neg h]
+/-- Constructive inverse: bits of m at even positions, bits of n at odd positions. -/
+private def unpair (k : ℕ) : ℕ × ℕ := unpairAux k k
 
-/-- Equational form of `pair` at zero. -/
-private theorem pair_zero_zero : pair 0 0 = 0 := by
-  conv_lhs => rw [pair]
-  rfl
+private theorem unpairAux_zero : ∀ f : Nat, unpairAux f 0 = (0, 0)
+  | 0 => rfl
+  | f + 1 => by
+      show (if 0 = 0 then ((0, 0) : Nat × Nat) else _) = (0, 0)
+      rw [if_pos rfl]
 
-/-- Equational form of `unpair` when `k ≠ 0`. -/
-private theorem unpair_pos_eq (k : ℕ) (h : k ≠ 0) :
-    unpair k = (2 * (unpair (k / 4)).1 + k % 2, 2 * (unpair (k / 4)).2 + (k / 2) % 2) := by
-  conv_lhs => rw [unpair]
-  rw [if_neg h]
+/-- The quarter is strictly smaller when the pair is not `(0,0)`. -/
+private theorem halves_lt {m n : Nat} (h : m + n ≠ 0) :
+    (VRCycle.Continuum.ListCore.halve m).1 + (VRCycle.Continuum.ListCore.halve n).1 < m + n := by
+  cases m with
+  | zero =>
+      have hn : 0 < n := Nat.pos_of_ne_zero (fun e => h ((Nat.zero_add n).trans e))
+      show 0 + (VRCycle.Continuum.ListCore.halve n).1 < 0 + n
+      rw [Nat.zero_add, Nat.zero_add]
+      exact halve_fst_lt n hn
+  | succ k =>
+      exact add_lt_add_of_lt_of_le' (halve_fst_lt (k + 1) (Nat.zero_lt_succ k))
+        (VRCycle.Continuum.ListCore.halve_fst_le n)
 
-private theorem unpair_zero : unpair 0 = (0, 0) := by
-  conv_lhs => rw [unpair]
-  rfl
+/-- `pair` of a non-zero pair is non-zero. -/
+private theorem pairAux_pos : ∀ (f m n : Nat), m + n ≤ f → m + n ≠ 0 → 0 < pairAux f m n
+  | 0, m, n, h, h0 => absurd (Nat.le_zero.mp h) h0
+  | f + 1, m, n, h, h0 => by
+      show 0 < (if m + n = 0 then 0 else bit (bit (pairAux f _ _) _) _)
+      rw [if_neg h0]
+      cases hmb : (VRCycle.Continuum.ListCore.halve m).2 with
+      | true => exact bit_true_pos _
+      | false =>
+        cases hnb : (VRCycle.Continuum.ListCore.halve n).2 with
+        | true => exact bit_pos_of_pos (bit_true_pos _) false
+        | false =>
+          refine bit_pos_of_pos (bit_pos_of_pos (pairAux_pos f _ _ ?_ ?_) false) false
+          · exact Nat.le_of_lt_succ (Nat.lt_of_lt_of_le (halves_lt h0) h)
+          · intro hz
+            apply h0
+            have hm : m = 0 := by
+              rw [← bit_halve m, hmb, add_eq_zero_left hz]; rfl
+            have hn : n = 0 := by
+              rw [← bit_halve n, hnb, add_eq_zero_right hz]; rfl
+            rw [hm, hn]
 
-/-- Auxiliary: `pair m n = 0` iff both `m` and `n` are 0. -/
-private theorem pair_eq_zero_iff :
-    ∀ k m n : ℕ, m + n = k → (pair m n = 0 ↔ m = 0 ∧ n = 0) := by
-  intro k
-  induction k using Nat.strong_induction_on with
-  | _ k ih =>
-    intro m n hk
-    refine ⟨fun h => ?_, ?_⟩
-    · by_cases hmn : m + n = 0
-      · exact ⟨by omega, by omega⟩
-      · exfalso
-        have heq := pair_pos_eq m n hmn
-        rw [heq] at h
-        have h1 : m % 2 = 0 := by omega
-        have h2 : n % 2 = 0 := by omega
-        have h3 : pair (m / 2) (n / 2) = 0 := by omega
-        have hlt : m / 2 + n / 2 < k := by omega
-        have := (ih _ hlt (m / 2) (n / 2) rfl).mp h3
-        omega
-    · rintro ⟨rfl, rfl⟩
-      exact pair_zero_zero
-
-/-- The key inverse lemma: `unpair (pair m n) = (m, n)`. -/
-private theorem unpair_pair_aux :
-    ∀ k m n : ℕ, m + n = k → unpair (pair m n) = (m, n) := by
-  intro k
-  induction k using Nat.strong_induction_on with
-  | _ k ih =>
-    intro m n hk
-    by_cases hmn : m + n = 0
-    · have hm : m = 0 := by omega
-      have hn : n = 0 := by omega
+/-- The key inverse lemma, fuel-general: `unpair (pair m n) = (m, n)`. -/
+private theorem unpairAux_pairAux : ∀ (f m n : Nat), m + n ≤ f →
+    ∀ f' : Nat, pairAux f m n ≤ f' → unpairAux f' (pairAux f m n) = (m, n)
+  | 0, m, n, h, f', _ => by
+      have hm : m = 0 := add_eq_zero_left (Nat.le_zero.mp h)
+      have hn : n = 0 := add_eq_zero_right (Nat.le_zero.mp h)
       subst hm; subst hn
-      rw [pair_zero_zero, unpair_zero]
-    · have heq := pair_pos_eq m n hmn
-      have hpos : pair m n ≠ 0 := fun habs => by
-        obtain ⟨hm, hn⟩ := (pair_eq_zero_iff k m n hk).mp habs
-        omega
-      have hunpair := unpair_pos_eq (pair m n) hpos
-      -- Arithmetic on pair m n
-      have hmod2_lt : m % 2 < 2 := Nat.mod_lt _ (by decide)
-      have hnmod2_lt : n % 2 < 2 := Nat.mod_lt _ (by decide)
-      have hX_div4 : pair m n / 4 = pair (m / 2) (n / 2) := by rw [heq]; omega
-      have hX_mod2 : pair m n % 2 = m % 2 := by rw [heq]; omega
-      have hX_div2_mod2 : (pair m n / 2) % 2 = n % 2 := by rw [heq]; omega
-      -- IH on smaller sum
-      have hlt : m / 2 + n / 2 < k := by omega
-      have ih_inst : unpair (pair (m / 2) (n / 2)) = (m / 2, n / 2) :=
-        ih _ hlt (m / 2) (n / 2) rfl
-      rw [hunpair, hX_div4, ih_inst, hX_mod2, hX_div2_mod2]
-      -- Goal: (2 * (m/2) + m%2, 2 * (n/2) + n%2) = (m, n)
-      have hm_eq : 2 * (m / 2) + m % 2 = m := by omega
-      have hn_eq : 2 * (n / 2) + n % 2 = n := by omega
-      rw [hm_eq, hn_eq]
+      exact unpairAux_zero f'
+  | f + 1, m, n, h, f', hf' => by
+      by_cases h0 : m + n = 0
+      · have hm : m = 0 := add_eq_zero_left h0
+        have hn : n = 0 := add_eq_zero_right h0
+        subst hm; subst hn
+        have e : pairAux (f + 1) 0 0 = 0 := by
+          show (if 0 + 0 = 0 then 0 else _) = 0
+          rw [if_pos rfl]
+        rw [e]
+        exact unpairAux_zero f'
+      · have hP : pairAux (f + 1) m n
+            = bit (bit (pairAux f (VRCycle.Continuum.ListCore.halve m).1
+                                  (VRCycle.Continuum.ListCore.halve n).1)
+                        (VRCycle.Continuum.ListCore.halve n).2)
+                   (VRCycle.Continuum.ListCore.halve m).2 := by
+          show (if m + n = 0 then 0 else _) = _
+          rw [if_neg h0]
+        have hpos : 0 < pairAux (f + 1) m n := pairAux_pos (f + 1) m n h h0
+        have hle : (VRCycle.Continuum.ListCore.halve m).1
+            + (VRCycle.Continuum.ListCore.halve n).1 ≤ f :=
+          Nat.le_of_lt_succ (Nat.lt_of_lt_of_le (halves_lt h0) h)
+        rw [hP] at hpos hf' ⊢
+        cases f' with
+        | zero => exact absurd (Nat.lt_of_lt_of_le hpos hf') (Nat.lt_irrefl 0)
+        | succ f'' =>
+          have hne : bit (bit (pairAux f (VRCycle.Continuum.ListCore.halve m).1
+                                  (VRCycle.Continuum.ListCore.halve n).1)
+                        (VRCycle.Continuum.ListCore.halve n).2)
+                   (VRCycle.Continuum.ListCore.halve m).2 ≠ 0 :=
+            Nat.ne_of_gt hpos
+          -- inner fuel bound: Q ≤ f'' (Q = 0, or Q < bit (bit Q _) _ ≤ f'' + 1)
+          have hQ : pairAux f (VRCycle.Continuum.ListCore.halve m).1
+                              (VRCycle.Continuum.ListCore.halve n).1 ≤ f'' := by
+            cases hq : pairAux f (VRCycle.Continuum.ListCore.halve m).1
+                              (VRCycle.Continuum.ListCore.halve n).1 with
+            | zero => exact Nat.zero_le _
+            | succ q =>
+              rw [hq] at hf'
+              have h1 : q + 1 < bit (q + 1) (VRCycle.Continuum.ListCore.halve n).2 :=
+                lt_bit_of_pos (Nat.zero_lt_succ q) _
+              have h2 : bit (q + 1) (VRCycle.Continuum.ListCore.halve n).2
+                  ≤ bit (bit (q + 1) (VRCycle.Continuum.ListCore.halve n).2)
+                        (VRCycle.Continuum.ListCore.halve m).2 :=
+                le_bit _ _
+              exact Nat.le_of_lt_succ (Nat.lt_of_lt_of_le (Nat.lt_of_lt_of_le h1 h2) hf')
+          show (if _ = 0 then ((0, 0) : Nat × Nat) else _) = (m, n)
+          rw [if_neg hne, halve_bit, halve_bit]
+          show (bit (unpairAux f'' (pairAux f (VRCycle.Continuum.ListCore.halve m).1
+                              (VRCycle.Continuum.ListCore.halve n).1)).1
+                    (VRCycle.Continuum.ListCore.halve m).2,
+                bit (unpairAux f'' (pairAux f (VRCycle.Continuum.ListCore.halve m).1
+                              (VRCycle.Continuum.ListCore.halve n).1)).2
+                    (VRCycle.Continuum.ListCore.halve n).2) = (m, n)
+          rw [unpairAux_pairAux f _ _ hle f'' hQ]
+          show (bit (VRCycle.Continuum.ListCore.halve m).1 (VRCycle.Continuum.ListCore.halve m).2,
+                bit (VRCycle.Continuum.ListCore.halve n).1 (VRCycle.Continuum.ListCore.halve n).2)
+              = (m, n)
+          rw [bit_halve, bit_halve]
 
 /-- The inverse lemma in usable form. -/
 private theorem unpair_pair (m n : ℕ) : unpair (pair m n) = (m, n) :=
-  unpair_pair_aux _ m n rfl
+  unpairAux_pairAux (m + n) m n (Nat.le_refl _) (pairAux (m + n) m n) (Nat.le_refl _)
 
 /-- Pre-image describability through a relator.  Given `U : Set β` describable
 and each slice `{a | r b a}` describable (for all `b : β`), the relational
@@ -271,26 +376,27 @@ def id (T : FormalTopology) [OperationalFormalTopology T] : OpContinuous T T whe
     rintro b a hOpB (rfl : b = a)
     exact hOpB
   rel_slice_desc b := by
-    -- (ContinuousMap.id T).rel b a unfolds to b = a; the slice is {b}.
+    -- (ContinuousMap.id T).rel b a unfolds to b = a; the slice is {b}: a direct instance
+    -- (no `Set.ext` rewrite to the singleton — `Set.ext` carries propext + funext).
     change IsDescribable {a : T.S | b = a}
-    have : {a : T.S | b = a} = ({b} : Set T.S) := by
-      ext a
-      exact ⟨fun h => h.symm, fun h => h.symm⟩
-    rw [this]
-    exact IsDescribable.instSingleton b
+    exact { enumerator := fun _ => some b
+            enumerator_some_mem := fun _ a' h => Option.some.inj h
+            enumerator_surj := fun x hx => ⟨0, congrArg some (show b = x from hx)⟩ }
   preserves_op_cov := by
     intro b a U hOpB hOpU descU hrel hCov
     have heq : b = a := hrel
     subst heq
     -- The preimage set under Eq equals U.
     change OperationalFormalTopology.IsOperationalCov b {a' : T.S | ∃ b' ∈ U, b' = a'}
-    have hset : {a' : T.S | ∃ b' ∈ U, b' = a'} = U := by
-      ext a'
-      refine ⟨?_, ?_⟩
-      · rintro ⟨b', hb', rfl⟩; exact hb'
-      · intro h; exact ⟨a', h, rfl⟩
-    rw [hset]
-    exact hCov
+    -- monotonicity instead of a `Set.ext` rewrite: `U ⊆ {a' | ∃ b' ∈ U, b' = a'}`
+    refine OperationalFormalTopology.isOperationalCov_mono ?_ ?_ ?_ hCov
+    · intro u hu; exact ⟨u, hu, rfl⟩
+    · rintro a' ⟨b', hb', rfl⟩; exact hOpU b' hb'
+    · exact IsDescribable.preimage_of_relator (descU := descU) (fun b' a' => b' = a') U
+        (fun b' => { enumerator := fun _ => some b'
+                     enumerator_some_mem := fun _ a' h => Option.some.inj h
+                     enumerator_surj := fun x hx =>
+                       ⟨0, congrArg some (show b' = x from hx)⟩ })
 
 end OpContinuous
 
@@ -342,11 +448,8 @@ def comp (g : OpContinuous T₂ T₃) (f : OpContinuous T₁ T₂) :
   rel_slice_desc c := by
     -- The composition's slice is preimage of g's slice under f.rel;
     -- describable via preimage_of_relator.
-    change IsDescribable {a | ∃ b, g.toContinuousMap.rel c b ∧ f.toContinuousMap.rel b a}
-    have : {a | ∃ b, g.toContinuousMap.rel c b ∧ f.toContinuousMap.rel b a}
-         = {a | ∃ b ∈ {b | g.toContinuousMap.rel c b}, f.toContinuousMap.rel b a} := by
-      ext a; rfl
-    rw [this]
+    -- the two spellings of the pre-image are definitionally equal: `change`, no `Set.ext`
+    change IsDescribable {a | ∃ b ∈ {b | g.toContinuousMap.rel c b}, f.toContinuousMap.rel b a}
     exact IsDescribable.preimage_of_relator
       (descU := g.rel_slice_desc c)
       f.toContinuousMap.rel
@@ -377,18 +480,19 @@ def comp (g : OpContinuous T₂ T₃) (f : OpContinuous T₁ T₂) :
     -- h2 : IsOperationalCov a {a' | ∃ b' ∈ V, f.rel b' a'}
     -- Goal: IsOperationalCov a {a' | ∃ c' ∈ U, ∃ b', g.rel c' b' ∧ f.rel b' a'}
     -- These are equal as sets.
-    have hset : {a' : T₁.S |
-        ∃ b' ∈ {b' : T₂.S | ∃ c' ∈ U, g.toContinuousMap.rel c' b'},
-          f.toContinuousMap.rel b' a'}
-      = {a' : T₁.S | ∃ c' ∈ U, ∃ b',
-          g.toContinuousMap.rel c' b' ∧ f.toContinuousMap.rel b' a'} := by
-      ext a'; constructor
-      · rintro ⟨b', ⟨c', hc'U, hgc'b'⟩, hfb'a'⟩
-        exact ⟨c', hc'U, b', hgc'b', hfb'a'⟩
-      · rintro ⟨c', hc'U, b', hgc'b', hfb'a'⟩
-        exact ⟨b', ⟨c', hc'U, hgc'b'⟩, hfb'a'⟩
-    rw [hset] at h2
-    exact h2
+    -- monotonicity instead of a `Set.ext` rewrite between the two spellings of the pre-image
+    refine OperationalFormalTopology.isOperationalCov_mono ?_ ?_ ?_ h2
+    · rintro a' ⟨b', ⟨c', hc'U, hgc'b'⟩, hfb'a'⟩
+      exact ⟨c', hc'U, b', hgc'b', hfb'a'⟩
+    · rintro a' ⟨c', hc'U, b', hgc'b', hfb'a'⟩
+      exact f.rel_op (g.rel_op (hOpU c' hc'U) hgc'b') hfb'a'
+    · exact IsDescribable.preimage_of_relator (descU := descU)
+        (g.toContinuousMap.comp f.toContinuousMap).rel U
+        (fun c' => by
+          change IsDescribable
+            {a | ∃ b ∈ {b | g.toContinuousMap.rel c' b}, f.toContinuousMap.rel b a}
+          exact IsDescribable.preimage_of_relator (descU := g.rel_slice_desc c')
+            f.toContinuousMap.rel {b | g.toContinuousMap.rel c' b} f.rel_slice_desc)
 
 end OpContinuous
 

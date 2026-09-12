@@ -30,6 +30,7 @@
 --   from `T.basicCov`.
 
 import VRCycle.Topology.Product
+import VRCycle.Continuum.ListCore
 
 namespace VRCycle.Topology
 -- No auto-generated `injEq` lemmas (they carry `propext`); the empty axiom list is the bar (2026-09-12).
@@ -150,9 +151,11 @@ namespace IsDescribable
 `l[n]?` enumeration.  `getElem?` is in Lean core, no `Classical`. -/
 instance List.toDescribable {α : Type*} (l : List α) :
     IsDescribable ({x | x ∈ l} : Set α) where
-  enumerator n := l[n]?
-  enumerator_some_mem n _ h := List.mem_iff_getElem?.mpr ⟨n, h⟩
-  enumerator_surj _ hx := List.mem_iff_getElem?.mp hx
+  -- `ListCore.nth` instead of `l[n]?`: the `GetElem?` instance and `mem_iff_getElem?` reach
+  -- `propext`; the two hand lemmas are on `[]`.
+  enumerator n := VRCycle.Continuum.ListCore.nth l n
+  enumerator_some_mem n _ h := VRCycle.Continuum.ListCore.mem_of_nth l n h
+  enumerator_surj _ hx := VRCycle.Continuum.ListCore.nth_of_mem hx
 
 end IsDescribable
 
@@ -211,7 +214,7 @@ instance Examples.instBoolOperationalCompact :
         obtain ⟨b, hb, heq⟩ := hAB false hA.2
         rw [← heq] at hb; exact hb
       exact ⟨htrue, hfalse⟩
-    inhabited := ⟨[true, false], ⟨by decide, by decide⟩⟩
+    inhabited := ⟨[true, false], ⟨List.Mem.head _, List.Mem.tail _ (List.Mem.head _)⟩⟩
     cover_closure := by
       intro a U S hbasic _haS hS
       -- T17 form: case-split on a (top level) for clean concrete proofs.

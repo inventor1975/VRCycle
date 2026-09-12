@@ -35,6 +35,7 @@
 
 import VRCycle.Topology.FormalTopology
 import VRCycle.Apparatus.Wrapping
+import VRCycle.Continuum.ListCore
 
 namespace VRCycle.Topology
 
@@ -72,10 +73,7 @@ instance instSingleton {α : Type*} (a : α) : IsDescribable ({a} : Set α) wher
     have hyp : a = a' := by injection h
     change a' ∈ ({a} : Set α)
     exact hyp.symm
-  enumerator_surj x hx := by
-    refine ⟨0, ?_⟩
-    have : x = a := hx
-    simp [this]
+  enumerator_surj x hx := ⟨0, congrArg some (show x = a from hx).symm⟩
 
 /-- The whole universe of `Bool` is describable. -/
 instance instBoolUniv : IsDescribable (Set.univ : Set Bool) where
@@ -103,28 +101,36 @@ the two enumerations (even indices from `s`, odd indices from `t`).
 Constructive: no `Classical.choice`. -/
 @[reducible] def binaryUnion {α : Type*} (s t : Set α) [hs : IsDescribable s]
     [ht : IsDescribable t] : IsDescribable (s ∪ t) where
+  -- Interleaving by `ListCore.halve` (quotient + parity bit by structural recursion): core's
+  -- `%` / `/` lemmas reach `propext`; `halve_double` / `halve_double_succ` are on `[]`.
   enumerator n :=
-    if n % 2 = 0 then hs.enumerator (n / 2) else ht.enumerator (n / 2)
+    match VRCycle.Continuum.ListCore.halve n with
+    | (q, false) => hs.enumerator q
+    | (q, true)  => ht.enumerator q
   enumerator_some_mem n a h := by
-    by_cases hn : n % 2 = 0
-    · rw [if_pos hn] at h
-      exact Or.inl (hs.enumerator_some_mem _ _ h)
-    · rw [if_neg hn] at h
-      exact Or.inr (ht.enumerator_some_mem _ _ h)
+    rcases hq : VRCycle.Continuum.ListCore.halve n with ⟨q, b⟩
+    rw [hq] at h
+    cases b with
+    | false => exact Or.inl (hs.enumerator_some_mem _ _ h)
+    | true  => exact Or.inr (ht.enumerator_some_mem _ _ h)
   enumerator_surj x hx := by
     cases hx with
     | inl h =>
         obtain ⟨n, hn⟩ := hs.enumerator_surj x h
-        refine ⟨2 * n, ?_⟩
-        have h1 : (2 * n) % 2 = 0 := by omega
-        have h2 : (2 * n) / 2 = n := by omega
-        simp [h1, h2, hn]
+        refine ⟨n + n, ?_⟩
+        show (match VRCycle.Continuum.ListCore.halve (n + n) with
+              | (q, false) => hs.enumerator q
+              | (q, true)  => ht.enumerator q) = some x
+        rw [VRCycle.Continuum.ListCore.halve_double]
+        exact hn
     | inr h =>
         obtain ⟨n, hn⟩ := ht.enumerator_surj x h
-        refine ⟨2 * n + 1, ?_⟩
-        have h1 : (2 * n + 1) % 2 = 1 := by omega
-        have h2 : (2 * n + 1) / 2 = n := by omega
-        simp [h1, h2, hn]
+        refine ⟨n + n + 1, ?_⟩
+        show (match VRCycle.Continuum.ListCore.halve (n + n + 1) with
+              | (q, false) => hs.enumerator q
+              | (q, true)  => ht.enumerator q) = some x
+        rw [VRCycle.Continuum.ListCore.halve_double_succ]
+        exact hn
 
 end IsDescribable
 

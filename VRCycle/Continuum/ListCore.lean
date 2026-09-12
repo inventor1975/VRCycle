@@ -161,4 +161,17 @@ theorem take_append_of_le {α : Type _} :
   | [], _, _ + 1, h => absurd h (Nat.not_succ_le_zero _)
   | a :: l, m, k + 1, h => congrArg (a :: ·) (take_append_of_le l m k (Nat.le_of_succ_le_succ h))
 
+/-- A `some`-reading is a member. -/
+theorem mem_of_nth {α : Type _} : ∀ (l : List α) (n : Nat) {x : α}, nth l n = some x → x ∈ l
+  | [], _, _, h => by cases h
+  | a :: l, 0, x, h => by cases Option.some.inj h; exact List.Mem.head l
+  | a :: l, n + 1, x, h => List.Mem.tail a (mem_of_nth l n h)
+
+/-- A member is read at some index. -/
+theorem nth_of_mem {α : Type _} {x : α} : ∀ {l : List α}, x ∈ l → ∃ n, nth l n = some x
+  | _, List.Mem.head l => ⟨0, rfl⟩
+  | _, List.Mem.tail _ h =>
+      match nth_of_mem h with
+      | ⟨n, hn⟩ => ⟨n + 1, hn⟩
+
 end VRCycle.Continuum.ListCore
