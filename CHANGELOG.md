@@ -24,9 +24,21 @@ apparatus with witnessed identity. Step 1 is the number floor.
   and denominator as integer pairs, denominator `≉ 0`), `qEq` by cross-multiplication, `qEq_trans`
   by cancellation, `qadd`/`qneg`/`qmul`/`qinv`/`qofInt` with their congruences (`num_nz_respects`:
   a non-zero numerator is a property of the class), the field laws up to `qEq`, `qzero_ne_one`,
-  the embedding `qofInt` a ring homomorphism. Every theorem on `[]` (offenders 0/0/0). Still to
-  come for this floor: the order (positive denominators, `qle`/`qlt`, trichotomy, decidability) and
-  ℝ_VR; then the continuum's `Qop`/`Real` are moved onto these.
+  the embedding `qofInt` a ring homomorphism. Every theorem on `[]` (offenders 0/0/0).
+* **Step 1b — `Numbers/IntegersOrd.lean`, the order on `[]`.** `vle a b := ∃ n, a + n = b` on VR
+  numbers (a witnessed difference, decided by the structural `vleB`; total, antisymmetric, cancellation
+  of a positive factor); on integer pairs `intLe` by the cross-sum criterion — respects `intEq`, total,
+  decidable, compatible with `iadd` and with `imul` by a positive pair in both directions;
+  `intPos_iff` (positive ⟺ `≈ (succ n, 0)`), `intLt_trichotomy`. `csr_ring` hardened: reads
+  `succ x` as `x + 1`, refuses metavariables, decides equality of normal forms by evaluation before
+  building the proof term.
+* **Step 1c — `RationalsOp` with the order.** Denominators now positive (`den_pos : intPos den`);
+  the inverse keeps them positive by a sign case (`qinv`), and the sign of the numerator is a class
+  property (`num_pos_respects`); `qle`/`qlt` by cross-multiplication — congruence, transitivity by
+  cancellation of a positive factor, totality, trichotomy, decidability, compatibility with `qadd`,
+  positivity of sums and products (`qpos_iff`). 46 audited theorems, all on `[]`.
+  Next: the continuum's `Rational`/`GaussianRational` rebuilt on `QExpr` (witnessed, `rat_ring`),
+  then ℝ_VR (the Cauchy layer, the large part), then `Real`.
 
 ## Empty-list sweep, waves 4–8 — 2026-09-12
 
