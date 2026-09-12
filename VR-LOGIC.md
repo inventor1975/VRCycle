@@ -30,6 +30,18 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 
 ## 1. Established by logic (machine-checked)
 
+> **2026-09-12 — the bar is the empty axiom list.** Curator: an axiom is a thing posited, VR is
+> acts; where the cycle cannot reach `[]` that is a *declared limit of operationalism*, named, not
+> accommodated. Measured with `Meta/DependsOn.lean` (`#axiom_census`, `#axiom_offenders_all`,
+> `#axiom_frontier`): modules with no axiom at all 20 → 36 of 106 after three waves (see
+> `CHANGELOG.md`). What was removed was never mathematics — auto-generated `injEq` lemmas,
+> `simp`/`omega`/`ring` proof terms, core list and division lemmas — and the central conservativity
+> theorems (propositional, first-order) and the operational continuum's Cantor / bar-soundness /
+> continuity / dependent-choice theorems now stand on `[]`. Tier figures quoted further down in this
+> file for those modules predate the sweep. The three remaining kinds: tactic artefacts (mechanical),
+> the `Quotient` carrier of `Qop`/`Real` (`Quot.sound`; redesign after `SetsOp`), and statements
+> about mathlib objects (`ZFSet`, `AddSubgroup`, `Set.ext`) — the last is the limit itself.
+
 Axiom tiers used below (mathlib/Lean): `[]` axiom-free · `[Quot.sound]` · `[propext,
 Quot.sound]` (the cycle's constructive ceiling) · `[propext, Classical.choice, Quot.sound]`
 (full classical ceiling). The tier is a property of the *construction*, stated per object.

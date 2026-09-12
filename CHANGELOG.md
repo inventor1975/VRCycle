@@ -1,5 +1,47 @@
 # Changelog
 
+## Empty-list sweep, waves 1–3 — 2026-09-12
+
+The curator set the bar for the whole cycle at the EMPTY axiom list: an axiom is a thing posited,
+VR is acts; where the cycle cannot reach `[]` that is a declared limit of operationalism, to be
+named, not accommodated. Three instruments in `Meta/DependsOn.lean` measure it: `#axiom_census`
+(per module: how many constants carry propext / Quot.sound / Classical.choice, and through which
+external lemma each first arrives), `#axiom_offenders_all` (the constants, one by one, with the
+lemma they inherit the axiom from) and `#axiom_frontier` (where an axiom enters one constant's
+closure). Census before: 20 modules with no axiom at all; after waves 1–3: **36** (of 106).
+
+What propext turned out to be, module by module, and what replaced it:
+* auto-generated `injEq` lemmas (`Eq.propIntro`) for every inductive — never used by the cycle;
+  `set_option genInjectivity false` after the namespace line in 12 files (an `… in` form cannot sit
+  between a doc comment and its declaration). `Transit.lean` named one; the hand `Iff`
+  `FormalTerm.mk_eq_iff` replaces it on `[]`;
+* `simp only` closing goals through `eq_self`: `piTr_embed`, `piTr_subst` (two storeys), Cantor's
+  diagonal, `no_node_surjection` — rewritten with `show`/`rw`/`Bool.noConfusion`;
+* core list and division lemmas (`List.range_succ`, `map_append`, `length_map`, `length_range`,
+  `append_inj_left'`, `prefix_refl`, every `Nat` `/` and `%` lemma) — all reach propext through
+  `simp`; `Continuum/ListCore.lean` proves the needed ones by induction on `[]`, and `decodeNode`
+  is now structural (fuel + `halve`), no well-founded recursion, no division;
+* `Nat.find_le` / `le_find_iff` in `continuity_of_nbhd` — `find_spec`/`find_min` are axiom-free, the
+  antisymmetry is argued from them;
+* `omega` (Int simp lemmas) in `trEmpty_closed` — `Nat.noConfusion`, `Nat.not_lt_zero`.
+
+Now on the empty axiom list, among others: `Theorem_11_VR_PA` (as before), all three storeys'
+central theorems — `Conservativity.conservativity`, `ConservativityFOL.conservativity`,
+`conservativity_empty_concrete` — and the operational continuum's `operational_cantor`,
+`powerset_diagonal`, `no_node_surjection`, `nodes_describable`, `cover_sound`,
+`uniform_continuity`, `NbhdFun.continuity_of_nbhd`, `operational_choice_available`.
+`ConservativityComprehension.conservativity` still carries `[propext, Quot.sound]` (de Bruijn
+lemmas proved with `omega`) — next wave.
+
+Not yet done, by kind (census of 2026-09-12): tactic artefacts in `Continuum.Real`/`GaussianRational`/
+`UnitInterval`, `Numbers.Integers`, `Sets.VRNumbers` (`ring`, mathlib `Int.instMonoid`),
+`ConservativityComprehension`, `SetsZTL.Stages`, `Topology.Tychonoff` — mechanical, sizeable;
+carrier `Quotient` (`Quot.sound` via `Quotient.sound`/`funext`) in `Qop`/`Real`/`Apparatus.Composition`
+— a redesign after the `SetsOp` pattern (witnessed identity, no quotient; `OpSet.ext` is on `[]`);
+statements about mathlib objects (`ZFSet` in VR-Forms' realisability, `AddSubgroup`, `Finset`,
+`Set.ext` in Topology) — a declared limit unless the referent is moved to the cycle's own universe.
+The per-module tier tables in `README.md` predate this sweep; the census is the current truth.
+
 ## Preprint 12: "Choice as an Act" v1.0.0 — 2026-07-17
 
 Twelfth work of the preprint line (`preprints/12_VR-Choice_EN_v1_0_0.pdf`,
