@@ -33,14 +33,21 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 > **2026-09-12 — the bar is the empty axiom list.** Curator: an axiom is a thing posited, VR is
 > acts; where the cycle cannot reach `[]` that is a *declared limit of operationalism*, named, not
 > accommodated. Measured with `Meta/DependsOn.lean` (`#axiom_census`, `#axiom_offenders_all`,
-> `#axiom_frontier`): modules with no axiom at all 20 → 36 of 106 after three waves (see
+> `#axiom_frontier`): modules with no axiom at all 20 → 42 of 107 after seven waves (see
 > `CHANGELOG.md`). What was removed was never mathematics — auto-generated `injEq` lemmas,
 > `simp`/`omega`/`ring` proof terms, core list and division lemmas — and the central conservativity
-> theorems (propositional, first-order) and the operational continuum's Cantor / bar-soundness /
-> continuity / dependent-choice theorems now stand on `[]`. Tier figures quoted further down in this
-> file for those modules predate the sweep. The three remaining kinds: tactic artefacts (mechanical),
-> the `Quotient` carrier of `Qop`/`Real` (`Quot.sound`; redesign after `SetsOp`), and statements
-> about mathlib objects (`ZFSet`, `AddSubgroup`, `Set.ext`) — the last is the limit itself.
+> theorems (propositional, first-order, **comprehension**), the operational continuum's Cantor /
+> bar-soundness / continuity / dependent-choice theorems, the stage court of `SetsZTL.Stages`, the
+> operational topology's describability apparatus (`Operational`, `Compact`, `Continuous`) and the
+> ring laws of ℤ_VR in their witnessed form (`Numbers/IntegersOp.lean`: `IntExpr` up to `intEq`, no
+> quotient) now stand on `[]`. Tier figures quoted further down in this file for those modules
+> predate the sweep. Remaining, by kind: tactic artefacts in `Topology.Tychonoff` (mechanical, large);
+> the `Quotient` carriers `Qop`/`Real` — **measured 2026-09-12: removing the quotient would remove
+> only `Quot.sound`**, because `PreQ`/`Pre` are built over Mathlib's `ℤ`, whose core lemmas
+> (`Int.add_comm`, `Int.mul_comm`, …) themselves carry `propext`; reaching `[]` there means
+> rebuilding the integer substrate of the continuum (as `IntegersOp` does for ℤ_VR), a decision for
+> the curator; and statements about mathlib objects (`ZFSet`, `AddSubgroup`, `Finset`, `Set.ext` in
+> the bridges) — the last is the limit itself.
 
 Axiom tiers used below (mathlib/Lean): `[]` axiom-free · `[Quot.sound]` · `[propext,
 Quot.sound]` (the cycle's constructive ceiling) · `[propext, Classical.choice, Quot.sound]`

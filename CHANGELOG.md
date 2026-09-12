@@ -1,5 +1,49 @@
 # Changelog
 
+## Empty-list sweep, waves 4–7 — 2026-09-12
+
+Census: modules with no axiom at all 36 → **42** (of 107; 47 carry `Classical.choice` through
+Mathlib's ℚ/ℝ/ZFSet and are the declared limit; 18 remain cleanable). Each wave was measured with
+`#axiom_offenders_all` over the touched modules → 0 / 0 / 0 before its commit.
+
+* **Wave 4 — `Forms/ConservativityComprehension.lean`.** All de Bruijn lemmas (`subst_lift`,
+  `lift_lift`, `lift_subst`, `subst_subst`, `lift_subst'`), the π-commutation lemmas and
+  `conservativity` / `conservativity_comprehension_concrete` on `[]`: `omega` and `simp only`
+  closures replaced by a local `NatAux` (five hand lemmas) and `show`/`rw`; `genInjectivity` off.
+  The third storey of conservativity is now axiom-free like the first two.
+* **Wave 5 — `SetsZTL/Stages.lean`.** `ListCore` gains `nth`, `nth_ext`, `nth_append_*`,
+  `take_length'`, `take_append_of_le`, `length_append'` (all by induction); the stage court
+  (`through_mono`, `pad_through`, `stage_eq_super`, `through_pointwise`, `apart_earned`) no longer
+  reaches propext through `List.ext_getElem` / `getElem?` / `take_range`.
+* **Wave 6 — `Topology/{Operational,Compact,Continuous}.lean`.** `binaryUnion` interleaves by
+  `ListCore.halve` (no `%`, `/`, `omega`); `List.toDescribable` enumerates by `ListCore.nth`
+  (`mem_of_nth` / `nth_of_mem` on `List.Mem`); the pairing function behind `preimage_of_relator` is
+  rebuilt on `halve` with fuel, every inequality by hand; `OpContinuous.id` / `comp` use
+  `isOperationalCov_mono` and direct `IsDescribable` instances instead of `Set.ext` rewrites; the
+  `Bool` compactness witness is inhabited by `List.Mem`, not `decide`.
+* **Wave 7 — new `Numbers/IntegersOp.lean`.** The ring laws of ℤ_VR restated where VR performs
+  them: on `IntExpr` up to the witnessed identity `intEq`, proved from `T1`/`T2`/`T3` and hand
+  `vmul_comm` / `vmul_assoc` — no quotient, no Mathlib `Int`, no `ring`; every theorem on `[]`.
+  `Integers.lean` (the quotient + the isomorphism with `Int`) stays as the bridge to Mathlib.
+
+**Measured, and left to the curator.** The class-2 plan ("replace the `Quotient` carriers of
+`Qop`/`Real` by witnessed identity") does not by itself reach `[]`: `PreQ` and `Pre` are built over
+Mathlib's `ℤ`, and the core lemmas `Int.add_comm`, `Int.add_assoc`, `Int.mul_comm`, `Int.mul_add`,
+`Int.zero_add`, … each carry `propext` (checked with `#print axioms`); only `Int.natCast_add/mul`,
+`Int.sub_eq_add_neg`, `Int.add_zero`, `Int.one_mul`, `Int.neg_neg` are free. Dropping the quotient
+removes `Quot.sound` and leaves `propext`. Reaching `[]` for the operational continuum's arithmetic
+floor means rebuilding its integer substrate (ℤ_VR / Nat pairs with hand lemmas, as `IntegersOp`
+does) under `Rational.lean` (468 lines), `Real.lean` (1087), `GaussianRational.lean`, `UnitInterval.lean`
+— a rebuild, not a wave. Also found: `ac_rfl` carries `[propext, Quot.sound]`; `Nat.mul_assoc`,
+`Nat.right_distrib`, `Nat.add_left_cancel`, `Nat.sub_add_cancel` carry `propext` while
+`Nat.add_comm/assoc`, `Nat.mul_comm`, `Nat.left_distrib` are free.
+
+Remaining cleanable (propext/Quot.sound counts): `Continuum.Real` 70/53, `GaussianRational` 39/39,
+`UnitInterval` 18/18 (all on the ℤ substrate above); `Sets.VRNumbers` 18/23 (ZFSet — class 3);
+`Numbers.Integers` 16/34 (the bridge); `Topology.Tychonoff` 12/8 (class 1, 1137 lines, 135 uses of
+`List.mem_*`); `Algebra.*`, `Forms.*` bridges, `Apparatus.Composition` 0/3 (generic theorems about
+`Quotient`), `Transit.FiniteWitness` (Finset) — class 3.
+
 ## Empty-list sweep, waves 1–3 — 2026-09-12
 
 The curator set the bar for the whole cycle at the EMPTY axiom list: an axiom is a thing posited,
