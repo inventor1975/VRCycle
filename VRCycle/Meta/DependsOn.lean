@@ -69,3 +69,38 @@ elab "#dependency_matrix " "[" tgts:ident,* "]" " vs " "[" marks:ident,* "]" : c
     for m in markNames do
       out := out ++ (if deps.contains m then s!"\n      ● {m}" else s!"\n      · {m}")
   logInfo out
+
+
+/-- `#axiom_frontier ax in c` prints WHERE an axiom enters the dependency closure of `c`: the constants
+that carry `ax` while none of their own dependencies does. `#print axioms` says *that* `propext` is
+there; this says *through which lemma* — typically a `simp`-normal form of core (`eq_true`, `false_iff`,
+`Int.ofNat_inj._simp_1`) reached by `simp`/`omega`/`decide` inside a proof, which is a tactic choice
+and can be rewritten by hand (precedent: `Verify_Choice_standalone.lean`, on `[]`). Added 2026-09-12
+when the curator set the bar at the empty list for the whole cycle. -/
+elab "#axiom_frontier " ax:ident " in " c:ident : command => do
+  let env ← getEnv
+  let root ← liftCoreM <| realizeGlobalConstNoOverloadWithInfo c
+  let axName := ax.getId
+  let deps (n : Name) : Array Name :=
+    match env.find? n with
+    | some ci => ci.type.getUsedConstants ++ (ci.value?.map (·.getUsedConstants)).getD #[]
+    | none => #[]
+  let mut seen : NameSet := {}
+  let mut stack : List Name := [root]
+  while !stack.isEmpty do
+    let n := stack.head!
+    stack := stack.tail!
+    if seen.contains n then continue
+    seen := seen.insert n
+    for d in deps n do
+      if !seen.contains d then stack := d :: stack
+  let hasAx (n : Name) : Bool :=
+    let (_, s) := ((CollectAxioms.collect n).run env).run {}
+    s.axioms.contains axName
+  let mut frontier : Array Name := #[]
+  for n in seen.toList do
+    if n == axName || !hasAx n then continue
+    let carried := (deps n).any fun d => d != n && d != axName && hasAx d
+    if !carried then frontier := frontier.push n
+  let sorted := frontier.qsort (fun a b => a.toString < b.toString)
+  logInfo m!"closure of {root}: {seen.size} constants; {axName} enters through {sorted.size}:\n{sorted}"
