@@ -13,6 +13,9 @@ import VR.Numbers.RationalsOp
 import Mathlib.Algebra.Ring.Defs
 import Mathlib.Logic.Nontrivial.Defs
 import Mathlib.Data.Rat.Defs
+import Mathlib.Data.Quot
+import Mathlib.Data.Int.Notation
+import Mathlib.Data.Rat.Init
 
 namespace VRCycle.Continuum
 

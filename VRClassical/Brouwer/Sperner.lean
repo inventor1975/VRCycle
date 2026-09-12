@@ -9,6 +9,7 @@
 import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Algebra.BigOperators.Group.Finset.Piecewise
 import Mathlib.Algebra.Ring.Parity
+import Mathlib.Data.Nat.Notation
 
 /-!
 # Sperner's lemma — the one-dimensional parity core (Stage 2, base case)

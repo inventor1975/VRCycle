@@ -5,7 +5,6 @@ import VR.Arithmetic
 -- Mathlib imported for §II.6 only: ring and push_cast tactics for the
 -- isomorphism theorem. All prior definitions (IntExpr, intEq, operations,
 -- canonical form) are independent of mathlib. Per PLAN.md principle 1.
-import Mathlib.Tactic
 
 namespace VR.Numbers
 
@@ -17,7 +16,7 @@ open VR
 
 -- §II.1. The Formal Language of Subtraction.
 -- An expression a ⊖ b is a syntactic record of the operation
--- "subtract b from a", where a, b ∈ ℕ (= VRObj in VR).
+-- "subtract b from a", where a, b ∈ Nat (= VRObj in VR).
 --
 -- §VI.5, item 1: pairs appear nowhere as independent primitive objects.
 -- This is syntactic juxtaposition with binary operator ⊖, not a pair with
@@ -34,7 +33,7 @@ inductive IntExpr : Type where
 -- «a ⊖ b ≈ c ⊖ d  ⟺  a + d = b + c»
 --
 -- Two expressions are equivalent when they would yield the same result
--- using the addition operation already defined on ℕ (= vadd on VRObj).
+-- using the addition operation already defined on Nat (= vadd on VRObj).
 -- The = here is Lean's Eq on VRObj (not vrEq):
 -- this is arithmetic equality of two VRObj-values, not a Leibnizian claim.
 def intEq : IntExpr → IntExpr → Prop

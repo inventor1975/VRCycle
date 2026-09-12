@@ -347,7 +347,7 @@ theorem T4_one_plus_one : vadd (O 1) (O 1) = O 2 := rfl
 -- §9 (Part II). Peano correspondence — Step 5.1
 -- ============================================================
 
--- Translator ℕ → VR (Part II, §9).
+-- Translator Nat → VR (Part II, §9).
 -- The defining equations of O are extracted as named theorems to explicitly
 -- record the correspondence «0 ↦ O₀, S ↦ t» from preprint §9.
 -- Both proved by rfl from def O.
@@ -369,7 +369,7 @@ theorem O_succ : ∀ n : Nat, O (n + 1) = VRObj.succ (O n) := fun _ => rfl
 --   P2: «For every O_n, t(O_n) exists and is an object of the system»
 --
 -- In a first-order untyped formulation of Peano these claims require
--- existential proof (existence of an object in ℕ).
+-- existential proof (existence of an object in Nat).
 -- In Lean's typed formalisation they become typing statements:
 --   P1: O 0 : VRObj — immediate from the definition of O (def O, first case).
 --   P2: VRObj.succ : VRObj → VRObj — a total function by its type signature.
@@ -505,8 +505,8 @@ theorem O_pow : ∀ m n : Nat, O (m ^ n) = vpow (O m) (O n) := by
 
 -- §11 (Part II), Equivalence Theorem.
 --
--- Preprint: «VR and PA are arithmetically equivalent: the ℕ-theoretic content
--- of one system corresponds bijectively to the ℕ-theoretic content of the other».
+-- Preprint: «VR and PA are arithmetically equivalent: the Nat-theoretic content
+-- of one system corresponds bijectively to the Nat-theoretic content of the other».
 -- Stated as a metatheoretic equivalence of theorem sets.
 --
 -- Lean gives a strengthened form: a structural isomorphism Nat ≃ VRObj

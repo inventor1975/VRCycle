@@ -29,7 +29,9 @@
 --   the preorder.  Most formal topologies are built via `ofPresentation`,
 --   not by directly providing all coverage data.
 
-import Mathlib.Data.Set.Basic
+
+import VR.Prelude.Set
+open scoped VRCycle.Set
 
 namespace VRCycle.Topology
 -- No auto-generated `injEq` lemmas (they carry `propext`); the empty axiom list is the bar (2026-09-12).
@@ -43,7 +45,7 @@ set_option genInjectivity false
 elements `c` that refine some `u ∈ U` and some `v ∈ V`.  Used in the
 `cov_meet` axiom (Finding T7 — needed for product universal property
 via pairing).  Standard Sambin "meeting" set. -/
-def commonRefinement {S : Type*} (le : S → S → Prop) (U V : Set S) : Set S :=
+def commonRefinement {S : Type _} (le : S → S → Prop) (U V : Set S) : Set S :=
   {c | ∃ u ∈ U, ∃ v ∈ V, le c u ∧ le c v}
 
 -- ============================================================
@@ -60,7 +62,7 @@ concrete data, not synthesised by instance inference.  A typeclass variant
 `[IsFormalTopology S]` may be added later if convenient. -/
 structure FormalTopology where
   /-- The underlying type of basic elements (formal opens). -/
-  S : Type*
+  S : Type _
   /-- The preorder on `S`. -/
   le : S → S → Prop
   /-- The coverage relation: `cov a U` means "`a` is covered by `U`". -/
@@ -102,7 +104,7 @@ The relation is `Prop`-valued: for `S : Type u`, `CoverGen le basicCov` lives
 in `S → Set S → Prop`, in the same universe as `S` (since `Prop` is
 impredicative).  No `Type`-level recursive substructure — the universe
 problem that blocked the original free-frame construction does not arise. -/
-inductive CoverGen {S : Type*} (le : S → S → Prop) (basicCov : S → Set S → Prop) :
+inductive CoverGen {S : Type _} (le : S → S → Prop) (basicCov : S → Set S → Prop) :
     S → Set S → Prop where
   | basic    {a : S} {U : Set S} : basicCov a U → CoverGen le basicCov a U
   | mem      {a : S} {U : Set S} : a ∈ U → CoverGen le basicCov a U
@@ -125,7 +127,7 @@ inductive CoverGen {S : Type*} (le : S → S → Prop) (basicCov : S → Set S �
 
 namespace CoverGen
 
-variable {S : Type*} {le : S → S → Prop} {basicCov : S → Set S → Prop}
+variable {S : Type _} {le : S → S → Prop} {basicCov : S → Set S → Prop}
 
 /-- `CoverGen` satisfies the reflexivity coverage axiom. -/
 theorem cov_refl (a : S) (U : Set S) (h : a ∈ U) : CoverGen le basicCov a U :=
@@ -169,7 +171,7 @@ The coverage is the inductive closure `CoverGen le basicCov`.  All four
 coverage axioms are inherited from `CoverGen`'s constructors via the
 theorems in Section 3. -/
 def FormalTopology.ofPresentation
-    (S : Type*)
+    (S : Type _)
     (le : S → S → Prop)
     (le_refl : ∀ a, le a a)
     (le_trans : ∀ a b c, le a b → le b c → le a c)

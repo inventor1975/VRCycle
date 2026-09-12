@@ -14,6 +14,8 @@
 import VR.Continuum.UnitInterval
 import VR.Numbers.RealsOp
 import Mathlib.Algebra.Ring.Defs
+import Mathlib.Data.Quot
+import Mathlib.Data.Int.Notation
 
 namespace VRCycle.Continuum
 

@@ -4,7 +4,7 @@
 -- STAGE: B. SOURCE: PLAN_OPERATIONAL_CONTINUUM.md. Vehicle: HYPOTHESIS.
 --
 -- ## What this file does — the canonical Brouwer theorem, hypothesis-tracked
--- `uniform_continuity` : `Continuity → FanTheorem → ` every `F : Branch → ℕ` is
+-- `uniform_continuity` : `Continuity → FanTheorem → ` every `F : Branch → Nat` is
 -- UNIFORMLY continuous (one modulus `N` works for all branches).  This is Brouwer's
 -- "every function on Cantor space is uniformly continuous", derived from the two
 -- principles carried AS HYPOTHESES — never adopted.  The axiom audit shows the result
@@ -20,7 +20,7 @@
 
 import VR.Continuum.ListCore
 import VR.Continuum.Cover
-import Mathlib.Data.List.Basic
+open scoped VRCycle.Set
 
 namespace VRCycle.Continuum
 
@@ -29,14 +29,14 @@ namespace VRCycle.Continuum
 -- ============================================================
 
 /-- A performed segment of length `n` has length `n`. -/
-theorem Branch.length_take (α : Branch) (n : ℕ) : (α.take n).length = n := by
+theorem Branch.length_take (α : Branch) (n : Nat) : (α.take n).length = n := by
   show ((List.range n).map α).length = n
   rw [ListCore.length_map', ListCore.length_range']
 
 /-- If two branches agree to depth `N`, they agree to any smaller depth `m ≤ N`.
 By induction on `N`, peeling the last bit with `Branch.take_succ` and `List.append_inj_left'`. -/
-theorem take_le_eq {α β : Branch} {m : ℕ} :
-    ∀ {N : ℕ}, m ≤ N → α.take N = β.take N → α.take m = β.take m := by
+theorem take_le_eq {α β : Branch} {m : Nat} :
+    ∀ {N : Nat}, m ≤ N → α.take N = β.take N → α.take m = β.take m := by
   intro N
   induction N with
   | zero => intro hmN h; obtain rfl := Nat.le_zero.mp hmN; exact h
@@ -55,10 +55,10 @@ theorem take_le_eq {α β : Branch} {m : ℕ} :
 
 /-- **Brouwer's uniform continuity theorem, hypothesis-tracked.**  Under `Continuity`
 (WC-N) and `FanTheorem` — both carried as hypotheses, never adopted — every operation
-`F : Branch → ℕ` has a single modulus `N` good for all branches.  No global axiom is
+`F : Branch → Nat` has a single modulus `N` good for all branches.  No global axiom is
 added (audit: `[propext]`-tier); the principles live in the statement.  This exhibits
 the chosen vehicle: a genuinely Brouwerian result, consistently, over classical Lean. -/
-theorem uniform_continuity (hC : Continuity) (hF : FanTheorem) (F : Branch → ℕ) :
+theorem uniform_continuity (hC : Continuity) (hF : FanTheorem) (F : Branch → Nat) :
     ∃ N, ∀ α β : Branch, α.take N = β.take N → F α = F β := by
   -- The "deciding nodes": `s` such that `F` is constant on all branches through `s`.
   have hbar : ∀ α : Branch,

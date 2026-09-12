@@ -21,10 +21,10 @@ Since 2026-09-12 the package builds **two Lake libraries**:
 
 | library | what it is | axiom profile |
 |---|---|---|
-| **`VR`** (directory `VR/`, root `VR.lean`) | VR proper: `VR/Arithmetic.lean` (the formal system), the witnessed numbers ℤ→ℚ→ℝ on their own pairs (`Numbers/*Op`), the ZTL and operational set universes (`ZTL/`, `SetsOp/`), the forms (`Forms/`), the topology tower (`Topology/` up to Tychonoff), the Brouwer continuum (`Continuum/`), the apparatus (`Apparatus/`), the instruments (`Meta/`) | **`[]` for every declaration** — enforced at build time by `VR/Guard.lean` (`#assert_axiom_free_library VR`); `lake build VR` fails otherwise. 2026-09-12: 1516 declarations checked. |
+| **`VR`** (directory `VR/`, root `VR.lean`) | VR proper: `VR/Arithmetic.lean` (the formal system), the witnessed numbers ℤ→ℚ→ℝ on their own pairs (`Numbers/*Op`), the ZTL and operational set universes (`ZTL/`, `SetsOp/`), the forms (`Forms/`), the topology tower (`Topology/` up to Tychonoff), the Brouwer continuum (`Continuum/`), the apparatus (`Apparatus/`), the instruments (`Meta/`) | **`[]` for every declaration** — enforced at build time by `VR/Guard.lean` (`#assert_axiom_free_library VR`); `lake build VR` fails otherwise. 2026-09-13: 1555 declarations checked. |
 | **`VRClassical`** | the classical register and the bridges: the old ℤ/ℚ/ℝ/ℂ over Mathlib and their isomorphisms, ZFC/ZFA (`Sets/`, `SetsZFA/`), Brouwer's fixed point over Mathlib's ℝ, the Hilbert/Hahn–Banach audit, algebra instances, transit examples, the quotient bridges of the continuum (`Qop`, `GaussQ`, `Real`) and of the apparatus, the Mathlib Frame bridge of the topology, the ZFC reading of the forms, apparatus instances over ℝ/`PSet` | the standard Lean/Mathlib axioms, declared per object |
 
-`VRClassical` depends on `VR`; nothing in `VR` depends on it. The package (repository) keeps its name `VRCycle`; the per-module
+`VRClassical` depends on `VR`; nothing in `VR` depends on it. **`VR` imports nothing but Lean itself** (no Mathlib: since 2026-09-13 the few borrowed pieces — `Set`, `Nat.find`, `∃!` — are supplied by `VR/Prelude/`, on `[]`). The package (repository) keeps its name `VRCycle`; the per-module
 sections below still say `VRCycle/…` for core paths — read `VR/…`. "Axiom-free" means free of Lean's
 three declared axioms (`propext`, `Quot.sound`, `Classical.choice`) and of `sorry`; Lean's type theory is
 the checker. Paths in the per-module sections below that name `Sets/`, `SetsZFA/`, `Audit/`, `Brouwer/`,

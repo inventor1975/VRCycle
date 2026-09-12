@@ -76,7 +76,8 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 >    the bridges (everything stated about Mathlib objects or lifted to `Quotient`). The core is
 >    guarded at build time (`VR/Guard.lean`, `#assert_axiom_free_library`): any declaration of
 >    any `VR.*` module carrying `propext`, `Quot.sound`, `Classical.choice` or `sorryAx` fails
->    the build. Measured 2026-09-12: 1516 declarations, all on `[]`. So "VR is formalised in Lean 4
+>    the build. Measured 2026-09-13: 1555 declarations, all on `[]`; and since 2026-09-13 the core
+>    imports NOTHING but Lean itself — no Mathlib (`VR/Prelude/` supplies `Set`, `Nat.find`, `∃!` on `[]`). So "VR is formalised in Lean 4
 >    with an empty axiom list" is a build invariant of the `VR` library; "without axioms" means
 >    without Lean's three declared axioms — Lean's type theory is the checker, not an axiom of VR.
 > 3. *Wired in — the limit* — statements about Mathlib's own objects: `ZFSet` (VR-Sets, VR-Forms

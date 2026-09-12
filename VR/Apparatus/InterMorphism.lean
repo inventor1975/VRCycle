@@ -115,7 +115,7 @@ See Finding S2-A in the module header for the architectural distinction.
 **Canonical example**: `embedPSet : PSet → CoPSet` (see §5).
 
 ## Axiom profile: [] -/
-def InterApparatusMorphism {Q1 Q2 : Type*} [Setoid Q1] [Setoid Q2]
+def InterApparatusMorphism {Q1 Q2 : Type _} [Setoid Q1] [Setoid Q2]
     (f : Q1 → Q2) : Prop :=
   ∀ x y : Q1, x ≈ y → f x ≈ f y
 
@@ -135,7 +135,7 @@ If `f : Q1 → Q2` and `g : Q2 → Q3` are IAMs, then `g ∘ f : Q1 → Q3` is I
 of `IsModeAOp.compose` in ModeA.lean (which operates at quotient level).
 
 ## Axiom profile: [] -/
-theorem InterApparatusMorphism.compose {Q1 Q2 Q3 : Type*}
+theorem InterApparatusMorphism.compose {Q1 Q2 Q3 : Type _}
     [Setoid Q1] [Setoid Q2] [Setoid Q3]
     {f : Q1 → Q2} {g : Q2 → Q3}
     (hf : InterApparatusMorphism f) (hg : InterApparatusMorphism g) :

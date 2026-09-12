@@ -15,13 +15,13 @@
 --
 -- **Integrity programme, step 4 (2026-09-12) — verdict.** This module is
 -- the MATHLIB FRAME BRIDGE, kind 3 in VR-LOGIC §1 (wired-in objects: Mathlib
--- `Set.ext`, `CompleteLattice`, `Order.Frame.ofMinimalAxioms`). Its offenders
--- are exactly `SatSet.ext ← Set.ext`, `instCompleteLattice`, `frameMinAx`,
+-- `_root_.Set.ext`, `CompleteLattice`, `Order.Frame.ofMinimalAxioms`). Its offenders
+-- are exactly `SatSet.ext ← _root_.Set.ext`, `instCompleteLattice`, `frameMinAx`,
 -- `instFrame ← Order.Frame.ofMinimalAxioms` — a frame is a Mathlib object and
 -- cannot be built without them. The operational topology tower
 -- (`FormalTopology`, `Operational`, `Continuous`, `Product`, `Compact`,
 -- `Tychonoff`) is on `[]` (census 2026-09-12, 0/0/0 per module): cover families
--- there are predicates `S → Prop` (Mathlib's `Set S` is literally that
+-- there are predicates `S → Prop` (Mathlib's `_root_.Set S` is literally that
 -- definition; no extensionality is used), and the operational content works
 -- with finite lists of basics (`ListCore`). Nothing here is hidden behind the
 -- bridge: an operational consumer never needs this file.
@@ -31,19 +31,25 @@ import Mathlib.Order.CompleteBooleanAlgebra
 
 namespace VRCycle.Topology
 
+/-- The core's cover families are `VRCycle.Set` (a predicate); Mathlib's `Set` is the same function
+type. Membership in the two is definitionally the same proposition — this restates a Mathlib
+membership as a core membership, for goals produced by the core's `cov_mono`. -/
+private theorem memOfMathlib {α : Type _} {s : _root_.Set α} {a : α} (h : a ∈ s) :
+    @Membership.mem α (VRCycle.Set α) _ s a := h
+
 universe u
 
 -- ============================================================
 -- Section 1: SatSet T — saturated subsets (frame elements)
 -- ============================================================
 
-/-- A set `U : Set T.S` is **saturated** iff every element covered by
+/-- A set `U : _root_.Set T.S` is **saturated** iff every element covered by
 `U` is already in `U`. -/
-def IsSaturated (T : FormalTopology) (U : Set T.S) : Prop :=
+def IsSaturated (T : FormalTopology) (U : _root_.Set T.S) : Prop :=
   ∀ a, T.cov a U → a ∈ U
 
 /-- `SatSet T` carries the frame of `T`'s saturated subsets. -/
-def SatSet (T : FormalTopology) : Type _ := { U : Set T.S // IsSaturated T U }
+def SatSet (T : FormalTopology) : Type _ := { U : _root_.Set T.S // IsSaturated T U }
 
 namespace SatSet
 
@@ -54,22 +60,22 @@ instance : Membership T.S (SatSet T) where
 
 @[simp] lemma mem_def (U : SatSet T) (a : T.S) : a ∈ U ↔ a ∈ U.1 := Iff.rfl
 
-instance : CoeHead (SatSet T) (Set T.S) := ⟨Subtype.val⟩
+instance : CoeHead (SatSet T) (_root_.Set T.S) := ⟨Subtype.val⟩
 
 @[ext] theorem ext {U V : SatSet T} (h : ∀ a, a ∈ U ↔ a ∈ V) : U = V := by
-  apply Subtype.ext; exact Set.ext h
+  apply Subtype.ext; exact _root_.Set.ext h
 
 /-- Saturation of a set: smallest saturated set containing it. -/
-def saturate (T : FormalTopology) (U : Set T.S) : Set T.S :=
+def saturate (T : FormalTopology) (U : _root_.Set T.S) : _root_.Set T.S :=
   { a | T.cov a U }
 
-theorem saturate_isSaturated (T : FormalTopology) (U : Set T.S) :
+theorem saturate_isSaturated (T : FormalTopology) (U : _root_.Set T.S) :
     IsSaturated T (saturate T U) := by
   intro a hcov
   apply T.cov_trans a {b | T.cov b U} U hcov
   intro b hb; exact hb
 
-theorem subset_saturate (T : FormalTopology) (U : Set T.S) : U ⊆ saturate T U :=
+theorem subset_saturate (T : FormalTopology) (U : _root_.Set T.S) : U ⊆ saturate T U :=
   fun a ha => T.cov_refl a U ha
 
 /-- Down-closure of saturated set is itself (via `cov_ref_mono`). -/
@@ -95,7 +101,7 @@ instance instCompleteLattice (T : FormalTopology) : CompleteLattice (SatSet T) w
   le_refl _ := fun _ h => h
   le_trans _ _ _ hUV hVW := fun _ h => hVW (hUV h)
   le_antisymm U V hUV hVU := by
-    apply Subtype.ext; exact Set.Subset.antisymm hUV hVU
+    apply Subtype.ext; exact _root_.Set.Subset.antisymm hUV hVU
   -- SemilatticeSup / SemilatticeInf
   sup U V := ⟨SatSet.saturate T (U.1 ∪ V.1), SatSet.saturate_isSaturated T _⟩
   inf U V := ⟨U.1 ∩ V.1, by
@@ -116,52 +122,52 @@ instance instCompleteLattice (T : FormalTopology) : CompleteLattice (SatSet T) w
   inf_le_right _ _ := fun _ h => h.2
   le_inf _ _ _ hUV hUW := fun _ h => ⟨hUV h, hUW h⟩
   -- BoundedOrder
-  top := ⟨Set.univ, fun _ _ => trivial⟩
+  top := ⟨_root_.Set.univ, fun _ _ => trivial⟩
   bot := ⟨SatSet.saturate T ∅, SatSet.saturate_isSaturated T _⟩
   le_top _ := fun _ _ => trivial
   bot_le U := by
     intro a ha
     apply U.2
-    apply T.cov_mono a ∅ U.1 (Set.empty_subset _) ha
+    apply T.cov_mono a ∅ U.1 (_root_.Set.empty_subset _) ha
   -- SupSet / InfSet + CompleteSemilattices
   sSup S := ⟨SatSet.saturate T (⋃ U ∈ S, U.1), SatSet.saturate_isSaturated T _⟩
   sInf S := ⟨⋂ U ∈ S, U.1, by
     intro a hcov
-    rw [Set.mem_iInter]
+    rw [_root_.Set.mem_iInter]
     intro U
-    rw [Set.mem_iInter]
+    rw [_root_.Set.mem_iInter]
     intro hU
     apply U.2 a
     apply T.cov_mono a _ U.1 _ hcov
-    intro x hx
-    rw [Set.mem_iInter] at hx
-    exact (Set.mem_iInter.mp (hx U)) hU⟩
+    intro x (hx : x ∈ ⋂ U ∈ S, U.1)
+    rw [_root_.Set.mem_iInter] at hx
+    exact (_root_.Set.mem_iInter.mp (hx U)) hU⟩
   isLUB_sSup S := by
     refine ⟨?_, ?_⟩
     · intro U hU a haU
       apply SatSet.subset_saturate
-      rw [Set.mem_iUnion]
-      exact ⟨U, Set.mem_iUnion.mpr ⟨hU, haU⟩⟩
+      rw [_root_.Set.mem_iUnion]
+      exact ⟨U, _root_.Set.mem_iUnion.mpr ⟨hU, haU⟩⟩
     · intro V hV a ha
       apply V.2
       apply T.cov_mono a _ V.1 _ ha
-      intro x hx
-      rw [Set.mem_iUnion] at hx
+      intro x (hx : x ∈ ⋃ U ∈ S, U.1)
+      rw [_root_.Set.mem_iUnion] at hx
       obtain ⟨U, hxU⟩ := hx
-      rw [Set.mem_iUnion] at hxU
+      rw [_root_.Set.mem_iUnion] at hxU
       obtain ⟨hUS, hxU⟩ := hxU
       exact hV hUS hxU
   isGLB_sInf S := by
     refine ⟨?_, ?_⟩
     · intro U hU a ha
       have ha' : a ∈ ⋂ V ∈ S, V.1 := ha
-      rw [Set.mem_iInter] at ha'
-      exact (Set.mem_iInter.mp (ha' U)) hU
+      rw [_root_.Set.mem_iInter] at ha'
+      exact (_root_.Set.mem_iInter.mp (ha' U)) hU
     · intro V hV a haV
       change a ∈ ⋂ U ∈ S, U.1
-      rw [Set.mem_iInter]
+      rw [_root_.Set.mem_iInter]
       intro U
-      rw [Set.mem_iInter]
+      rw [_root_.Set.mem_iInter]
       intro hU
       exact hV hU haV
 
@@ -187,19 +193,23 @@ instance frameMinAx (T : FormalTopology) : Order.Frame.MinimalAxioms (SatSet T) 
     -- c ∈ (A ⊓ U : SatSet T) ≤ ⨆ b ∈ S, A ⊓ b.
     apply T.cov_mono x _ _ _ hmeet
     intro c hc
-    obtain ⟨a', ha'A, y, hyU, hca', hcy⟩ := hc
-    rw [Set.mem_iUnion] at hyU
+    obtain ⟨a', ha'A, y, hyU₀, hca', hcy⟩ := hc
+    -- `hyU₀` is membership in the CORE's `VRCycle.Set` (definitionally the same predicate);
+    -- restate it with Mathlib's membership so that Mathlib's `iUnion` lemmas apply.
+    have hyU : y ∈ ⋃ U ∈ S, U.1 := hyU₀
+    rw [_root_.Set.mem_iUnion] at hyU
     obtain ⟨U, hyU⟩ := hyU
-    rw [Set.mem_iUnion] at hyU
+    rw [_root_.Set.mem_iUnion] at hyU
     obtain ⟨hUS, hyU⟩ := hyU
     have hcA : c ∈ A := SatSet.le_mem A a' c hca' ha'A
     have hcU : c ∈ U.1 := SatSet.le_mem U y c hcy hyU
-    -- Build c ∈ ⋃ V' ∈ Set.range ..., V'.1 explicitly.
+    -- Build c ∈ ⋃ V' ∈ _root_.Set.range ..., V'.1 explicitly.
     -- The V' we want is `⨆ (_ : U ∈ S), A ⊓ U`, which via `iSup_pos hUS`
     -- equals `A ⊓ U`.
-    rw [Set.mem_iUnion]
+    refine memOfMathlib ?_
+    rw [_root_.Set.mem_iUnion]
     refine ⟨⨆ (_ : U ∈ S), A ⊓ U, ?_⟩
-    rw [Set.mem_iUnion]
+    rw [_root_.Set.mem_iUnion]
     refine ⟨⟨U, rfl⟩, ?_⟩
     -- Goal: c ∈ (⨆ (_ : U ∈ S), A ⊓ U).1
     rw [iSup_pos hUS]

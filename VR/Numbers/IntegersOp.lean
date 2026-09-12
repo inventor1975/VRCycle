@@ -228,7 +228,7 @@ scoped infix:50 " ≈ᵢ " => intEq
 
 instance : Trans intEq intEq intEq := ⟨fun h1 h2 => intEq_trans _ _ _ h1 h2⟩
 
-/-- Cancellation on VR numbers, through the isomorphism with ℕ (`O_mul`, `O_left_inv`,
+/-- Cancellation on VR numbers, through the isomorphism with Nat (`O_mul`, `O_left_inv`,
 `O_right_inv` and `Nat.eq_of_mul_eq_mul_right` are all on `[]`). -/
 theorem vmul_right_cancel {a b c : VRObj} (hc : c ≠ VRObj.base) (h : vmul a c = vmul b c) :
     a = b := by

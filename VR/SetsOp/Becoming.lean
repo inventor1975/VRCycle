@@ -1,17 +1,16 @@
 -- VRCycle/SetsOp/Becoming.lean
 -- VR-Sets, Brouwer edition — Stage S4: the operational universe is NON-ENUMERABLE.
 -- The real, machine-checked replacement of the erroneous §VI ("the universe is countable"):
--- no ℕ-enumeration is surjective (up to ≈) onto the operational sets.  A self-contained
+-- no Nat-enumeration is surjective (up to ≈) onto the operational sets.  A self-contained
 -- Cantor diagonal on `OpSet`, using the distinctness of the von Neumann naturals.
 --
--- This file imports `Continuum` ONLY for ℕ arithmetic (strong induction, order); it adds no
+-- This file imports `Continuum` ONLY for Nat arithmetic (strong induction, order); it adds no
 -- Classical.choice.  The operational core (Pointed…Congruence) stays self-contained.
 -- Target: choice-free — ACHIEVED at the empty axiom list (2026-07-12 tier
 -- pass: Iff-`rw` replaced by combinators; `vn_inj` and
 -- `universe_not_enumerable` are now axiom-free).
 
 import VR.SetsOp.Congruence
-import Mathlib.Data.Nat.Init   -- Nat.strong_induction_on (on [])
 
 namespace VRCycle.SetsOp
 
@@ -45,7 +44,7 @@ theorem OpSet.vn_lt_mem {k m : Nat} (h : k < m) : (OpSet.vn k).Mem (OpSet.vn m) 
 /-- No von Neumann natural is a member of itself (the ZFC-fragment acyclicity, by strong
 induction — choice-free). -/
 theorem OpSet.vn_not_self_mem (n : Nat) : ¬ (OpSet.vn n).Mem (OpSet.vn n) := by
-  induction n using Nat.strong_induction_on with
+  induction n using Nat.strongRecOn with
   | _ n ih =>
     intro hself
     obtain ⟨k, hk, hek⟩ := (OpSet.vn_mem_iff (OpSet.vn n) n).1 hself
@@ -82,7 +81,7 @@ theorem OpSet.mem_diag (e : Nat → OpSet.{0}) (k : Nat) :
   · intro hk
     exact ⟨⟨k, hk⟩, OpSet.Equiv.refl _⟩
 
-/-- **The operational universe is non-enumerable.**  No `ℕ`-indexed enumeration `e` is
+/-- **The operational universe is non-enumerable.**  No `Nat`-indexed enumeration `e` is
 surjective up to operational identity: there is always a set (the diagonal) that `e` misses.
 This is the Brouwerian payoff — the universe as becoming is genuinely uncountable — and it
 replaces the erroneous §VI claim that the operational universe is countable.  Choice-free. -/

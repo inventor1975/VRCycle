@@ -31,6 +31,7 @@
 
 import VR.Topology.Product
 import VR.Continuum.ListCore
+open scoped VRCycle.Set
 
 namespace VRCycle.Topology
 -- No auto-generated `injEq` lemmas (they carry `propext`); the empty axiom list is the bar (2026-09-12).
@@ -47,15 +48,15 @@ namespace FormalTopology
 /-- The **lower order** on lists: `listLowerOrder le A B` iff every
 element of `A` is refined by some element of `B`.  Vickers's `vL`,
 adapted to lists (List in Lean core; no `Classical.choice`). -/
-def listLowerOrder {α : Type*} (le : α → α → Prop) (A B : List α) : Prop :=
+def listLowerOrder {α : Type _} (le : α → α → Prop) (A B : List α) : Prop :=
   ∀ a ∈ A, ∃ b ∈ B, le a b
 
-theorem listLowerOrder_refl {α : Type*} (le : α → α → Prop)
+theorem listLowerOrder_refl {α : Type _} (le : α → α → Prop)
     (refl : ∀ a, le a a) (A : List α) : listLowerOrder le A A := by
   intro a ha
   exact ⟨a, ha, refl a⟩
 
-theorem listLowerOrder_trans {α : Type*} (le : α → α → Prop)
+theorem listLowerOrder_trans {α : Type _} (le : α → α → Prop)
     (trans : ∀ a b c, le a b → le b c → le a c)
     (A B C : List α) (hAB : listLowerOrder le A B) (hBC : listLowerOrder le B C) :
     listLowerOrder le A C := by
@@ -149,7 +150,7 @@ namespace IsDescribable
 
 /-- Every list (viewed as the set of its elements) is describable, via
 `l[n]?` enumeration.  `getElem?` is in Lean core, no `Classical`. -/
-instance List.toDescribable {α : Type*} (l : List α) :
+instance List.toDescribable {α : Type _} (l : List α) :
     IsDescribable ({x | x ∈ l} : Set α) where
   -- `ListCore.nth` instead of `l[n]?`: the `GetElem?` instance and `mem_iff_getElem?` reach
   -- `propext`; the two hand lemmas are on `[]`.

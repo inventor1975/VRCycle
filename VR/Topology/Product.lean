@@ -24,6 +24,7 @@
 -- concrete use cases justify them.
 
 import VR.Topology.Continuous
+open scoped VRCycle.Set
 
 namespace VRCycle.Topology
 

@@ -18,7 +18,7 @@ namespace VRCycle.Continuum
 
 /-- **The operational register cannot exhaust the becoming register.**  No function from
 the countable node space `List Bool` is onto the branch space: composing such a surjection
-with the node enumeration `decodeNode` would surject `ℕ` onto branches, contradicting
+with the node enumeration `decodeNode` would surject `Nat` onto branches, contradicting
 `branches_not_enumerable`.  Unconditional (no Brouwerian hypothesis); the structural
 witness that "becoming" strictly exceeds "done". -/
 theorem no_node_surjection : ¬ ∃ f : List Bool → Branch, Function.Surjective f := by

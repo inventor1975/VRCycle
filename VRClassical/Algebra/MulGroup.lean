@@ -133,6 +133,9 @@
 -- Class definitions introduce no proof obligations.
 
 import Mathlib.Algebra.Group.Defs
+import Mathlib.Tactic.TypeStar
+import Mathlib.Data.Int.Notation
+import Mathlib.Data.Rat.Init
 
 namespace VR.Algebra
 

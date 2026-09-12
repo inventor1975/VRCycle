@@ -1,5 +1,33 @@
 # Changelog
 
+## The VR core depends on Lean alone: no Mathlib import in `VR/` — 2026-09-13
+
+Curator: "Заманчиво. Давай делать." Eleven of the core's files still imported pieces of Mathlib
+(`Type*`, `Nat.find`, `Nat.strong_induction_on`, `Set` with `∈`/`⊆`/`''`/set-builder, `∃!`, list
+lemmas, the `ℕ` notation, `lemma`). Every one is now supplied by Lean's own `Init` or by three small
+files of a new `VR/Prelude/`, all on `[]`:
+
+* **`Prelude/Set.lean`** — `VRCycle.Set α := α → Prop` with `∈`, `∅`, `univ`, `⊆` (strict-implicit,
+  as Mathlib), `∪`, `∩`, `{a}`, `insert`, `Nonempty`, `image` (`''`), `preimage` (`⁻¹'`) and the
+  scoped set-builder `{x | p}`, `{x : T | p}`, `{x ∈ s | p}` (`open scoped VRCycle.Set`; scoped so it
+  never collides with Mathlib's in `VRClassical`). No extensionality is provided — the core never
+  used it: two families with the same members are mutually included, not equal. The topology tower
+  and the continuum now run on this type; `VRClassical/Topology/Bridge` names Mathlib's `_root_.Set`
+  explicitly (the two are definitionally the same function type, so `T.cov a U` accepts either).
+* **`Prelude/Nat.lean`** — `VRCycle.Nat.find`/`find_spec`/`find_min`, the well-founded descent of
+  Mathlib's `Nat.findX`, reproduced; used by `Continuum/Model` (least deciding depth of a
+  neighbourhood functional). `Nat.strong_induction_on` in `SetsOp/Becoming` became core's
+  `Nat.strongRecOn`.
+* **`Prelude/Logic.lean`** — `ExistsUnique` with scoped `∃!` (`Continuum/Choice`, no-unique-leader).
+* Mechanical: `Type*` → `Type _`, `ℕ` → `Nat` (144 places), `lemma` → `theorem`, one `by_contra` →
+  `Decidable.byContradiction`, a Mathlib linter option dropped, and one `simp only [eval]` replaced by
+  the definitional `exact` — that `simp` had minted an auxiliary `find.congr_simp` carrying
+  `Quot.sound`, which the guard caught.
+* **Measured:** `grep '^import'` over `VR/` and `VR.lean` shows only `VR.*` and `Lean` (the compiler's
+  own package, for the two meta instruments); `lake build VR` green; the guard now checks
+  **1555 declarations, all on `[]`** (1516 + the Prelude). The package still requires Mathlib — for
+  `VRClassical` only. What "VR stands on" is now exactly Lean's kernel and `Init`.
+
 ## The perimeter: library `VR` = VR proper on `[]`, `VRClassical` = the classical register — 2026-09-12/13
 
 The curator's question after the integrity programme: "can I say VR in Lean is without axioms?" The

@@ -2,7 +2,7 @@
 --
 -- «The Russell class R = {x : x ∉ x} is a classical formal description.  In the formal register
 -- ⌜R⌝ is a well-formed formal term; it is not operationally realisable» (§V.3).  Likewise the
--- Vitali set (uncountable choice, §VI.1), the classical real line and ℘(ℕ) (§V.2, Skolem's
+-- Vitali set (uncountable choice, §VI.1), the classical real line and ℘(Nat) (§V.2, Skolem's
 -- paradox read in two registers).  Their non-realisability is metatheoretic: the closed world of
 -- `isRealisable` sends them to `False`, and `¬isRealisable ⌜τ⌝` is `id`.
 --

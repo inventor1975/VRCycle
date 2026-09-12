@@ -17,9 +17,9 @@
 -- IdentityNature is a *usage mode* indicator, not an intrinsic type property.
 -- The same Lean type can appear in different modes in different contexts:
 --
---   ℕ as von Neumann ordinal in VR (via O : ℕ → VRObj):
+--   Nat as von Neumann ordinal in VR (via O : Nat → VRObj):
 --     → effectively AsReference in that usage (indexed by structure).
---   ℕ as counter / array index:
+--   Nat as counter / array index:
 --     → AsPoint in that usage (identity = the numeral value itself).
 --
 -- Numbers in the VR cycle are a hybrid (PLAN.md Open Question 4): they
@@ -56,7 +56,7 @@ same members (extensionality).
 
 **Usage indicator, not type property**: IdentityNature is attached to a
 *usage context*, not to a Lean type. The same type may appear as AsPoint
-in one context (ℕ as index) and AsReference in another (ℕ as von Neumann
+in one context (Nat as index) and AsReference in another (Nat as von Neumann
 ordinal). Numbers in the VR cycle exemplify this hybrid nature (PLAN.md §4).
 
 **Categorical distinction**: these two modes are qualitatively different,

@@ -16,12 +16,11 @@
 -- This is the Mode B audit object for VR-Topology v1.0.0.
 
 import VR.Topology.Compact
-import Mathlib.Data.List.Sublists
+open scoped VRCycle.Set
 
 -- Decidability hypotheses (Finding T16) are used in proof bodies via
 -- `haveI` instance cascades for List.decidableBAll / decidableBEx; the
 -- linter doesn't see them in the type signature.
-set_option linter.unusedDecidableInType false
 
 namespace VRCycle.Topology
 
@@ -36,7 +35,7 @@ open VRCycle.Continuum.ListCore
 attribute [-instance] List.instDecidableMemOfLawfulBEq
 
 /-- Decidable list membership by structural recursion (on `[]`). -/
-instance (priority := high) instDecMemList {α : Type*} [DecidableEq α] (a : α) (l : List α) :
+instance (priority := high) instDecMemList {α : Type _} [DecidableEq α] (a : α) (l : List α) :
     Decidable (a ∈ l) := decMem a l
 
 -- ============================================================
@@ -222,7 +221,7 @@ theorem prodF_upper_closed
 /-- **Many-way common refinement**: a point `w` is in `manyMeet le Us` iff
 for every cover `U ∈ Us`, `w` refines some element of `U`.  Generalises
 binary `commonRefinement` (Sambin meet, Finding T7) to finite lists. -/
-def manyMeet {α : Type*} (le : α → α → Prop) (Us : List (Set α)) : Set α :=
+def manyMeet {α : Type _} (le : α → α → Prop) (Us : List (Set α)) : Set α :=
   { w | ∀ U ∈ Us, ∃ u ∈ U, le w u }
 
 /-- **Iterated `cov_meet`**: given a finite list of covers (each covering
@@ -325,7 +324,7 @@ existential witnesses**.  For each `d ∈ L`, given `∃ V₁ V₂` with V₁⊆
 V₂⊆U₂, V₁ ++ d.1 ∈ F_α, V₂ ++ d.2 ∈ F_β, build aggregate `V₁*` and `V₂*`
 such that the F-membership holds for every d via upper_closed extension. -/
 private theorem buildVStar
-    {α β : Type*}
+    {α β : Type _}
     (le_α : α → α → Prop) (le_β : β → β → Prop)
     (le_α_refl : ∀ x, le_α x x) (le_β_refl : ∀ x, le_β x x)
     (F_α : Set (List α)) (F_β : Set (List β))
@@ -865,7 +864,7 @@ theorem prodF_cover_closure_head
 Two lists with the same set of elements either both belong to `prodF` or
 neither.  Used to reduce arbitrary `S` with `a ∈ S` to head form
 `a :: (non-a elts)`. -/
-lemma prodF_set_invariant
+theorem prodF_set_invariant
     (T₁ T₂ : FormalTopology)
     [inst₁ : OperationalFormalTopology T₁]
     [inst₂ : OperationalFormalTopology T₂]

@@ -40,7 +40,7 @@
 --
 -- Level 3 (InterApparatusMorphism): f : Q1 → Q2 respecting s1 → s2.
 --   Representative-level (not quotient-level). Cross-apparatus morphisms.
---   Canonical example: PSet.ofNat : (ℕ, =) → (PSet, PSet.Equiv).
+--   Canonical example: PSet.ofNat : (Nat, =) → (PSet, PSet.Equiv).
 --
 -- Level 4 (Mode B): ∀ a, PA a → W a → PB (f a). Predicate transit.
 --   Canonical example: Riesz extension (Hahn-Banach on Hilbert).
@@ -146,7 +146,7 @@
 -- FINDING S5-A (Numbers): Lens applicability depends on natural structure.
 --   Multi-lens capability is STRUCTURED, not uniform: ℝ with IsComputableReal
 --   is natural (predicate lens); ℝ with Cauchy reference lens is artificial
---   (Cauchy sequences carry no natural membership relation). ℕ with von Neumann
+--   (Cauchy sequences carry no natural membership relation). Nat with von Neumann
 --   ordinals is natural (reference lens; ordinals ARE sets with membership).
 --   Apparatus framework does not force uniform applicability — honesty wins.
 --
@@ -154,7 +154,7 @@
 --   Analysis track (ℝ, Cauchy): even trivially-proved objects inherit standard
 --   ceiling [propext, Classical.choice, Quot.sound] through type elaboration of
 --   Field ℚ / IsAbsoluteValue / LinearOrder infrastructure. Set-theory track
---   (ℕ, PSet, ZFC): axiom-free throughout. Mirrors v0.1.0 Finding B-B
+--   (Nat, PSet, ZFC): axiom-free throughout. Mirrors v0.1.0 Finding B-B
 --   (ZFC axiomatically lighter than ZFA). Systematic pattern.
 --
 -- FINDING S1-A (FormsIntegration): Generic Register abstraction unnecessary.

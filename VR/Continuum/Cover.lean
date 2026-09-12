@@ -24,6 +24,7 @@
 
 import VR.Continuum.ListCore
 import VR.Continuum.Branch
+open scoped VRCycle.Set
 
 namespace VRCycle.Continuum
 
@@ -32,7 +33,7 @@ namespace VRCycle.Continuum
 -- ============================================================
 
 /-- Appending the next bit extends the performed segment by one. -/
-theorem Branch.take_succ (α : Branch) (n : ℕ) :
+theorem Branch.take_succ (α : Branch) (n : Nat) :
     α.take (n + 1) = α.take n ++ [α n] := by
   show (List.range (n + 1)).map α = (List.range n).map α ++ [α n]
   rw [ListCore.range_succ', ListCore.map_append']

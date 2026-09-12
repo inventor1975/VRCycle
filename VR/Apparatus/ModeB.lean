@@ -99,7 +99,7 @@ in the signature. Mode B, like Mode A, is apparatus-structure-independent.
 See IsModeAOp_iff_IsModeBOp.
 
 ## Axiom profile: [] -/
-def IsModeBOp {A B : Type*} (PA : A → Prop) (PB : B → Prop) (W : A → Prop) (f : A → B) : Prop :=
+def IsModeBOp {A B : Type _} (PA : A → Prop) (PB : B → Prop) (W : A → Prop) (f : A → B) : Prop :=
   ∀ a : A, PA a → W a → PB (f a)
 
 -- ============================================================
@@ -117,7 +117,7 @@ The additional witness condition W in the domain Subtype reflects that Mode B
 requires enriched operands to guarantee operational results.
 
 ## Axiom profile: [] -/
-def IsModeBOp.lift {A B : Type*} {PA : A → Prop} {PB : B → Prop} {W : A → Prop} {f : A → B}
+def IsModeBOp.lift {A B : Type _} {PA : A → Prop} {PB : B → Prop} {W : A → Prop} {f : A → B}
     (hf : IsModeBOp PA PB W f) :
     {a : A // PA a ∧ W a} → {b : B // PB b} :=
   fun a => ⟨f a.val, hf a.val a.property.1 a.property.2⟩
@@ -129,7 +129,7 @@ def IsModeBOp.lift {A B : Type*} {PA : A → Prop} {PB : B → Prop} {W : A → 
 
 ## Axiom profile: [] -/
 @[simp]
-theorem IsModeBOp.lift_val {A B : Type*} {PA : A → Prop} {PB : B → Prop} {W : A → Prop}
+theorem IsModeBOp.lift_val {A B : Type _} {PA : A → Prop} {PB : B → Prop} {W : A → Prop}
     {f : A → B} (hf : IsModeBOp PA PB W f) (a : {a : A // PA a ∧ W a}) :
     (hf.lift a).val = f a.val :=
   rfl
@@ -154,7 +154,7 @@ because the auto-generated signature has no [PredicateOperationality T P] instan
 
 ## Axiom profile: [] -/
 theorem PredicateOperationality.IsModeAOp_iff_IsModeBOp
-    {T : Type*} {P : T → Prop} {f : T → T} :
+    {T : Type _} {P : T → Prop} {f : T → T} :
     @PredicateOperationality.IsModeAOp T P f ↔ IsModeBOp P P (fun _ => True) f :=
   ⟨fun h a ha _ => h a ha, fun h a ha => h a ha trivial⟩
 
@@ -165,7 +165,7 @@ with W = fun _ => True.
 
 ## Axiom profile: [] -/
 theorem PredicateOperationality.IsModeAOp.toModeBOp
-    {T : Type*} {P : T → Prop} {f : T → T}
+    {T : Type _} {P : T → Prop} {f : T → T}
     (hf : @PredicateOperationality.IsModeAOp T P f) :
     IsModeBOp P P (fun _ => True) f :=
   IsModeAOp_iff_IsModeBOp.mp hf
@@ -189,7 +189,7 @@ composition requires more enrichment on the operand than either factor alone.
 Contrast with Mode A: `IsModeAOp.compose` has trivial witnesses throughout.
 
 ## Axiom profile: [] -/
-theorem IsModeBOp.compose {A B C : Type*}
+theorem IsModeBOp.compose {A B C : Type _}
     {PA : A → Prop} {PB : B → Prop} {PC : C → Prop}
     {WA : A → Prop} {WB : B → Prop}
     {f : A → B} {g : B → C}

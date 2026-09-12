@@ -147,7 +147,7 @@ namespace VR.Apparatus
 **Productive triviality (fifth instance)**: simplicity = correct definition.
 
 ## Axiom profile: [] -/
-theorem PredicateOperationality.IsModeAOp_id {T : Type*} {P : T → Prop} :
+theorem PredicateOperationality.IsModeAOp_id {T : Type _} {P : T → Prop} :
     @PredicateOperationality.IsModeAOp T P id :=
   fun _ hx => hx
 
@@ -164,7 +164,7 @@ theorem PredicateOperationality.IsModeAOp_id {T : Type*} {P : T → Prop} :
 **Productive triviality (sixth instance)**.
 
 ## Axiom profile: [] -/
-theorem InterApparatusMorphism.id_isInterApparatus {Q : Type*} [s : Setoid Q] :
+theorem InterApparatusMorphism.id_isInterApparatus {Q : Type _} [s : Setoid Q] :
     @InterApparatusMorphism Q Q s s id :=
   fun _ _ h => h
 
@@ -180,7 +180,7 @@ The direct proof is cleaner.
 **Productive triviality (seventh instance)**.
 
 ## Axiom profile: [] -/
-theorem IsModeBOp_id {A : Type*} {PA : A → Prop} :
+theorem IsModeBOp_id {A : Type _} {PA : A → Prop} :
     IsModeBOp PA PA (fun _ => True) id :=
   fun _ ha _ => ha
 
@@ -207,7 +207,7 @@ theorem IsModeBOp_id {A : Type*} {PA : A → Prop} :
 
 namespace ReferenceOperationality
 section
-variable {Q : Type*} [s : Setoid Q]
+variable {Q : Type _} [s : Setoid Q]
 
 /-- Witnessed Mode A: an endomorphism of the pre-type with its congruence
 certificate. `IsModeAOpW f = ∀ a b : Q, a ≈ b → f a ≈ f b`.
@@ -275,7 +275,7 @@ theorem IsModeAOpW.comp_congr_right {g : Q → Q} (hg : IsModeAOpW g)
     (g ∘ f) a ≈ (g ∘ f') a :=
   hg _ _ (hff' a)
 
-end -- section {Q : Type*} [s : Setoid Q]
+end -- section {Q : Type _} [s : Setoid Q]
 end ReferenceOperationality
 
 /-- Cross-level, witnessed: an IAM `f : Q1 → Q2` followed by a witnessed Mode A
@@ -284,7 +284,7 @@ map `g : Q2 → Q2` is an IAM `Q1 → Q2` — the witnessed form of
 
 ## Axiom profile: [] -/
 theorem interApparatus_comp_modeAW
-    {Q1 Q2 : Type*} [s1 : Setoid Q1] [s2 : Setoid Q2]
+    {Q1 Q2 : Type _} [s1 : Setoid Q1] [s2 : Setoid Q2]
     {f : Q1 → Q2} {g : Q2 → Q2}
     (hf : InterApparatusMorphism f)
     (hg : @ReferenceOperationality.IsModeAOpW Q2 s2 g) :
@@ -297,7 +297,7 @@ theorem interApparatus_comp_modeAW
 
 ## Axiom profile: [] -/
 theorem comp_modeAW_pointwise
-    {Q1 Q2 : Type*} [s2 : Setoid Q2]
+    {Q1 Q2 : Type _} [s2 : Setoid Q2]
     (f : Q1 → Q2) (g : Q2 → Q2) (a : Q1) :
     (g ∘ f) a ≈ g (f a) :=
   Setoid.refl _
@@ -335,7 +335,7 @@ as a Prop — the well-definedness condition for `Quotient.lift s1 → Quotient 
 
 ## Axiom profile: [] -/
 theorem interApparatus_comp_modeA_wd
-    {Q1 Q2 : Type*} [s1 : Setoid Q1] [s2 : Setoid Q2]
+    {Q1 Q2 : Type _} [s1 : Setoid Q1] [s2 : Setoid Q2]
     {f : Q1 → Q2} {g : Q2 → Quotient s2}
     (hf : InterApparatusMorphism f)
     (hg : @ReferenceOperationality.IsModeAOp Q2 s2 g) :
@@ -402,7 +402,7 @@ theorem interApparatus_comp_modeA_wd
 -- ============================================================
 
 -- Level 1 identity: id is Mode A, and f ∘ id = f definitionally.
-example {T : Type*} {P : T → Prop} {f : T → T}
+example {T : Type _} {P : T → Prop} {f : T → T}
     (hf : @PredicateOperationality.IsModeAOp T P f) :
     @PredicateOperationality.IsModeAOp T P (f ∘ id) :=
   hf

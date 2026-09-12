@@ -76,7 +76,7 @@ namespace PredicateOperationality
 -- exactly which arguments are in the signature. See module header note.
 
 section
-variable {T : Type*} {P : T → Prop}
+variable {T : Type _} {P : T → Prop}
 
 /-- A unary operation f : T → T is Mode A for the predicate-wrapping apparatus
 (T, P) if it preserves the operational predicate P.
@@ -156,7 +156,7 @@ theorem IsModeAOp.compose {f g : T → T}
     @IsModeAOp T P (g ∘ f) :=
   fun x hx => hg (f x) (hf x hx)
 
-end -- section {T : Type*} {P : T → Prop}
+end -- section {T : Type _} {P : T → Prop}
 end PredicateOperationality
 
 -- ============================================================
@@ -166,7 +166,7 @@ end PredicateOperationality
 namespace ReferenceOperationality
 
 section
-variable {Q : Type*} [s : Setoid Q]
+variable {Q : Type _} [s : Setoid Q]
 
 /-- A map f : Q → Quotient s is Mode A for the reference semantics apparatus if
 it respects the equivalence: equivalent representatives give equal quotient values.
@@ -223,7 +223,7 @@ theorem IsModeAOp.compose {f g : Q → Quotient s}
     IsModeAOp (fun a => modeA_liftFn hg (f a)) :=
   fun a b hab => congrArg (modeA_liftFn hg) (hf a b hab)
 
-end -- section {Q : Type*} [s : Setoid Q]
+end -- section {Q : Type _} [s : Setoid Q]
 end ReferenceOperationality
 
 -- ============================================================

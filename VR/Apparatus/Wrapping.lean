@@ -9,7 +9,7 @@
 --
 -- ## Design: marker class with no fields (Prop-valued)
 -- `PredicateOperationality T P : Prop` is a *declaration* that the pair
--- (T : Type*, P : T → Prop) forms a predicate-wrapping apparatus:
+-- (T : Type _, P : T → Prop) forms a predicate-wrapping apparatus:
 --   - T is the classical type (formal register substrate)
 --   - P selects the operational sub-collection (operational register)
 --   - Identity mode: AsPoint (objects identified by position in T)
@@ -43,7 +43,6 @@
 -- identityNature def: [].
 
 import VR.Apparatus.Identity
-import Mathlib.Tactic.TypeStar
 
 namespace VR.Apparatus
 
@@ -53,9 +52,9 @@ namespace VR.Apparatus
 
 /-- PredicateOperationality T P: marker for predicate-wrapping apparatus.
 
-Declares that the pair (T : Type*, P : T → Prop) forms a predicate-wrapping
+Declares that the pair (T : Type _, P : T → Prop) forms a predicate-wrapping
 apparatus in the VR methodology:
-  - T is the classical type (formal register substrate, e.g. ℝ, E : Type*)
+  - T is the classical type (formal register substrate, e.g. ℝ, E : Type _)
   - P selects the operational sub-collection (e.g. IsComputableReal, OperationalHilbertSpace)
   - Identity mode: AsPoint — objects identified by position in T
 
@@ -74,7 +73,7 @@ as hypothesis to indicate they operate within a predicate-wrapping context.
 Stage 2 will use this in the Mode A closure theorem.
 
 ## Axiom profile: [] (Prop class, no fields) -/
-class PredicateOperationality (T : Type*) (P : T → Prop) : Prop
+class PredicateOperationality (T : Type _) (P : T → Prop) : Prop
 
 -- ============================================================
 -- §2. Identity nature
@@ -88,7 +87,7 @@ This is always AsPoint — the definition of the predicate-wrapping mode.
 
 ## Axiom profile: [] -/
 def PredicateOperationality.identityNature
-    {T : Type*} {P : T → Prop} [PredicateOperationality T P] :
+    {T : Type _} {P : T → Prop} [PredicateOperationality T P] :
     IdentityNature :=
   .AsPoint
 

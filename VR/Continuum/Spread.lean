@@ -28,7 +28,7 @@
 import VR.Continuum.ListCore
 import VR.Topology.FormalTopology
 import VR.Topology.Operational
-import Mathlib.Data.List.Infix
+open scoped VRCycle.Set
 
 namespace VRCycle.Continuum
 
@@ -108,7 +108,7 @@ theorem bar_root_self : binarySpread.cov [] ({[]} : Set (List Bool)) :=
 Hand-rolled (not mathlib `Encodable`) so the operational register stays genuinely
 choice-free — in this import context `Encodable (List Bool)` resolves through a
 `Classical.choice` path (Finding CONT-1). -/
-def encodeNode : List Bool → ℕ
+def encodeNode : List Bool → Nat
   | [] => 0
   | false :: l => encodeNode l + encodeNode l + 1
   | true :: l => encodeNode l + encodeNode l + 2
@@ -117,15 +117,15 @@ def encodeNode : List Bool → ℕ
 halving through `ListCore.halve` — no `/`, no `%`, no well-founded recursion: every core lemma about
 division reaches `propext`, and the fixpoint equations of well-founded definitions are not `rfl`.
 Rewritten 2026-09-12 for the empty axiom list. -/
-def decodeAux : ℕ → ℕ → List Bool
+def decodeAux : Nat → Nat → List Bool
   | 0, _ => []
   | _ + 1, 0 => []
   | f + 1, n + 1 => (ListCore.halve n).2 :: decodeAux f (ListCore.halve n).1
 
-def decodeNode (n : ℕ) : List Bool := decodeAux n n
+def decodeNode (n : Nat) : List Bool := decodeAux n n
 
 /-- The fuel does not matter once it is at least the input. -/
-theorem decodeAux_fuel : ∀ (f g n : ℕ), n ≤ f → n ≤ g → decodeAux f n = decodeAux g n
+theorem decodeAux_fuel : ∀ (f g n : Nat), n ≤ f → n ≤ g → decodeAux f n = decodeAux g n
   | 0, g, n, hf, _ => by
       have h0 : n = 0 := Nat.le_zero.mp hf
       subst h0
@@ -164,7 +164,7 @@ theorem decodeNode_encodeNode : ∀ l : List Bool, decodeNode (encodeNode l) = l
 
 /-- **The space of performed acts is describable.**  The set of all nodes
 (`Set.univ : Set (List Bool)`) carries an explicit, hand-rolled enumeration
-`ℕ → Option (List Bool)` — choice-free.  This places the *operational register*
+`Nat → Option (List Bool)` — choice-free.  This places the *operational register*
 (finite performed segments = the "done") on a formal footing: the nodes are countable
 and constructively listable.  Contrast the non-enumerable space of branches (the
 becoming register), which carries no such instance — and structurally cannot. -/

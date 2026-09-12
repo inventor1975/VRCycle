@@ -9,6 +9,8 @@
 -- Every object here is on `[Quot.sound]` (Lean's quotient axiom) — kind 3 in VR-LOGIC §1.
 
 import VR.Apparatus.Composition
+import Mathlib.Tactic.TypeStar
+import Mathlib.Data.Quot
 
 namespace VR.Apparatus
 

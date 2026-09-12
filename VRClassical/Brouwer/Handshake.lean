@@ -9,6 +9,8 @@
 import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Algebra.BigOperators.Group.Finset.Piecewise
 import Mathlib.Algebra.Ring.Parity
+import Mathlib.Tactic.TypeStar
+import Mathlib.Data.Nat.Notation
 
 /-!
 # Handshake parity kernel (Stage 2)

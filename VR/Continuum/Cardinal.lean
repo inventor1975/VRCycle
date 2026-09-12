@@ -15,14 +15,15 @@
 --     uniformly and choice-free (`cantor_ladder`): no floor surjects onto its
 --     power floor — the doubling ("adding a colleague") never closes from
 --     below.
---   * The first step is fully performed: an explicit injection ℕ ↪ Branch
+--   * The first step is fully performed: an explicit injection Nat ↪ Branch
 --     (`natIntoBranch`) plus the proved absence of any surjection back
---     (`branches_not_enumerable`): ℕ is operationally strictly below 2^ℕ
+--     (`branches_not_enumerable`): Nat is operationally strictly below 2^Nat
 --     (`nat_strictly_below_branch`).
 --
 -- ## Axiom profile: choice-free throughout (audited below).
 
 import VR.Continuum.Branch
+open scoped VRCycle.Set
 
 namespace VRCycle.Continuum
 
@@ -37,19 +38,19 @@ def OpInj (A B : Type) : Type := {f : A → B // Function.Injective f}
 /-- `Nat.beq` is reflexive — by own recursion: the library versions of the
 `beq` lemmas carry `propext` in this import context, and the empty axiom
 list is worth two private lines. -/
-private theorem beq_self : ∀ a : ℕ, Nat.beq a a = true
+private theorem beq_self : ∀ a : Nat, Nat.beq a a = true
   | 0     => rfl
   | a + 1 => beq_self a
 
-private theorem eq_of_beq : ∀ {a b : ℕ}, Nat.beq a b = true → a = b
+private theorem eq_of_beq : ∀ {a b : Nat}, Nat.beq a b = true → a = b
   | 0,     0,     _ => rfl
   | 0,     _ + 1, h => Bool.noConfusion h
   | _ + 1, 0,     h => Bool.noConfusion h
   | a + 1, b + 1, h => congrArg Nat.succ (eq_of_beq (a := a) (b := b) h)
 
-/-- ℕ embeds into the branches by an explicit witness: `n ↦` the branch that
+/-- Nat embeds into the branches by an explicit witness: `n ↦` the branch that
 fires exactly at `n`.  The comparison is performed, not postulated. -/
-def natIntoBranch : OpInj ℕ Branch :=
+def natIntoBranch : OpInj Nat Branch :=
   ⟨fun n => (fun k => Nat.beq k n), by
     intro m n h
     have hm : Nat.beq m m = Nat.beq m n := congrFun h m
@@ -73,13 +74,13 @@ theorem cantor_ladder (A : Type) :
   | false => rw [hx] at h; exact Bool.noConfusion h
   | true  => rw [hx] at h; exact Bool.noConfusion h
 
-/-- **ℕ is operationally strictly below its power floor**: the injection up is
+/-- **Nat is operationally strictly below its power floor**: the injection up is
 performed (`natIntoBranch`) and no surjection comes back
 (`branches_not_enumerable`).  The first step of the ladder, with both halves
 earned. -/
 theorem nat_strictly_below_branch :
-    (∃ f : ℕ → Branch, Function.Injective f) ∧
-    ¬ ∃ e : ℕ → Branch, Function.Surjective e :=
+    (∃ f : Nat → Branch, Function.Injective f) ∧
+    ¬ ∃ e : Nat → Branch, Function.Surjective e :=
   ⟨⟨natIntoBranch.1, natIntoBranch.2⟩, branches_not_enumerable⟩
 
 -- ============================================================
@@ -90,11 +91,11 @@ theorem nat_strictly_below_branch :
 prohibition ("no enumeration exists") but a PRODUCTIVITY (Post): from any
 enumeration the fugitive is COMPUTED — a term, not a ghost.  The catalogue
 that reads itself extends itself. -/
-def escape (e : ℕ → Branch) : Branch := fun n => !(e n n)
+def escape (e : Nat → Branch) : Branch := fun n => !(e n n)
 
 /-- The escape escapes: computed from the catalogue, it differs from every
 entry at that entry's own line. -/
-theorem escape_escapes (e : ℕ → Branch) (k : ℕ) : escape e ≠ e k := by
+theorem escape_escapes (e : Nat → Branch) (k : Nat) : escape e ≠ e k := by
   intro h
   have hk : (!(e k k)) = e k k := congrFun h k
   cases hb : e k k with
@@ -106,7 +107,7 @@ theorem escape_escapes (e : ℕ → Branch) (k : ℕ) : escape e ≠ e k := by
 misses, and the witness is handed over, not merely asserted.  Uncountability
 as a generator, not a wall. -/
 theorem branches_productive :
-    ∀ e : ℕ → Branch, ∃ β : Branch, ∀ k, β ≠ e k :=
+    ∀ e : Nat → Branch, ∃ β : Branch, ∀ k, β ≠ e k :=
   fun e => ⟨escape e, escape_escapes e⟩
 
 -- ============================================================

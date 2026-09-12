@@ -84,7 +84,7 @@ This fits exactly as W : A → Prop in IsModeBOp PA PB W f.
 - See §3 for both connections.
 
 ## Axiom profile: [] -/
-def Factorisable {A B : Type*} (PA : A → Prop) (PB : B → Prop)
+def Factorisable {A B : Type _} (PA : A → Prop) (PB : B → Prop)
     (f : A → B) (a : A) : Prop :=
   ∃ g : A → B, (∀ x : A, PA x → PB (g x)) ∧ f a = g a
 
@@ -114,7 +114,7 @@ Simplicity is the content: operand structure routes operationality through f.
   exact hg_preserves a ha                        -- g is operational at a
 
 ## Axiom profile: [] -/
-theorem operand_determines_operational {A B : Type*}
+theorem operand_determines_operational {A B : Type _}
     {PA : A → Prop} {PB : B → Prop}
     (f : A → B) (a : A) (ha : PA a)
     (hfact : Factorisable PA PB f a) : PB (f a) := by
@@ -141,7 +141,7 @@ theorem operand_determines_operational {A B : Type*}
 to transport any witness into the Factorisable framework.
 
 ## Axiom profile: [] -/
-theorem factorisable_implies_isModeBOp {A B : Type*}
+theorem factorisable_implies_isModeBOp {A B : Type _}
     {PA : A → Prop} {PB : B → Prop} {f : A → B} {W : A → Prop}
     (hw : ∀ a : A, W a → Factorisable PA PB f a) :
     IsModeBOp PA PB W f :=
@@ -162,7 +162,7 @@ structurally minimal explanation of why Mode B holds, but it is not the
 only valid witness. The apparatus admits all W implying Factorisable.
 
 ## Axiom profile: [] -/
-theorem IsModeBOp_of_factorisable {A B : Type*}
+theorem IsModeBOp_of_factorisable {A B : Type _}
     {PA : A → Prop} {PB : B → Prop} {f : A → B} :
     IsModeBOp PA PB (Factorisable PA PB f) f :=
   factorisable_implies_isModeBOp (fun _ hfact => hfact)
@@ -186,7 +186,7 @@ The Factorisable lift is strictly more general than Mode A (requires operand
 certificate) and strictly more structured than W = True (names the structural reason).
 
 ## Axiom profile: [] -/
-def Factorisable.lift {A B : Type*} {PA : A → Prop} {PB : B → Prop} {f : A → B} :
+def Factorisable.lift {A B : Type _} {PA : A → Prop} {PB : B → Prop} {f : A → B} :
     {a : A // PA a ∧ Factorisable PA PB f a} → {b : B // PB b} :=
   IsModeBOp_of_factorisable.lift
 
@@ -197,7 +197,7 @@ def Factorisable.lift {A B : Type*} {PA : A → Prop} {PB : B → Prop} {f : A �
 
 ## Axiom profile: [] -/
 @[simp]
-theorem Factorisable.lift_val {A B : Type*} {PA : A → Prop} {PB : B → Prop} {f : A → B}
+theorem Factorisable.lift_val {A B : Type _} {PA : A → Prop} {PB : B → Prop} {f : A → B}
     (a : {a : A // PA a ∧ Factorisable PA PB f a}) :
     (Factorisable.lift (f := f) a).val = f a.val :=
   rfl

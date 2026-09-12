@@ -28,8 +28,9 @@
 -- ## Axiom profile: choice-free for the operational side (verified below).
 
 import VR.Continuum.ListCore
+import VR.Prelude.Logic
 import VR.Continuum.Model              -- NbhdFun, continuity_of_nbhd  (operational Continuity TRUE)
-import Mathlib.Data.List.Range
+open scoped VRCycle.Logic
 
 namespace VRCycle.Continuum
 
@@ -39,15 +40,15 @@ namespace VRCycle.Continuum
 
 /-- The finite performed segment built by a history-dependent rule `f`: at each step the next
 bit is `f` applied to the segment so far.  Pure recursion — no choice. -/
-def dcPrefix (f : List Bool → Bool) : ℕ → List Bool
+def dcPrefix (f : List Bool → Bool) : Nat → List Bool
   | 0     => []
   | n + 1 => dcPrefix f n ++ [f (dcPrefix f n)]
 
 /-- The branch determined by the rule `f`: its `n`-th bit is `f` of the length-`n` segment. -/
-def dcSeq (f : List Bool → Bool) (n : ℕ) : Bool := f (dcPrefix f n)
+def dcSeq (f : List Bool → Bool) (n : Nat) : Bool := f (dcPrefix f n)
 
 /-- The branch's length-`n` performed segment is exactly `dcPrefix f n`. -/
-theorem take_dcSeq (f : List Bool → Bool) (n : ℕ) :
+theorem take_dcSeq (f : List Bool → Bool) (n : Nat) :
     Branch.take (dcSeq f) n = dcPrefix f n := by
   induction n with
   | zero => rfl
@@ -93,10 +94,10 @@ The two socks of a box are `false`/`true` only in the formal register's
 bookkeeping — the box itself offers no mark; the swap at `k` flips the pick
 there.  A rule that "does not read our labels" must be invariant under these
 swaps beyond some finite bookkeeping bound. -/
-def swapAt (k : ℕ) (c : ℕ → Bool) : ℕ → Bool :=
+def swapAt (k : Nat) (c : Nat → Bool) : Nat → Bool :=
   fun n => if n = k then !(c n) else c n
 
-theorem swapAt_self (k : ℕ) (c : ℕ → Bool) : swapAt k c k = !(c k) := by
+theorem swapAt_self (k : Nat) (c : Nat → Bool) : swapAt k c k = !(c k) := by
   unfold swapAt
   rw [if_pos rfl]
 
@@ -108,7 +109,7 @@ about *indistinguishability*, since the statement never mentions it.  What
 makes the argument bite for socks and not for shoes is supplied below, in
 `socks_no_rule`, where both premises are formal rather than editorial. -/
 theorem no_symmetric_selector :
-    ¬ ∃ (c : ℕ → Bool) (N : ℕ), ∀ k, N ≤ k → swapAt k c = c := by
+    ¬ ∃ (c : Nat → Bool) (N : Nat), ∀ k, N ≤ k → swapAt k c = c := by
   rintro ⟨c, N, h⟩
   have h1 : swapAt N c N = c N := congrFun (h N (Nat.le_refl N)) N
   rw [swapAt_self] at h1
@@ -130,10 +131,10 @@ theorem no_symmetric_selector :
 
 /-- A labelling records which element of each pair we have named first.  It is
 our bookkeeping, not a feature of the pairs. -/
-abbrev Labelling := ℕ → Bool
+abbrev Labelling := Nat → Bool
 
 /-- A selection rule reads a labelling and picks in every box. -/
-abbrev Selector := Labelling → ℕ → Bool
+abbrev Selector := Labelling → Nat → Bool
 
 /-- **The swap is a symmetry**: renaming the two elements of pair `k` carries
 the pick with them, because it is the same object under a different name.
@@ -178,14 +179,14 @@ theorem shoes_not_blind : ¬ Blind leftShoe := by
 
 /-- Every branch — every performed sequence; operationally, a lawless coin —
 IS a selection: the act picks where no rule can.  Definitionally choice-free. -/
-def actSelector (β : Branch) : ℕ → Bool := β
+def actSelector (β : Branch) : Nat → Bool := β
 
 /-- **The selectors are exactly the branches**, so the acts are not even
 enumerable (`branches_not_enumerable`) while the rules number zero
 (`no_symmetric_selector`): selection over indistinguishable pairs exists
 never as a rule and uncountably as an act. -/
 theorem selectors_not_enumerable :
-    ¬ ∃ e : ℕ → (ℕ → Bool), Function.Surjective e :=
+    ¬ ∃ e : Nat → (Nat → Bool), Function.Surjective e :=
   branches_not_enumerable
 
 -- ============================================================
@@ -201,7 +202,7 @@ def netStep (f : S → S → S → S) (L R : Fin m → Fin m)
 
 /-- The run of the network from the identical start `s0`. -/
 def netRun (f : S → S → S → S) (L R : Fin m → Fin m) (s0 : S) :
-    ℕ → Fin m → S
+    Nat → Fin m → S
   | 0     => fun _ => s0
   | t + 1 => netStep f L R (netRun f L R s0 t)
 

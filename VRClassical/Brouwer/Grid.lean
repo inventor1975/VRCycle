@@ -5,6 +5,7 @@
 -- (no `IsCompact.tendsto_subseq`, no `Classical` in source).
 
 import Mathlib.Analysis.Convex.StdSimplex
+import Mathlib.Data.Nat.Notation
 
 /-!
 # Grid realization for the Kuhn–Freudenthal Sperner model (Stage 2)

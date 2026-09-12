@@ -26,6 +26,7 @@
 --   slice-describability as input.
 
 import VR.Topology.Operational
+open scoped VRCycle.Set
 
 namespace VRCycle.Topology
 -- No auto-generated `injEq` lemmas (they carry `propext`); the empty axiom list is the bar (2026-09-12).
@@ -40,10 +41,10 @@ universe u
 namespace IsDescribable
 
 -- ============================================================
--- Custom constructive pair on ℕ (Finding T6 — see module docstring).
+-- Custom constructive pair on Nat (Finding T6 — see module docstring).
 -- ============================================================
 --
--- Mathlib's `Nat.unpair_pair` and `Encodable (ℕ × ℕ)` both pull
+-- Mathlib's `Nat.unpair_pair` and `Encodable (Nat × Nat)` both pull
 -- `Classical.choice` via `Nat.sqrt`.  We build a bit-interleaved pair
 -- here, locally, with a clean axiom profile.  Bit 2k of `pair m n` is
 -- bit k of m; bit 2k+1 is bit k of n.
@@ -118,8 +119,8 @@ private def pairAux : Nat → Nat → Nat → Nat
                     (VRCycle.Continuum.ListCore.halve n).2)
                (VRCycle.Continuum.ListCore.halve m).2
 
-/-- Constructive bit-interleaving pair on ℕ. -/
-private def pair (m n : ℕ) : ℕ := pairAux (m + n) m n
+/-- Constructive bit-interleaving pair on Nat. -/
+private def pair (m n : Nat) : Nat := pairAux (m + n) m n
 
 /-- Inverse, with fuel `f ≥ k`: peel two bits, recurse on the quarter. -/
 private def unpairAux : Nat → Nat → Nat × Nat
@@ -136,7 +137,7 @@ private def unpairAux : Nat → Nat → Nat × Nat
                 (VRCycle.Continuum.ListCore.halve k).1).2)
 
 /-- Constructive inverse: bits of m at even positions, bits of n at odd positions. -/
-private def unpair (k : ℕ) : ℕ × ℕ := unpairAux k k
+private def unpair (k : Nat) : Nat × Nat := unpairAux k k
 
 private theorem unpairAux_zero : ∀ f : Nat, unpairAux f 0 = (0, 0)
   | 0 => rfl
@@ -247,7 +248,7 @@ private theorem unpairAux_pairAux : ∀ (f m n : Nat), m + n ≤ f →
           rw [bit_halve, bit_halve]
 
 /-- The inverse lemma in usable form. -/
-private theorem unpair_pair (m n : ℕ) : unpair (pair m n) = (m, n) :=
+private theorem unpair_pair (m n : Nat) : unpair (pair m n) = (m, n) :=
   unpairAux_pairAux (m + n) m n (Nat.le_refl _) (pairAux (m + n) m n) (Nat.le_refl _)
 
 /-- Pre-image describability through a relator.  Given `U : Set β` describable
@@ -257,7 +258,7 @@ pre-image `{a | ∃ b ∈ U, r b a}` is describable.
 Construction uses our custom constructive `pair`/`unpair` (Finding T6) —
 no `Classical.choice` inheritance from `Nat.sqrt`. -/
 @[reducible] def preimage_of_relator
-    {α β : Type*} (r : β → α → Prop) (U : Set β)
+    {α β : Type _} (r : β → α → Prop) (U : Set β)
     [descU : IsDescribable U]
     (descSlice : (b : β) → IsDescribable {a | r b a}) :
     IsDescribable {a | ∃ b ∈ U, r b a} where

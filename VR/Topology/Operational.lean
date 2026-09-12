@@ -9,8 +9,8 @@
 -- Design decisions (Stage 2, recorded as findings):
 --
 -- * Finding T3 (Stage 1→2 plan correction).  `IsDescribable` is declared as
---   a data class with explicit `Option`-valued `enumerator : ℕ → Option α`,
---   not as a `Prop` with `∃ f : ℕ → α, ...` per PLAN_2 §1.  Rationale:
+--   a data class with explicit `Option`-valued `enumerator : Nat → Option α`,
+--   not as a `Prop` with `∃ f : Nat → α, ...` per PLAN_2 §1.  Rationale:
 --   `Prop`-form forces `Classical.choice` to extract `f` for derived
 --   constructions (binary_union, etc.), violating Stage 2's target axiom
 --   profile.  Data form keeps constructive baseline.  `Option` allows the
@@ -36,6 +36,7 @@
 import VR.Topology.FormalTopology
 import VR.Apparatus.Wrapping
 import VR.Continuum.ListCore
+open scoped VRCycle.Set
 
 namespace VRCycle.Topology
 
@@ -46,13 +47,13 @@ universe u
 -- ============================================================
 
 /-- A set `s : Set α` is **describable** if there is a constructive
-enumeration `ℕ → Option α` whose image-with-`some` is exactly `s`.
+enumeration `Nat → Option α` whose image-with-`some` is exactly `s`.
 
 This is the data form (not a `Prop`): the enumerator is explicit, accessible
 without `Classical.choice`.  Empty sets are describable via `fun _ => none`. -/
-class IsDescribable {α : Type*} (s : Set α) where
+class IsDescribable {α : Type _} (s : Set α) where
   /-- An enumeration of `s` via natural numbers.  `none` indicates a skipped index. -/
-  enumerator : ℕ → Option α
+  enumerator : Nat → Option α
   /-- Every `some`-value of `enumerator` is in `s`. -/
   enumerator_some_mem : ∀ n a, enumerator n = some a → a ∈ s
   /-- Every element of `s` is hit by some `enumerator n`. -/
@@ -61,13 +62,13 @@ class IsDescribable {α : Type*} (s : Set α) where
 namespace IsDescribable
 
 /-- The empty set is describable: the enumerator returns `none` everywhere. -/
-instance instEmpty {α : Type*} : IsDescribable (∅ : Set α) where
+instance instEmpty {α : Type _} : IsDescribable (∅ : Set α) where
   enumerator _ := none
   enumerator_some_mem n a h := by cases h
   enumerator_surj x hx := hx.elim
 
 /-- A singleton is describable: the enumerator returns `some a` everywhere. -/
-instance instSingleton {α : Type*} (a : α) : IsDescribable ({a} : Set α) where
+instance instSingleton {α : Type _} (a : α) : IsDescribable ({a} : Set α) where
   enumerator _ := some a
   enumerator_some_mem _ a' h := by
     have hyp : a = a' := by injection h
@@ -99,7 +100,7 @@ instance instUnitUniv : IsDescribable (Set.univ : Set Unit) where
 /-- Binary union of describable sets is describable, by interleaving
 the two enumerations (even indices from `s`, odd indices from `t`).
 Constructive: no `Classical.choice`. -/
-@[reducible] def binaryUnion {α : Type*} (s t : Set α) [hs : IsDescribable s]
+@[reducible] def binaryUnion {α : Type _} (s t : Set α) [hs : IsDescribable s]
     [ht : IsDescribable t] : IsDescribable (s ∪ t) where
   -- Interleaving by `ListCore.halve` (quotient + parity bit by structural recursion): core's
   -- `%` / `/` lemmas reach `propext`; `halve_double` / `halve_double_succ` are on `[]`.
@@ -148,7 +149,7 @@ By construction, every `OpCoverGen op le basicCov a U` term certifies:
 
 This is the inductive structure that makes operational status survive
 through coverage axioms — see Finding T4 in module docstring. -/
-inductive OpCoverGen {S : Type*} (op : S → Prop) (le : S → S → Prop)
+inductive OpCoverGen {S : Type _} (op : S → Prop) (le : S → S → Prop)
     (basicCov : S → Set S → Prop) : S → Set S → Prop where
   | basic    : ∀ {a : S} {U : Set S}, op a → (∀ b ∈ U, op b) →
                IsDescribable U → basicCov a U →
@@ -224,7 +225,7 @@ instance opFormalTopologyPredicate (T : FormalTopology)
 
 /-- Every operational cover is, in particular, a cover.  This is the
 "forgetful" direction: discard operational + describability witnesses. -/
-theorem OpCoverGen.toCoverGen {S : Type*} {op : S → Prop} {le : S → S → Prop}
+theorem OpCoverGen.toCoverGen {S : Type _} {op : S → Prop} {le : S → S → Prop}
     {basicCov : S → Set S → Prop} {a : S} {U : Set S}
     (h : OpCoverGen op le basicCov a U) : CoverGen le basicCov a U := by
   induction h with
@@ -247,7 +248,7 @@ operational status on the closure.
 This is the technical core of Stage 2.  Proof is mechanical structural
 induction on `OpCoverGen` — five cases, each applies the corresponding
 hypothesis directly. -/
-theorem OpCoverGen.toOpCov {S : Type*} {op : S → Prop} {le : S → S → Prop}
+theorem OpCoverGen.toOpCov {S : Type _} {op : S → Prop} {le : S → S → Prop}
     {basicCov : S → Set S → Prop} (opCov : S → Set S → Prop)
     (basicCov_op : ∀ {a U}, op a → (∀ b ∈ U, op b) → IsDescribable U →
                    basicCov a U → opCov a U)
@@ -278,7 +279,7 @@ a preorder, basic covers, and an operational predicate on base elements.
 
 The underlying `FormalTopology` is `FormalTopology.ofPresentation`. -/
 @[reducible] def OperationalFormalTopology.ofPresentation
-    (S : Type*)
+    (S : Type _)
     (le : S → S → Prop)
     (le_refl : ∀ a, le a a)
     (le_trans : ∀ a b c, le a b → le b c → le a c)

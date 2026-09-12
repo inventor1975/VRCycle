@@ -8,7 +8,7 @@
 -- for the reference semantics pattern used in VR-Sets and VR-Sets-ZFA.
 --
 -- ## Design: class with [Setoid Q] and substantive fields
--- `ReferenceOperationality (Q : Type*) [s : Setoid Q]` uses Lean's typeclass
+-- `ReferenceOperationality (Q : Type _) [s : Setoid Q]` uses Lean's typeclass
 -- mechanism to carry the equivalence relation. Two substantive fields:
 --   membership — membership predicate on the quotient Quotient s
 --   ext        — extensionality: same members implies equal objects
@@ -27,7 +27,7 @@
 --
 -- ## Q1 test: [Setoid Q] class syntax
 -- Before the OSetZFA instance, verify that the class syntax
--- `class ... (Q : Type*) [s : Setoid Q] where membership : Quotient s → ...`
+-- `class ... (Q : Type _) [s : Setoid Q] where membership : Quotient s → ...`
 -- compiles on a trivial case (Unit with trivial setoid).
 -- RESULT: Q1 CONFIRMED. No workaround needed.
 --
@@ -49,7 +49,6 @@
 -- Cross-apparatus examples live in Apparatus.lean (requires both Wrapping + Reference).
 
 import VR.Apparatus.Identity
-import Mathlib.Tactic.TypeStar
 
 namespace VR.Apparatus
 
@@ -103,7 +102,7 @@ PredicateOperationality has no fields because its operations (add, inner
 product) are type-specific. This asymmetry is intentional.
 
 ## Axiom profile: [] (class definition, no proof obligations) -/
-class ReferenceOperationality (Q : Type*) [s : Setoid Q] where
+class ReferenceOperationality (Q : Type _) [s : Setoid Q] where
   membership : Quotient s → Quotient s → Prop
   ext : ∀ x y : Quotient s,
         (∀ z : Quotient s, membership z x ↔ membership z y) → x = y
@@ -135,7 +134,7 @@ Identity = position in the membership graph. This is AsReference by definition.
 
 ## Axiom profile: [] -/
 def ReferenceOperationality.identityNature
-    {Q : Type*} [Setoid Q] [ReferenceOperationality Q] :
+    {Q : Type _} [Setoid Q] [ReferenceOperationality Q] :
     IdentityNature :=
   .AsReference
 

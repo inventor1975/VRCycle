@@ -9,6 +9,7 @@ import Mathlib.GroupTheory.Perm.Basic
 import Mathlib.Order.Interval.Finset.Fin
 import Mathlib.Data.Finset.Image
 import Mathlib.Data.Fintype.Perm
+import Mathlib.Data.Nat.Notation
 
 /-!
 # Barycentric subdivision skeleton of the standard `n`-simplex (combinatorial, ℝ-free)

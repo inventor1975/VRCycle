@@ -25,6 +25,7 @@
 
 import VR.Continuum.Branch
 import Mathlib.Data.List.Basic
+import Mathlib.Data.Nat.Notation
 
 namespace VRCycle.Continuum
 

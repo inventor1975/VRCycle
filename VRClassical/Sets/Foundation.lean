@@ -12,6 +12,8 @@
 -- atoms cannot be represented in ZFSet.
 
 import Mathlib.SetTheory.ZFC.Rank   -- subsumes ZFC.Basic; adds ZFSet.rank
+import Mathlib.Data.Quot
+import Mathlib.Logic.ExistsUnique
 
 namespace VR.Sets
 

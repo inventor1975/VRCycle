@@ -19,6 +19,7 @@
 
 import VR.Continuum.ListCore
 import VR.Continuum.Cover
+open scoped VRCycle.Set
 
 namespace VRCycle.Continuum
 

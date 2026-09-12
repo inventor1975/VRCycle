@@ -11,7 +11,7 @@
 --
 -- Axiom profile: `[]` (2026-09-12, integrity programme).  Until that day the enumeration used
 -- Mathlib's `deriving Encodable`, which carries `Classical.choice` through `Nat.unpair_pair`
--- (measured); it was flagged as borrowed plumbing.  The flag is now repaid without any ℕ-pairing:
+-- (measured); it was flagged as borrowed plumbing.  The flag is now repaid without any Nat-pairing:
 -- the descriptions are enumerated by NESTED FINITE STAGES (`stage n` = every description of depth
 -- ≤ n, a list built by a rule), and `descEnum k` reads the `k`-th entry of stage `k` — the diagonal
 -- reaches every entry because the stages are nested and stage `k` is longer than `k`.  Surjectivity
@@ -46,7 +46,7 @@ description. -/
 def OpSet.IsDescribable (x : OpSet.{0}) : Prop := ∃ d : Desc, x.Equiv d.eval
 
 /-- Nesting depth of a description (the stage at which it first appears). -/
-def Desc.depth : Desc → ℕ
+def Desc.depth : Desc → Nat
   | .empty    => 0
   | .omega    => 0
   | .pair a b => a.depth + b.depth + 1
@@ -60,11 +60,11 @@ def newAt (l : List Desc) : List Desc :=
 `stage (n+1) = stage n ++ newAt (stage n)`.  Every description of depth `≤ n` occurs in `stage n`
 (`mem_stage`), each stage is a prefix of the next (`stage_prefix`), and stage `n` has more than `n`
 entries (`length_stage`). -/
-def stage : ℕ → List Desc
+def stage : Nat → List Desc
   | 0     => [Desc.empty, Desc.omega]
   | n + 1 => stage n ++ newAt (stage n)
 
-theorem stage_prefix : ∀ (n k : ℕ), ∃ t, stage (n + k) = stage n ++ t
+theorem stage_prefix : ∀ (n k : Nat), ∃ t, stage (n + k) = stage n ++ t
   | n, 0     => ⟨[], (append_nil' (stage n)).symm⟩
   | n, k + 1 =>
       match stage_prefix n k with
@@ -72,7 +72,7 @@ theorem stage_prefix : ∀ (n k : ℕ), ∃ t, stage (n + k) = stage n ++ t
           change stage (n + k) ++ newAt (stage (n + k)) = stage n ++ (t ++ newAt (stage (n + k)))
           rw [ht, append_assoc']⟩
 
-theorem mem_stage_mono {d : Desc} {n : ℕ} (h : d ∈ stage n) (k : ℕ) : d ∈ stage (n + k) :=
+theorem mem_stage_mono {d : Desc} {n : Nat} (h : d ∈ stage n) (k : Nat) : d ∈ stage (n + k) :=
   match stage_prefix n k with
   | ⟨t, ht⟩ => by rw [ht]; exact mem_append_iff.mpr (Or.inl h)
 
@@ -91,7 +91,7 @@ theorem mem_stage : ∀ d : Desc, d ∈ stage d.depth
         mem_append_iff.mpr (Or.inr (mem_append_iff.mpr (Or.inl
           (mem_map_iff.mpr ⟨a, mem_stage a, rfl⟩))))
 
-theorem length_stage : ∀ n : ℕ, n < (stage n).length
+theorem length_stage : ∀ n : Nat, n < (stage n).length
   | 0     => show 0 < 0 + 1 + 1 from Nat.zero_lt_succ _
   | n + 1 =>
       have h1 : n < (stage n).length := length_stage n
@@ -105,7 +105,7 @@ theorem length_stage : ∀ n : ℕ, n < (stage n).length
         rw [length_append']
         exact Nat.lt_of_lt_of_le (Nat.succ_lt_succ h1) (Nat.add_le_add_left (Nat.le_trans h0 h2) _)
 
-theorem nth_stage_stable (n k i : ℕ) (hi : i < (stage n).length) :
+theorem nth_stage_stable (n k i : Nat) (hi : i < (stage n).length) :
     nth (stage (n + k)) i = nth (stage n) i :=
   match stage_prefix n k with
   | ⟨t, ht⟩ => by rw [ht]; exact nth_append_left (stage n) t i hi
@@ -119,7 +119,7 @@ def orEmpty : Option Desc → Desc
 entry of stage `k`.  Since the stages are nested and stage `k` is longer than `k`, this diagonal
 reads every entry of every stage exactly where it first appears (`descEnum_surjective`).  Built
 by hand on `[]` (2026-09-12) — Mathlib's `deriving Encodable` carried `Classical.choice`. -/
-def descEnum (k : ℕ) : Desc := orEmpty (nth (stage k) k)
+def descEnum (k : Nat) : Desc := orEmpty (nth (stage k) k)
 
 theorem descEnum_surjective : Function.Surjective descEnum := by
   intro d
@@ -147,12 +147,12 @@ theorem descEnum_surjective : Function.Surjective descEnum := by
   rw [key]
   rfl
 
-/-- **The describable register is countable.**  A single EXPLICIT `ℕ`-indexed enumeration
+/-- **The describable register is countable.**  A single EXPLICIT `Nat`-indexed enumeration
 (`descEnum`, a rule) reaches every describable set (up to `≈`).  Contrast
 `universe_not_enumerable`: the describable (done) register is enumerable, the whole universe
 (becoming) is not — this is the corrected §VI.  Choice-free: the enumeration is exhibited. -/
 theorem OpSet.describable_countable :
-    ∃ f : ℕ → OpSet.{0}, ∀ x, OpSet.IsDescribable x → ∃ n, (f n).Equiv x := by
+    ∃ f : Nat → OpSet.{0}, ∀ x, OpSet.IsDescribable x → ∃ n, (f n).Equiv x := by
   refine ⟨fun n => (descEnum n).eval, ?_⟩
   rintro x ⟨d, hd⟩
   obtain ⟨n, hn⟩ := descEnum_surjective d

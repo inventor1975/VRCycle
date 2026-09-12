@@ -348,9 +348,8 @@ def qinv' (x : QExpr) : QExpr :=
 theorem qinv'_respects {x x' : QExpr} (hx : qEq x x') : qEq (qinv' x) (qinv' x') := by
   unfold qinv'
   by_cases h : x.num ≈ᵢ zeroI
-  · have h' : x'.num ≈ᵢ zeroI := by
-      by_contra h''
-      exact num_nz_respects (qEq_symm hx) h'' h
+  · have h' : x'.num ≈ᵢ zeroI :=
+      Decidable.byContradiction (fun h'' => num_nz_respects (qEq_symm hx) h'' h)
     rw [dif_pos h, dif_pos h']; exact qEq_refl _
   · have h' : ¬ x'.num ≈ᵢ zeroI := num_nz_respects hx h
     rw [dif_neg h, dif_neg h']; exact qinv_respects hx h

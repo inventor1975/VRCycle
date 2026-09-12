@@ -63,12 +63,12 @@ def Forces (s : List Bool) (P : Branch → Prop) : Prop :=
   ∀ α : Branch, α.Through s → P α
 
 /-- A performed segment of length `n` has length `n` (on `[]`, via `ListCore`). -/
-theorem take_length (α : Branch) (n : ℕ) : (α.take n).length = n := by
+theorem take_length (α : Branch) (n : Nat) : (α.take n).length = n := by
   show ((List.range n).map α).length = n
   rw [ListCore.length_map', ListCore.length_range']
 
 /-- Reading the `i`-th bit of a performed segment gives the branch's `i`-th bit. -/
-theorem nth_take (α : Branch) : ∀ (n i : ℕ), i < n → ListCore.nth (α.take n) i = some (α i)
+theorem nth_take (α : Branch) : ∀ (n i : Nat), i < n → ListCore.nth (α.take n) i = some (α i)
   | 0, _, h => absurd h (Nat.not_lt_zero _)
   | n + 1, i, h => by
       rcases Nat.lt_or_ge i n with hi | hi
@@ -81,7 +81,7 @@ theorem nth_take (α : Branch) : ∀ (n i : ℕ), i < n → ListCore.nth (α.tak
         rw [Branch.take_succ]; exact e
 
 /-- A shorter performed segment is a prefix of a longer one. -/
-theorem take_take_branch (α : Branch) : ∀ (m k : ℕ), k ≤ m → (α.take m).take k = α.take k
+theorem take_take_branch (α : Branch) : ∀ (m k : Nat), k ≤ m → (α.take m).take k = α.take k
   | 0, k, h => by
       have hk : k = 0 := Nat.le_zero.mp h
       subst hk; rfl
@@ -149,10 +149,10 @@ theorem atom_not_forced_at_root :
 -- ============================================================
 
 /-- Extend a node to a full branch by an arbitrary continuation. -/
-def pad (s : List Bool) (f : ℕ → Bool) : Branch := fun n =>
+def pad (s : List Bool) (f : Nat → Bool) : Branch := fun n =>
   if h : n < s.length then s[n] else f (n - s.length)
 
-theorem pad_through (s : List Bool) (f : ℕ → Bool) :
+theorem pad_through (s : List Bool) (f : Nat → Bool) :
     (pad s f).Through s := by
   unfold Branch.Through
   apply ListCore.nth_ext _ _ (take_length _ _)
@@ -168,7 +168,7 @@ the horizon-`H` segment, the stage court at node `s` is EXACTLY the
 universal quantifier over all finite completions of `s` to length `H` —
 the world-set of E10's global □. Measured totally in E22 §2 (49545
 pairs); here the equivalence is kernel-checked. -/
-theorem stage_eq_super (s : List Bool) (H : ℕ) (hsH : s.length ≤ H)
+theorem stage_eq_super (s : List Bool) (H : Nat) (hsH : s.length ≤ H)
     (Q : List Bool → Prop) :
     Forces s (fun α => Q (α.take H)) ↔
       ∀ w : List Bool, w.length = H → s <+: w → Q w := by
@@ -213,14 +213,14 @@ theorem eq_never_forced (s : List Bool) :
 
 /-- A branch through a node agrees with the node pointwise. -/
 theorem through_nth {α : Branch} {s : List Bool}
-    (h : α.Through s) (i : ℕ) (hi : i < s.length) : ListCore.nth s i = some (α i) := by
+    (h : α.Through s) (i : Nat) (hi : i < s.length) : ListCore.nth s i = some (α i) := by
   have e := nth_take α s.length i hi
   unfold Branch.Through at h
   rw [h] at e
   exact e
 
 theorem through_pointwise {α : Branch} {s : List Bool}
-    (h : α.Through s) (i : ℕ) (hi : i < s.length) : α i = s[i] := by
+    (h : α.Through s) (i : Nat) (hi : i < s.length) : α i = s[i] := by
   have e := through_nth h i hi
   rw [ListCore.nth_eq_getElem s i hi] at e
   exact (Option.some.inj e).symm

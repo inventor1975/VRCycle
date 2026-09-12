@@ -19,6 +19,7 @@
 -- Source: Aczel 1988 §6; PFunctor.M (mathlib).
 
 import Mathlib.Data.PFunctor.Univariate.M
+import Mathlib.Tactic.TypeStar
 
 namespace VR.SetsZFA
 
