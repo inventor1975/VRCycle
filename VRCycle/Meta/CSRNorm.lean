@@ -282,6 +282,8 @@ structure Ops where
   add : Name
   mul : Name
   neg : Option Name
+  /-- a unary constant `s` with `one = s zero` is read as `x ↦ x + 1` (VR's `succ`) -/
+  succ : Option Name
   zero : Expr
   one : Expr
 
@@ -302,11 +304,16 @@ partial def reify (ops : Ops) (e : Expr) : StateT (Array Expr) MetaM Expr := do
     if ops.neg == some fn && args.size ≥ 1 then
       let a ← reify ops (lastArg e)
       return mkApp (mkConst ``CSR.PE.neg) a
-  if ← withReducible (isDefEq e ops.zero) then return mkConst ``CSR.PE.zero
-  if ← withReducible (isDefEq e ops.one) then return mkConst ``CSR.PE.one
+  -- no metavariable may be assigned by these checks (`withNewMCtxDepth`)
+  if ← withNewMCtxDepth (withReducible (isDefEq e ops.zero)) then return mkConst ``CSR.PE.zero
+  if ← withNewMCtxDepth (withReducible (isDefEq e ops.one)) then return mkConst ``CSR.PE.one
+  if let some fn := e.getAppFn.constName? then
+    if ops.succ == some fn && e.getAppNumArgs == 1 then
+      let a ← reify ops e.appArg!
+      return mkApp2 (mkConst ``CSR.PE.add) a (mkConst ``CSR.PE.one)
   let atoms ← get
   for i in [:atoms.size] do
-    if ← withReducible (isDefEq e atoms[i]!) then
+    if ← withNewMCtxDepth (withReducible (isDefEq e atoms[i]!)) then
       return mkApp (mkConst ``CSR.PE.atom) (mkNatLit i)
   set (atoms.push e)
   return mkApp (mkConst ``CSR.PE.atom) (mkNatLit atoms.size)
@@ -339,13 +346,21 @@ syntax (name := csrRing) "csr_ring " term : tactic
     let negN : Option Name := match negE.constName? with
       | some n => if n == ``id then none else some n
       | none => none
-    let ops : Ops := { add := addN, mul := mulN, neg := negN, zero := zeroE, one := oneE }
+    let succN : Option Name ← do
+      match oneE.getAppFn.constName?, oneE.getAppArgs with
+      | some n, #[z] => if ← withNewMCtxDepth (isDefEq z zeroE) then pure (some n) else pure none
+      | _, _ => pure none
+    let ops : Ops := { add := addN, mul := mulN, neg := negN, succ := succN,
+                       zero := zeroE, one := oneE }
     let g ← getMainGoal
-    let gt ← instantiateMVars (← g.getType)
+    let gt := (← instantiateMVars (← g.getType)).consumeMData
+    let gt ← if gt.isApp then pure gt else whnfR gt
     let args := gt.getAppArgs
     unless args.size ≥ 2 do throwError "csr_ring: goal is not a binary relation: {gt}"
     let lhs := args[args.size - 2]!
     let rhs := args[args.size - 1]!
+    if lhs.hasExprMVar || rhs.hasExprMVar then
+      throwError "csr_ring: the goal still has metavariables (state the equation explicitly): {gt}"
     let ((e₁, e₂), atoms) ← (do
       let a ← reify ops lhs
       let b ← reify ops rhs
@@ -354,8 +369,14 @@ syntax (name := csrRing) "csr_ring " term : tactic
     let n₁ := mkApp (mkConst ``CSR.norm) e₁
     let n₂ := mkApp (mkConst ``CSR.norm) e₂
     let hEq ← mkEq n₁ n₂
-    let hpf ← try mkDecideProof hEq catch _ =>
-      throwError "csr_ring: normal forms differ:\n  {← whnf n₁}\n  {← whnf n₂}"
+    -- decide the equality of normal forms HERE (by evaluation), before building the proof term
+    let inst ← synthInstance (mkApp (mkConst ``Decidable) hEq)
+    let dec := mkApp2 (mkConst ``Decidable.decide) hEq inst
+    let r ← withDefault (whnf dec)
+    unless r.isConstOf ``Bool.true do
+      throwError "csr_ring: normal forms differ:\n  {← reduce n₁}\n  {← reduce n₂}"
+    let hpf := mkApp3 (mkConst ``of_decide_eq_true) hEq inst
+      (mkApp2 (mkConst ``Eq.refl [levelOne]) (mkConst ``Bool) (mkConst ``Bool.true))
     let pf := mkApp5 (mkApp (mkConst ``CSR.CSR.eq_of_norm) α) S envE e₁ e₂ hpf
     let pt ← inferType pf
     unless ← isDefEq gt pt do
