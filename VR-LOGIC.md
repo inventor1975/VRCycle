@@ -33,21 +33,32 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 > **2026-09-12 — the bar is the empty axiom list.** Curator: an axiom is a thing posited, VR is
 > acts; where the cycle cannot reach `[]` that is a *declared limit of operationalism*, named, not
 > accommodated. Measured with `Meta/DependsOn.lean` (`#axiom_census`, `#axiom_offenders_all`,
-> `#axiom_frontier`): modules with no axiom at all 20 → 42 of 107 after seven waves (see
+> `#axiom_frontier`): modules with no axiom at all 20 → 43 of 107 after eight waves (see
 > `CHANGELOG.md`). What was removed was never mathematics — auto-generated `injEq` lemmas,
 > `simp`/`omega`/`ring` proof terms, core list and division lemmas — and the central conservativity
 > theorems (propositional, first-order, **comprehension**), the operational continuum's Cantor /
 > bar-soundness / continuity / dependent-choice theorems, the stage court of `SetsZTL.Stages`, the
 > operational topology's describability apparatus (`Operational`, `Compact`, `Continuous`) and the
 > ring laws of ℤ_VR in their witnessed form (`Numbers/IntegersOp.lean`: `IntExpr` up to `intEq`, no
-> quotient) now stand on `[]`. Tier figures quoted further down in this file for those modules
-> predate the sweep. Remaining, by kind: tactic artefacts in `Topology.Tychonoff` (mechanical, large);
-> the `Quotient` carriers `Qop`/`Real` — **measured 2026-09-12: removing the quotient would remove
-> only `Quot.sound`**, because `PreQ`/`Pre` are built over Mathlib's `ℤ`, whose core lemmas
-> (`Int.add_comm`, `Int.mul_comm`, …) themselves carry `propext`; reaching `[]` there means
-> rebuilding the integer substrate of the continuum (as `IntegersOp` does for ℤ_VR), a decision for
-> the curator; and statements about mathlib objects (`ZFSet`, `AddSubgroup`, `Finset`, `Set.ext` in
-> the bridges) — the last is the limit itself.
+> quotient) and the binary Tychonoff theorem (`tychonoff_binary`, with its whole `prodF` apparatus)
+> now stand on `[]`. Tier figures quoted further down in this file for those modules predate the
+> sweep. **Three kinds of axiom in Lean, three verdicts** (curator, 2026-09-12: "in VR's philosophy
+> there are no axioms; they exist only in Lean — some can be walked around, some with difficulty,
+> some are wired in so deep that this is the limit"):
+> 1. *Walked around* — everything above: `injEq`, `simp`/`omega`/`ring`/`decide`/`ac_rfl` proof
+>    terms, core list, membership and division lemmas, `Set.ext` where only monotonicity was needed,
+>    `rw` with an `Iff`. Never mathematics; replaced by structural recursion and `show`/`rw`/`cases`.
+> 2. *Walkable, not yet walked* — the `Quotient` carriers `Qop`/`Real`. **Measured:** dropping the
+>    quotient would remove only `Quot.sound`, because `PreQ`/`Pre` are built over Mathlib's `ℤ`, whose
+>    core lemmas (`Int.add_comm`, `Int.mul_comm`, …) themselves carry `propext`. Reaching `[]` means
+>    rebuilding the continuum's integer substrate as `IntegersOp` does for ℤ_VR — a rebuild of
+>    `Rational`/`Real`/`GaussianRational`/`UnitInterval`, not a wave. This is a *cost*, not a limit;
+>    it must not be filed under 3. Precedent: VR-SetsOp already paid it once ("the cost of the
+>    quotient": witnessed bisimulation instead of `Quotient`, `OpSet.ext` on `[]`).
+> 3. *Wired in — the limit* — statements about Mathlib's own objects: `ZFSet` (VR-Sets, VR-Forms
+>    realisability), `AddSubgroup` (Algebra), `Finset` (Transit), `Set.ext` in the bridge theorems,
+>    and the isomorphisms with Mathlib's `ℤ`/`ℚ`/`ℝ` (`Rat.add` itself carries `Classical.choice`).
+>    Named as such; not accommodated.
 
 Axiom tiers used below (mathlib/Lean): `[]` axiom-free · `[Quot.sound]` · `[propext,
 Quot.sound]` (the cycle's constructive ceiling) · `[propext, Classical.choice, Quot.sound]`

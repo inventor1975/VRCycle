@@ -1,9 +1,9 @@
 # Changelog
 
-## Empty-list sweep, waves 4–7 — 2026-09-12
+## Empty-list sweep, waves 4–8 — 2026-09-12
 
-Census: modules with no axiom at all 36 → **42** (of 107; 47 carry `Classical.choice` through
-Mathlib's ℚ/ℝ/ZFSet and are the declared limit; 18 remain cleanable). Each wave was measured with
+Census: modules with no axiom at all 36 → **43** (of 107; 47 carry `Classical.choice` through
+Mathlib's ℚ/ℝ/ZFSet and are the declared limit; 17 remain cleanable). Each wave was measured with
 `#axiom_offenders_all` over the touched modules → 0 / 0 / 0 before its commit.
 
 * **Wave 4 — `Forms/ConservativityComprehension.lean`.** All de Bruijn lemmas (`subst_lift`,
@@ -25,6 +25,12 @@ Mathlib's ℚ/ℝ/ZFSet and are the declared limit; 18 remain cleanable). Each w
   them: on `IntExpr` up to the witnessed identity `intEq`, proved from `T1`/`T2`/`T3` and hand
   `vmul_comm` / `vmul_assoc` — no quotient, no Mathlib `Int`, no `ring`; every theorem on `[]`.
   `Integers.lean` (the quotient + the isomorphism with `Int`) stays as the bridge to Mathlib.
+* **Wave 8 — `Topology/Tychonoff.lean`.** `ListCore` gains `mem_cons_iff`, `mem_append_iff`,
+  `mem_map_iff`, `mem_filter_iff`, `mem_flatMap_iff`, `bnot_decide_eq_true_iff`, `decMem` (decidable
+  membership by structural recursion) and `subl`/`filter_mem_subl` (the only fact about
+  `List.sublists` the proof used). Tychonoff uses them through `.mp`/`.mpr` only — `rw` with an
+  `Iff` goes through `propext` — and drops core's `LawfulBEq` membership instance for the file.
+  `tychonoff_binary`, `prodWitness` and the four `prodF_*` theorems carry no axioms.
 
 **Measured, and left to the curator.** The class-2 plan ("replace the `Quotient` carriers of
 `Qop`/`Real` by witnessed identity") does not by itself reach `[]`: `PreQ` and `Pre` are built over
@@ -40,9 +46,10 @@ does) under `Rational.lean` (468 lines), `Real.lean` (1087), `GaussianRational.l
 
 Remaining cleanable (propext/Quot.sound counts): `Continuum.Real` 70/53, `GaussianRational` 39/39,
 `UnitInterval` 18/18 (all on the ℤ substrate above); `Sets.VRNumbers` 18/23 (ZFSet — class 3);
-`Numbers.Integers` 16/34 (the bridge); `Topology.Tychonoff` 12/8 (class 1, 1137 lines, 135 uses of
-`List.mem_*`); `Algebra.*`, `Forms.*` bridges, `Apparatus.Composition` 0/3 (generic theorems about
-`Quotient`), `Transit.FiniteWitness` (Finset) — class 3.
+`Numbers.Integers` 16/34 (the bridge); `Algebra.*`, `Forms.*` bridges, `Apparatus.Composition` 0/3
+(generic theorems about `Quotient`), `Transit.FiniteWitness` (Finset) — class 3. Class 1 is now
+exhausted: every remaining `propext`/`Quot.sound` is either the ℤ substrate (class 2) or a statement
+about a Mathlib object (class 3) — see VR-LOGIC §1, "three kinds of axiom in Lean, three verdicts".
 
 ## Empty-list sweep, waves 1–3 — 2026-09-12
 
