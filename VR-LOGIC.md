@@ -57,9 +57,13 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 >    (`Numbers/{IntegersOp,IntegersOrd,RationalsOp,RealsOp}.lean`, `GaussE`), and `Qop`/`GaussQ`/
 >    `Real` are quotient bridges on `[Quot.sound]` for Mathlib-style consumers; `Pre.ofBranch` (a
 >    branch's point as a Cauchy sequence) on `[]`. Instruments: `csr_ring`/`cr_ring`/`cr_linarith`
->    (`Meta/CSRNorm.lean`), all on `[]`. Still to walk: the order/apartness/inverse of ℝ_op on the
->    witnessed layer; then steps 2–5 (sets = `SetsZTL`/`SetsOp`, forms and topology over them,
->    apparatus without `Quotient`).
+>    (`Meta/CSRNorm.lean`), all on `[]`; the order/apartness/inverse of ℝ_op (`rinvPos`, termwise
+>    `qinv'`) also on `[]`. **Steps 2–3 (same day):** the set floor is `SetsOp`/`SetsZTL`
+>    (`Sets/` = ZFC bridge), and VR-Forms' operational register is `OpSet`: `isRealisable`, π,
+>    the transit pattern and the substrate thesis on `[]`; ⌜AFA⌝ realised in `OpSet` while its
+>    ZFC reading is refuted in `PSet` (`afa_two_registers`) — the ZFA boundary is a boundary of
+>    groundedness (a mode), not of operationality. Remaining: step 4 (topology's cover families
+>    without Mathlib `Set`/`Set.ext` in the bridges) and step 5 (apparatus without `Quotient`).
 > 3. *Wired in — the limit* — statements about Mathlib's own objects: `ZFSet` (VR-Sets, VR-Forms
 >    realisability), `AddSubgroup` (Algebra), `Finset` (Transit), `Set.ext` in the bridge theorems,
 >    and the isomorphisms with Mathlib's `ℤ`/`ℚ`/`ℝ` (`Rat.add` itself carries `Classical.choice`).

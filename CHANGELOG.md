@@ -79,6 +79,26 @@ apparatus with witnessed identity. Step 1 is the number floor.
   `rinvPos_mul : x · (1/x) ≈ 1`. All on `[]`. Lifted to `Real` (`≤`, `<`, `apart`, `le_antisymm`)
   on `[propext, Quot.sound]` (the `Prop` lift); `Pre.invPos` is an alias on `[]`.
 
+## Integrity programme, steps 2–3: sets and forms on the operational universe — 2026-09-12
+
+* **Step 2 — the set floor.** No code: `SetsOp` (set = revealing functionality, identity = witnessed
+  bisimulation, ZF without Foundation, AFA as a theorem, all on `[]`) and `SetsZTL` are THE set
+  floor of the tower; `Sets/` (Mathlib `ZFSet`, the ZFC register) is a bridge, kind 3.
+* **Step 3 — VR-Forms over `OpSet`.** `Realisability.lean`: `isRealisable` classifies a term by
+  `DecidableEq FormalTerm` (a `match` on string literals compiles to a splitter that reaches
+  `propext`) and reads ⌜∅⌝, ⌜omega⌝, ⌜pair⌝ in `OpSet` — membership `Mem`, identity `Equiv`
+  (the pair has as members the sets *identical by witness* to `a` or `b`); new ⌜AFA⌝, realised by
+  `OpSet.decorate`. `Transit.lean`: π likewise, `translate_implies_realisable` by cases on the
+  class. `Substrate.lean`: the 2026-05-28 gate's `Acc (· ∈ ·)` is refuted as a substrate on the
+  operational universe (AFA holds there — groundedness is a MODE, `OpSet.IsGrounded`, not the
+  substrate); the substrate of an operational set is its own revealing, witnessed by the identity
+  bisimulation. `Examples.lean`: Russell/Vitali/ℝ/℘(ℕ) as before; `mixed_omega_two_register` over
+  `OpSet`. All of these on `[]`. `Bridge.lean` keeps the ZFC-register reading as
+  `isRealisableZFC` (Mathlib `ZFSet`/`PSet`: `bridge_AFA` refuted, Conjectures IV.1–2 open) and
+  states the junction **`afa_two_registers`: ⌜AFA⌝ realised in `OpSet`, ⌜AFA_Statement⌝ refuted
+  in `PSet`** — the ZFA boundary of VR-Sets located as a boundary of groundedness, not of
+  operationality. Full build green.
+
 **Step 1 stands.** The number floor ℤ → ℚ → ℂ → ℝ is now VR's own from `VR.lean` up: witnessed
 layers on `[]` (`IntegersOp`/`IntegersOrd`, `RationalsOp`, `GaussE`, `RealsOp`), quotient bridges
 on `[Quot.sound]` (`Qop`, `GaussQ`, `Real`), `Classical.choice` gone from the continuum's ℚ/ℂ/ℝ.
