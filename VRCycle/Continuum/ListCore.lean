@@ -98,4 +98,67 @@ theorem halve_fst_le : ∀ n : Nat, (halve n).1 ≤ n
   | 1 => Nat.zero_le 1
   | n + 2 => Nat.succ_le_succ (Nat.le_succ_of_le (halve_fst_le n))
 
+
+-- ------------------------------------------------------------
+-- Reading entries and taking prefixes, on `[]` (added for SetsZTL.Stages, 2026-09-12).
+-- Core's `l[i]?` reaches `propext` through its `GetElem?` instance; `nth` is the same reading
+-- by structural recursion, and the prefix facts below replace `List.take_length`,
+-- `List.take_append_of_le_length`, `List.length_append`, `List.ext_getElem`.
+-- ------------------------------------------------------------
+
+/-- The `i`-th entry of a list, or `none` past the end. -/
+def nth {α : Type _} : List α → Nat → Option α
+  | [], _ => none
+  | a :: _, 0 => some a
+  | _ :: l, n + 1 => nth l n
+
+theorem nth_append_left {α : Type _} :
+    ∀ (l m : List α) (i : Nat), i < l.length → nth (l ++ m) i = nth l i
+  | [], _, _, h => absurd h (Nat.not_lt_zero _)
+  | _ :: _, _, 0, _ => rfl
+  | _ :: l, m, i + 1, h => nth_append_left l m i (Nat.lt_of_succ_lt_succ h)
+
+theorem nth_append_length {α : Type _} (x : α) :
+    ∀ (l : List α), nth (l ++ [x]) l.length = some x
+  | [] => rfl
+  | _ :: l => nth_append_length x l
+
+theorem nth_eq_getElem {α : Type _} :
+    ∀ (l : List α) (i : Nat) (h : i < l.length), nth l i = some l[i]
+  | [], _, h => absurd h (Nat.not_lt_zero _)
+  | _ :: _, 0, _ => rfl
+  | _ :: l, i + 1, h => nth_eq_getElem l i (Nat.lt_of_succ_lt_succ h)
+
+theorem nth_eq_none {α : Type _} :
+    ∀ (l : List α) (i : Nat), l.length ≤ i → nth l i = none
+  | [], _, _ => rfl
+  | _ :: _, 0, h => absurd h (Nat.not_succ_le_zero _)
+  | _ :: l, i + 1, h => nth_eq_none l i (Nat.le_of_succ_le_succ h)
+
+/-- Two lists of equal length that read the same everywhere are equal. -/
+theorem nth_ext {α : Type _} :
+    ∀ (l m : List α), l.length = m.length → (∀ i, nth l i = nth m i) → l = m
+  | [], [], _, _ => rfl
+  | [], _ :: m, h, _ => by cases (show 0 = m.length + 1 from h)
+  | _ :: l, [], h, _ => by cases (show l.length + 1 = 0 from h)
+  | a :: l, b :: m, h, hn => by
+      have h0 : some a = some b := hn 0
+      rw [Option.some.inj h0, nth_ext l m (Nat.succ.inj h) (fun i => hn (i + 1))]
+
+theorem length_append' {α : Type _} : ∀ (a b : List α), (a ++ b).length = a.length + b.length
+  | [], b => (Nat.zero_add b.length).symm
+  | _ :: a, b => by
+      show (a ++ b).length + 1 = a.length + 1 + b.length
+      rw [length_append' a b, Nat.succ_add]
+
+theorem take_length' {α : Type _} : ∀ (l : List α), l.take l.length = l
+  | [] => rfl
+  | a :: l => congrArg (a :: ·) (take_length' l)
+
+theorem take_append_of_le {α : Type _} :
+    ∀ (l m : List α) (k : Nat), k ≤ l.length → (l ++ m).take k = l.take k
+  | _, _, 0, _ => rfl
+  | [], _, _ + 1, h => absurd h (Nat.not_succ_le_zero _)
+  | a :: l, m, k + 1, h => congrArg (a :: ·) (take_append_of_le l m k (Nat.le_of_succ_le_succ h))
+
 end VRCycle.Continuum.ListCore

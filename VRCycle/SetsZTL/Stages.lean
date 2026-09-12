@@ -45,6 +45,8 @@
 -- lifted to the empty list; the tier as it stands matches the wing.
 
 import VRCycle.Continuum.Branch
+import VRCycle.Continuum.ListCore
+import VRCycle.Continuum.Cover
 import VRCycle.SetsZTL.Kernel
 
 namespace VRCycle.SetsZTL
@@ -60,18 +62,49 @@ every branch passing through `s` satisfies `P`. -/
 def Forces (s : List Bool) (P : Branch → Prop) : Prop :=
   ∀ α : Branch, α.Through s → P α
 
+/-- A performed segment of length `n` has length `n` (on `[]`, via `ListCore`). -/
+theorem take_length (α : Branch) (n : ℕ) : (α.take n).length = n := by
+  show ((List.range n).map α).length = n
+  rw [ListCore.length_map', ListCore.length_range']
+
+/-- Reading the `i`-th bit of a performed segment gives the branch's `i`-th bit. -/
+theorem nth_take (α : Branch) : ∀ (n i : ℕ), i < n → ListCore.nth (α.take n) i = some (α i)
+  | 0, _, h => absurd h (Nat.not_lt_zero _)
+  | n + 1, i, h => by
+      rcases Nat.lt_or_ge i n with hi | hi
+      · rw [Branch.take_succ, ListCore.nth_append_left _ _ _ (by rw [take_length]; exact hi)]
+        exact nth_take α n i hi
+      · have hin : i = n := Nat.le_antisymm (Nat.le_of_lt_succ h) hi
+        subst hin
+        have e := ListCore.nth_append_length (α i) (α.take i)
+        rw [take_length] at e
+        rw [Branch.take_succ]; exact e
+
+/-- A shorter performed segment is a prefix of a longer one. -/
+theorem take_take_branch (α : Branch) : ∀ (m k : ℕ), k ≤ m → (α.take m).take k = α.take k
+  | 0, k, h => by
+      have hk : k = 0 := Nat.le_zero.mp h
+      subst hk; rfl
+  | m + 1, k, h => by
+      rcases Nat.lt_or_ge k (m + 1) with hk | hk
+      · have hk' : k ≤ m := Nat.le_of_lt_succ hk
+        rw [Branch.take_succ, ListCore.take_append_of_le _ _ _ (by rw [take_length]; exact hk')]
+        exact take_take_branch α m k hk'
+      · have hkm : k = m + 1 := Nat.le_antisymm h hk
+        subst hkm
+        have e := ListCore.take_length' (α.take (m + 1))
+        rw [take_length] at e
+        exact e
+
 /-- A branch through a node passes through every earlier node. -/
 theorem through_mono {s t : List Bool} (hst : s <+: t) {α : Branch}
     (h : α.Through t) : α.Through s := by
   obtain ⟨u, rfl⟩ := hst
   unfold Branch.Through at h ⊢
   have hlen : s.length ≤ (s ++ u).length := by
-    rw [List.length_append]; exact Nat.le_add_right _ _
-  have htake : (α.take (s ++ u).length).take s.length = α.take s.length := by
-    unfold Branch.take
-    rw [← List.map_take, List.take_range, Nat.min_eq_left hlen]
+    rw [ListCore.length_append']; exact Nat.le_add_right _ _
   calc α.take s.length
-      = (α.take (s ++ u).length).take s.length := htake.symm
+      = (α.take (s ++ u).length).take s.length := (take_take_branch α _ _ hlen).symm
     _ = ((s ++ u).take s.length) := by rw [h]
     _ = s := List.take_left
 
@@ -119,20 +152,16 @@ theorem atom_not_forced_at_root :
 def pad (s : List Bool) (f : ℕ → Bool) : Branch := fun n =>
   if h : n < s.length then s[n] else f (n - s.length)
 
-theorem take_length (α : Branch) (n : ℕ) : (α.take n).length = n := by
-  unfold Branch.take
-  rw [List.length_map, List.length_range]
-
 theorem pad_through (s : List Bool) (f : ℕ → Bool) :
     (pad s f).Through s := by
   unfold Branch.Through
-  apply List.ext_getElem
-  · exact take_length _ _
-  · intro i h1 h2
-    unfold Branch.take pad
-    simp only [List.getElem_map, List.getElem_range]
-    rw [take_length] at h1
-    exact dif_pos h2
+  apply ListCore.nth_ext _ _ (take_length _ _)
+  intro i
+  rcases Nat.lt_or_ge i s.length with hi | hi
+  · rw [nth_take _ _ _ hi, ListCore.nth_eq_getElem s i hi]
+    show some (if h : i < s.length then s[i] else f (i - s.length)) = some s[i]
+    rw [dif_pos hi]
+  · rw [ListCore.nth_eq_none _ _ (by rw [take_length]; exact hi), ListCore.nth_eq_none s i hi]
 
 /-- **Lawless stage = global supervaluation.** For a property read off
 the horizon-`H` segment, the stage court at node `s` is EXACTLY the
@@ -157,10 +186,7 @@ theorem stage_eq_super (s : List Bool) (H : ℕ) (hsH : s.length ≤ H)
     show Q (α.take H)
     refine h (α.take H) (take_length α H) ?_
     have hs : (α.take H).take s.length = s := by
-      have htake : (α.take H).take s.length = α.take s.length := by
-        unfold Branch.take
-        rw [← List.map_take, List.take_range, Nat.min_eq_left hsH]
-      rw [htake]; exact hα
+      rw [take_take_branch α H s.length hsH]; exact hα
     exact hs ▸ List.take_prefix s.length (α.take H)
 
 -- ============================================================
@@ -186,17 +212,18 @@ theorem eq_never_forced (s : List Bool) :
   exact Bool.false_ne_true this
 
 /-- A branch through a node agrees with the node pointwise. -/
+theorem through_nth {α : Branch} {s : List Bool}
+    (h : α.Through s) (i : ℕ) (hi : i < s.length) : ListCore.nth s i = some (α i) := by
+  have e := nth_take α s.length i hi
+  unfold Branch.Through at h
+  rw [h] at e
+  exact e
+
 theorem through_pointwise {α : Branch} {s : List Bool}
     (h : α.Through s) (i : ℕ) (hi : i < s.length) : α i = s[i] := by
-  unfold Branch.Through Branch.take at h
-  have hlen : i < ((List.range s.length).map α).length := by
-    rw [List.length_map, List.length_range]; exact hi
-  have h9 : ((List.range s.length).map α)[i]? = s[i]? := by rw [h]
-  rw [List.getElem?_eq_getElem hlen, List.getElem?_eq_getElem hi] at h9
-  have hval : ((List.range s.length).map α)[i] = α i := by
-    rw [List.getElem_map, List.getElem_range]
-  rw [hval] at h9
-  exact Option.some.inj h9
+  have e := through_nth h i hi
+  rw [ListCore.nth_eq_getElem s i hi] at e
+  exact (Option.some.inj e).symm
 
 /-- **Apartness is earned by one disagreeing reveal**: branches passing
 through `s ++ [true]` and `s ++ [false]` are apart at index `s.length`;
@@ -206,16 +233,18 @@ theorem apart_earned {s : List Bool} {α β : Branch}
     (hα : α.Through (s ++ [true])) (hβ : β.Through (s ++ [false])) :
     Apart α β := by
   have hlen1 : s.length < (s ++ [true]).length := by
-    rw [List.length_append]; exact Nat.lt_succ_self s.length
+    rw [ListCore.length_append_singleton]; exact Nat.lt_succ_self s.length
   have hlen2 : s.length < (s ++ [false]).length := by
-    rw [List.length_append]; exact Nat.lt_succ_self s.length
+    rw [ListCore.length_append_singleton]; exact Nat.lt_succ_self s.length
   refine ⟨s.length, ?_⟩
   have h1 : α s.length = true := by
-    rw [through_pointwise hα s.length hlen1]
-    exact List.getElem_concat_length rfl hlen1
+    have e := through_nth hα s.length hlen1
+    rw [ListCore.nth_append_length] at e
+    exact (Option.some.inj e).symm
   have h2 : β s.length = false := by
-    rw [through_pointwise hβ s.length hlen2]
-    exact List.getElem_concat_length rfl hlen2
+    have e := through_nth hβ s.length hlen2
+    rw [ListCore.nth_append_length] at e
+    exact (Option.some.inj e).symm
   rw [h1, h2]; exact fun hc => Bool.false_ne_true hc.symm
 
 -- CHECKS: no sorry, no admit.
