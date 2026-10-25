@@ -27,7 +27,9 @@ jobs:
           python-version: '3.11'
 
       - name: Install system dependencies
-        run: sudo apt-get install -y graphviz libgraphviz-dev texlive-base
+        # apt-get update first: on 2026-10-25 the runner's stale index pointed at a ghostscript
+        # build the mirror had already dropped (404), and the job failed in 7 s.
+        run: sudo apt-get update && sudo apt-get install -y graphviz libgraphviz-dev texlive-base
 
       - name: Install leanblueprint
         run: pip install leanblueprint
