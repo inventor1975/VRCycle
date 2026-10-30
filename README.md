@@ -13,7 +13,7 @@
 
 📐 **Blueprint (browsable, with dependency graph): https://inventor1975.github.io/VRCycle/**
 
-Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, a domain extension demonstrating apparatus generality in algebra, and constructive predicative formal topology with the binary Tychonoff theorem. **Seven published works** (14 Zenodo records, git tags `v1.0-vr` through `v1.7-vr-apparatus-1.0.0`); **eighth work** (Operational Algebra **v1.0.0** — stable release, git tag `v1.12-vr-operational-algebra-v1.0.0`) and **ninth work** (VR-Topology **v1.0.0**, git tag `v1.13-vr-topology-v1.0.0`) in this repository (both pending Zenodo submission); and a **tenth work** (VR-Transit **v1.0.0**, transit conservativity and a bounded witness library, git tag `v1.15-vr-transit-v1.0.0`, code cited by git tag, no Zenodo by curatorial decision). Algebra: 64 public objects, Findings A0–A19, closed Recognition Discipline Loop. Topology: ~85+ public objects, binary Tychonoff, zero `Classical.choice` including Order.Frame bridge.
+Formal verification in Lean 4 (v4.29.1) of the **VR Cycle** — a series of works (each with Lean formalisation and companion preprint), formalising arithmetic, numbers, sets, forms, the first VR-Audit application (Hahn-Banach for operational Hilbert spaces), a foundational extension providing non-well-founded sets with AFA proved as a theorem, the methodological apparatus used implicitly throughout, a domain extension demonstrating apparatus generality in algebra, and constructive predicative formal topology with the binary Tychonoff theorem. **Ten works with a preprint on Zenodo** (VR. A Formal System, VR-Numbers, VR-Sets, VR-Forms, VR-Audit, VR-Sets-ZFA, VR-Apparatus, VR-Algebra, VR Part II, Choice as an Act — seven of them with a Lean record as well) and **three code-only works** cited by git tag (VR-Topology **v1.0.0**, `v1.13-vr-topology-v1.0.0`; VR-Transit **v1.0.0**, transit conservativity and a bounded witness library, `v1.15-vr-transit-v1.0.0`, no Zenodo by curatorial decision; Brouwer, `v1.16-vr-brouwer-v1.0.0`) — see [Publications](#publications). Algebra: 64 public objects, Findings A0–A19, closed Recognition Discipline Loop. Topology: ~85+ public objects, binary Tychonoff, zero `Classical.choice` including Order.Frame bridge.
 
 ## Two libraries: `VR` (VR proper, axiom-free by construction) and `VRClassical`
 
@@ -21,7 +21,7 @@ Since 2026-09-12 the package builds **two Lake libraries**:
 
 | library | what it is | axiom profile |
 |---|---|---|
-| **`VR`** (directory `VR/`, root `VR.lean`) | VR proper: `VR/Arithmetic.lean` (the formal system), the witnessed numbers ℤ→ℚ→ℝ on their own pairs (`Numbers/*Op`), the ZTL and operational set universes (`ZTL/`, `SetsOp/`), the forms (`Forms/`), the topology tower (`Topology/` up to Tychonoff), the Brouwer continuum (`Continuum/`), the apparatus (`Apparatus/`), the instruments (`Meta/`) | **`[]` for every declaration** — enforced at build time by `VR/Guard.lean` (`#assert_axiom_free_library VR`); `lake build VR` fails otherwise. 2026-09-13: 1555 declarations checked. |
+| **`VR`** (directory `VR/`, root `VR.lean`) | VR proper: `VR/Arithmetic.lean` (the formal system), the witnessed numbers ℤ→ℚ→ℝ on their own pairs (`Numbers/*Op`), the ZTL and operational set universes (`ZTL/`, `SetsOp/`), the forms (`Forms/`), the topology tower (`Topology/` up to Tychonoff), the Brouwer continuum (`Continuum/`), the apparatus (`Apparatus/`), the instruments (`Meta/`) | **`[]` for every declaration** — enforced at build time by `VR/Guard.lean` (`#assert_axiom_free_library VR`); `lake build VR` fails otherwise. 2026-10-30: 2623 constants checked (private, auxiliary and meta ones included); 73 tool-code constants exempt (the tactic/elaborator metaprograms of `Meta/` and the `⌜·⌝` macro), named in the guard's output. |
 | **`VRClassical`** | the classical register and the bridges: the old ℤ/ℚ/ℝ/ℂ over Mathlib and their isomorphisms, ZFC/ZFA (`Sets/`, `SetsZFA/`), Brouwer's fixed point over Mathlib's ℝ, the Hilbert/Hahn–Banach audit, algebra instances, transit examples, the quotient bridges of the continuum (`Qop`, `GaussQ`, `Real`) and of the apparatus, the Mathlib Frame bridge of the topology, the ZFC reading of the forms, apparatus instances over ℝ/`PSet` | the standard Lean/Mathlib axioms, declared per object |
 
 `VRClassical` depends on `VR`; nothing in `VR` depends on it. **`VR` imports nothing but Lean itself** (no Mathlib: since 2026-09-13 the few borrowed pieces — `Set`, `Nat.find`, `∃!` — are supplied by `VR/Prelude/`, on `[]`). The package (repository) keeps its name `VRCycle`; the per-module
@@ -32,27 +32,28 @@ the checker. Paths in the per-module sections below that name `Sets/`, `SetsZFA/
 
 ## Publications
 
-Fourteen Zenodo records (seven works × Lean + preprint). Two further works (Operational Algebra v1.0.0, VR-Topology v1.0.0) are in this repository under the git tags below, pending Zenodo submission. All Lean formalisations are in this repository under the listed git tags.
+**Ten works with a preprint on Zenodo**; seven of them also have a Lean record (v1.0.0, May 2026) for the code at its git tag. **Three further works are code-only**, cited by git tag. Newest versions checked against the Zenodo API on 2026-10-30; the concept DOI always resolves to the newest version, the version DOI to that exact version. All Lean formalisations are in this repository under the listed git tags; the current code is the `VR` / `VRClassical` layout described above.
 
-| # | Work | Zenodo DOI | Git tag |
-|---|------|-----------|---------|
-| 1 | VR. A Formal System (preprint) | [10.5281/zenodo.20324391](https://doi.org/10.5281/zenodo.20324391) | — |
-| 2 | VR. A Formal System (Lean) | [10.5281/zenodo.20324240](https://doi.org/10.5281/zenodo.20324240) | `v1.0-vr` |
-| 3 | VR-Numbers v1.0.2 (preprint) | [10.5281/zenodo.20352239](https://doi.org/10.5281/zenodo.20352239) | — |
-| 4 | VR-Numbers (Lean) | [10.5281/zenodo.20352057](https://doi.org/10.5281/zenodo.20352057) | `v1.1-vr-numbers` |
-| 5 | VR-Sets v1.0.1 (preprint) | [10.5281/zenodo.20354628](https://doi.org/10.5281/zenodo.20354628) | — |
-| 6 | VR-Sets (Lean) | [10.5281/zenodo.20354340](https://doi.org/10.5281/zenodo.20354340) | `v1.2-vr-sets` |
-| 7 | VR-Forms v1.0.1 (preprint) | [10.5281/zenodo.20355939](https://doi.org/10.5281/zenodo.20355939) | — |
-| 8 | VR-Forms (Lean) | [10.5281/zenodo.20355757](https://doi.org/10.5281/zenodo.20355757) | `v1.3-vr-forms` |
-| 9 | VR-Audit v1.0.0 (preprint) | [10.5281/zenodo.20364111](https://doi.org/10.5281/zenodo.20364111) | — |
-| 10 | VR-Audit (Lean) | [10.5281/zenodo.20363739](https://doi.org/10.5281/zenodo.20363739) | `v1.4-vr-audit-hb-hilbert` |
-| 11 | **VR-Sets-ZFA (preprint)** | [**10.5281/zenodo.20369346**](https://doi.org/10.5281/zenodo.20369346) | — |
-| 12 | **VR-Sets-ZFA (Lean)** | [**10.5281/zenodo.20368268**](https://doi.org/10.5281/zenodo.20368268) | **`v1.5-vr-sets-zfa`** |
-| 13 | **VR-Apparatus v1.0.0 (Lean)** | [**10.5281/zenodo.20380344**](https://doi.org/10.5281/zenodo.20380344) | **`v1.7-vr-apparatus-1.0.0`** |
-| 14 | **VR-Apparatus v1.0.0 (preprint)** | [**10.5281/zenodo.20381417**](https://doi.org/10.5281/zenodo.20381417) | — |
-| 15 | **VR-Topology v1.0.0 (Lean)** | — *(Zenodo pending)* | **`v1.13-vr-topology-v1.0.0`** |
-| 16 | **VR-Transit v1.0.0 (Lean)** | — *(no Zenodo; cited by git tag, curatorial decision)* | **`v1.15-vr-transit-v1.0.0`** |
-| 17 | **VR Part II v1.0.0 (preprint)** | [**10.5281/zenodo.21326038**](https://doi.org/10.5281/zenodo.21326038) | — *(Lean in-repo: `VR.ZTL`; ledger `ZTL_SURVIVAL.md`)* |
+| # | Work | Preprint (newest) | Version DOI | Concept DOI | Lean record | Git tag |
+|---|------|------|-----------|-----------|-----------|---------|
+| 1 | VR. A Formal System | v1.1.1 | [10.5281/zenodo.20688164](https://doi.org/10.5281/zenodo.20688164) | [10.5281/zenodo.20212091](https://doi.org/10.5281/zenodo.20212091) | [10.5281/zenodo.20324240](https://doi.org/10.5281/zenodo.20324240) | `v1.0-vr` |
+| 2 | VR-Numbers | v1.1.1 | [10.5281/zenodo.20688749](https://doi.org/10.5281/zenodo.20688749) | [10.5281/zenodo.20272025](https://doi.org/10.5281/zenodo.20272025) | [10.5281/zenodo.20352057](https://doi.org/10.5281/zenodo.20352057) | `v1.1-vr-numbers` |
+| 3 | VR-Sets | v1.1.0 | [10.5281/zenodo.20643407](https://doi.org/10.5281/zenodo.20643407) | [10.5281/zenodo.20303535](https://doi.org/10.5281/zenodo.20303535) | [10.5281/zenodo.20354340](https://doi.org/10.5281/zenodo.20354340) | `v1.2-vr-sets` |
+| 4 | VR-Forms | v1.0.3 | [10.5281/zenodo.23647163](https://doi.org/10.5281/zenodo.23647163) | [10.5281/zenodo.20313734](https://doi.org/10.5281/zenodo.20313734) | [10.5281/zenodo.20355757](https://doi.org/10.5281/zenodo.20355757) | `v1.3-vr-forms`, `v1.14-vr-forms-v1.0.2` |
+| 5 | VR-Audit | v1.0.1 | [10.5281/zenodo.20485556](https://doi.org/10.5281/zenodo.20485556) | [10.5281/zenodo.20364110](https://doi.org/10.5281/zenodo.20364110) | [10.5281/zenodo.20363739](https://doi.org/10.5281/zenodo.20363739) | `v1.4-vr-audit-hb-hilbert` |
+| 6 | VR-Sets-ZFA | v1.0.1 | [10.5281/zenodo.20485610](https://doi.org/10.5281/zenodo.20485610) | [10.5281/zenodo.20369345](https://doi.org/10.5281/zenodo.20369345) | [10.5281/zenodo.20368268](https://doi.org/10.5281/zenodo.20368268) | `v1.5-vr-sets-zfa` |
+| 7 | VR-Apparatus | v1.0.0 | [10.5281/zenodo.20381417](https://doi.org/10.5281/zenodo.20381417) | [10.5281/zenodo.20381416](https://doi.org/10.5281/zenodo.20381416) | [10.5281/zenodo.20380344](https://doi.org/10.5281/zenodo.20380344) | `v1.7-vr-apparatus-1.0.0` |
+| 8 | VR-Algebra (Operational Algebra) | v1.0.0 | [10.5281/zenodo.20398300](https://doi.org/10.5281/zenodo.20398300) | [10.5281/zenodo.20398299](https://doi.org/10.5281/zenodo.20398299) | — | `v1.12-vr-operational-algebra-v1.0.0` |
+| 9 | VR Part II: Raising VR onto Zero-Trust Logic | v1.0.0 | [10.5281/zenodo.21326038](https://doi.org/10.5281/zenodo.21326038) | [10.5281/zenodo.21326037](https://doi.org/10.5281/zenodo.21326037) | — | — *(Lean in-repo: `VR.ZTL`; ledger `ZTL_SURVIVAL.md`)* |
+| 10 | Choice as an Act | v1.0 | [10.5281/zenodo.21419290](https://doi.org/10.5281/zenodo.21419290) | [10.5281/zenodo.21419289](https://doi.org/10.5281/zenodo.21419289) | — | `choice-v1.0.0` |
+
+Code-only (no Zenodo record; cited by git tag):
+
+| Work | Git tag |
+|------|---------|
+| VR-Topology v1.0.0 | `v1.13-vr-topology-v1.0.0` |
+| VR-Transit v1.0.0 *(no Zenodo by curatorial decision)* | `v1.15-vr-transit-v1.0.0` |
+| Brouwer fixed-point theorem v1.0.0 *(mathlib-bound, not part of the VR Cycle)* | `v1.16-vr-brouwer-v1.0.0` |
 
 Preprint PDFs, drafts and working sources are in [`publications/`](publications/README.md), one folder per work.
 
@@ -65,7 +66,7 @@ Preprint PDFs, drafts and working sources are in [`publications/`](publications/
 | Background | Recommended entry point |
 |-----------|------------------------|
 | **Mathematician** | Companion preprints on [Zenodo](https://zenodo.org/communities/vr-cycle) — each work has a self-contained PDF. Start with *VR. A Formal System*, then follow the numbered works in the table above. |
-| **Philosopher** | *VR. A Formal System* preprint (DOI [10.5281/zenodo.20324391](https://doi.org/10.5281/zenodo.20324391)) for the foundational ontological claims; *VR-Forms* preprint (DOI [10.5281/zenodo.20355939](https://doi.org/10.5281/zenodo.20355939)) for the two-register apparatus. |
+| **Philosopher** | *VR. A Formal System* preprint (DOI [10.5281/zenodo.20212091](https://doi.org/10.5281/zenodo.20212091), all versions) for the foundational claims; *VR-Forms* preprint (DOI [10.5281/zenodo.20313734](https://doi.org/10.5281/zenodo.20313734), all versions) for the two-register apparatus. |
 | **Lean developer** | `VRClassical/Examples/` (four annotated tutorial files) + [`CONTRIBUTING.md`](CONTRIBUTING.md) for code conventions and apparatus patterns. |
 
 ### Build the project
@@ -78,7 +79,7 @@ cd VRCycle
 lake build
 ```
 
-First build downloads the mathlib4 cache (~1 GB; needed by `VRClassical` only — `lake build VR` builds the core without touching Mathlib). Expected output: `Build completed successfully (8397 jobs).` The core's axiom guard prints `axiom guard VR: 1555 declarations checked, all on []`.
+First build downloads the mathlib4 cache (~1 GB; needed by `VRClassical` only — `lake build VR` builds the core without touching Mathlib). Expected output: `Build completed successfully (8397 jobs).` The core's axiom guard prints `axiom guard VR: 2623 constants checked, all on [] (…); 73 exempt as tool code …`, followed by the names of the exempt tool definitions.
 
 ### Tutorial examples (Lean developers)
 
