@@ -2,9 +2,9 @@
 -- Part II. Integers ℤ as an Operational Superstructure.
 
 import VR.Arithmetic
--- Mathlib imported for §II.6 only: ring and push_cast tactics for the
--- isomorphism theorem. All prior definitions (IntExpr, intEq, operations,
--- canonical form) are independent of mathlib. Per PLAN.md principle 1.
+-- No Mathlib: this file imports only `VR.Arithmetic`. The §II.6 isomorphism with Mathlib's ℤ
+-- (which needed `ring` and `push_cast`) lives in the classical library,
+-- `VRClassical/Numbers/IntegersBridge.lean`; the witnessed ring laws are in `IntegersOp.lean`.
 
 namespace VR.Numbers
 
@@ -22,8 +22,18 @@ open VR
 -- This is syntactic juxtaposition with binary operator ⊖, not a pair with
 -- named projections. Access is exclusively through pattern matching:
 -- match e with | .mk a b => ...
+-- No auto-generated `IntExpr.mk.injEq`: it carries `propext` (found 2026-10-30 — the build guard of
+-- that time did not check it). `cases`/`injection` on `IntExpr.mk` go through `noConfusion`, on `[]`;
+-- the hand-written `IntExpr.mk_eq_iff` below replaces `injEq` for `simp`/`rw`.
+set_option genInjectivity false in
 inductive IntExpr : Type where
   | mk : VRObj → VRObj → IntExpr
+
+/-- Injectivity of `IntExpr.mk`, by hand, on the empty axiom list (replaces the auto-generated
+`injEq`, which carries `propext`). -/
+theorem IntExpr.mk_eq_iff {a b c d : VRObj} :
+    (IntExpr.mk a b = IntExpr.mk c d) ↔ (a = c ∧ b = d) :=
+  ⟨fun h => by cases h; exact ⟨rfl, rfl⟩, fun h => by rw [h.1, h.2]⟩
 
 -- ============================================================
 -- §II.2. Equivalence Relation
