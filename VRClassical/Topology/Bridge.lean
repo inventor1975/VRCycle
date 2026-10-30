@@ -9,7 +9,10 @@
 -- **Expected axiom profile**: Stage 7 outputs legitimately acquire
 -- `Classical.choice` through mathlib's frame typeclass machinery.  This
 -- is documented and expected, not a regression.  Stage 6 outputs
--- (`tychonoff_binary` etc.) remain in `[propext, Quot.sound]` unchanged.
+-- (`tychonoff_binary` etc.) are untouched by this bridge.  (Written at
+-- v1.0.0, when they stood on `[propext, Quot.sound]`; since the 2026-09-12
+-- integrity pass they live in the core library `VR/Topology/` on `[]`,
+-- under the build guard — corrected 2026-10-30.)
 --
 -- See PLAN_7.md §0 for full architectural justification.
 --
