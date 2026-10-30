@@ -21,6 +21,26 @@ while $\mathbb{Q}_{\mathrm{VR}}$ and all subsequent levels require
 \texttt{Classical.choice} due to a structural dependency in mathlib's rational
 arithmetic.
 
+\textbf{Where the code stands (as of 2026-10-30).}  This chapter describes the
+published VR-Numbers (v1.0.2) and its Lean companion, whose isomorphisms target
+mathlib.  Since the 2026-09-12 split, the expression layer of $\mathbb{Z}_{\mathrm{VR}}$
+(\texttt{IntExpr}, \texttt{intEq}, the operations, their \texttt{respects} lemmas,
+\texttt{canonical\_form}, the quotient type \texttt{IntVR}) lives in the core file
+\texttt{VR/Numbers/Integers.lean}, which imports no mathlib; everything that speaks about
+mathlib's \texttt{Int}, \texttt{Rat}, \texttt{Real}, \texttt{Complex} lives in
+\texttt{VRClassical/Numbers/} (\texttt{IntegersBridge}, \texttt{Rationals},
+\texttt{Reals}, \texttt{Complex}); their re-measured tiers are listed in
+\S\,\ref{sec:numbers_axiom_profile}.  Beside
+them the core now has \emph{witnessed} numbers on \texttt{[]}: integers with
+\texttt{intEq} as the identity (\texttt{VR/Numbers/IntegersOp.lean},
+\texttt{IntegersOrd.lean}), rationals \texttt{QExpr} with the cross-multiplication
+identity \texttt{qEq} and a total inverse \texttt{qmul\_inv\_cancel}
+(\texttt{RationalsOp.lean}), and reals \texttt{RExpr}, Cauchy sequences of
+\texttt{QExpr} with an explicit modulus (\texttt{RealsOp.lean}) --- no quotient, no
+mathlib.  The $\mathbb{Z}/\mathbb{Q}$ choice boundary below is therefore a fact about the
+route through mathlib's \texttt{Rat}, not about the rationals (see
+Remark~\ref{rem:classical_boundary} and Chapter~\ref{chap:continuum}).
+
 %──────────────────────────────────────────────────────────────────────
 \section{Integers $\mathbb{Z}_{\mathrm{VR}}$}
 \label{sec:integers}
@@ -418,6 +438,13 @@ This dependency is in the \emph{target type} \texttt{Rat}, not in any
 VR-Numbers proof technique: replacing individual lemmas or tactics cannot
 remove it.  The boundary is a structural fact about how mathlib encodes
 rational arithmetic, not a defect of the VR construction.
+
+\emph{As of 2026-10-30} the code bears this out from the other side: the witnessed
+rationals \texttt{QExpr} of the core (\texttt{VR/Numbers/RationalsOp.lean}), which do not
+target mathlib's \texttt{Rat}, carry their field laws on \texttt{[]}, and the witnessed
+reals \texttt{RExpr} (\texttt{RealsOp.lean}) their ring laws on \texttt{[]}.  The
+boundary stated here holds for the published construction, whose isomorphisms go
+through \texttt{Rat}; it is not a boundary of $\mathbb{Q}$ as such.
 \end{remark}
 
 %──────────────────────────────────────────────────────────────────────
@@ -547,6 +574,8 @@ Each isomorphism theorem targets mathlib's \texttt{Int}, \texttt{Rat},
 \texttt{Real}, \texttt{Complex} as destinations, not re-derived structures.
 VR-Numbers is built \emph{on} mathlib, not parallel to it.  The isomorphisms
 provide the operational superstructure; mathlib provides the classical substrate.
+(As of 2026-10-30 this holds of the isomorphism files, which now form
+\texttt{VRClassical/Numbers/}; the core library \texttt{VR} imports no mathlib.)
 \end{remark}
 
 \begin{remark}[O9 --- Pairs absent as primitive objects (\S\,VI.5)]
@@ -617,6 +646,19 @@ any VR construction choice.  The proof techniques of VR-Numbers (quotient
 lifting, bijection via \texttt{O}/\texttt{O\_inv}, operation preservation via
 \texttt{ring}/\texttt{omega}) do not introduce \texttt{Classical.choice}
 independently.
+
+\emph{Re-measured 2026-10-30.}  The two lines above are the published profile.
+In the current code the $\mathbb{Z}_{\mathrm{VR}}$ objects split finer: the expression
+layer through \texttt{canonical\_form} is on \texttt{[]}, the quotient operations and
+\texttt{IntVRIntIso} on \texttt{[Quot.sound]}, \texttt{Theorem\_II\_6\_IntVR\_Int} and
+\texttt{left\_inv\_int} on \texttt{[propext, Quot.sound]}.  The
+$\mathbb{Q}_{\mathrm{VR}}$ quotient layer (\texttt{ratEq\_refl/symm/trans}, the lifted
+operations, \texttt{RatVR}, \texttt{zero\_Q}, \texttt{nonZeroQ}, \texttt{embedZ}) is on
+\texttt{[propext, Quot.sound]} (\texttt{ratEq} itself on \texttt{[Quot.sound]}); the
+full ceiling begins where mathlib's \texttt{Rat} enters --- \texttt{RatVRRatIso},
+\texttt{Theorem\_III\_6\_RatVR\_Rat}, the canonical form, the order
+(\texttt{ltRatVR}, \texttt{absRatVR}) --- and covers every object of
+$\mathbb{R}_{\mathrm{VR}}$ and $\mathbb{C}_{\mathrm{VR}}$.
 
 %──────────────────────────────────────────────────────────────────────
 \section{References}
