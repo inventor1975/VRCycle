@@ -1,4 +1,4 @@
--- VR-Numbers: Reals ℝ_VR (DOI 10.5281/zenodo.20272743)
+-- VR-Numbers: Reals ℝ_VR (DOI 10.5281/zenodo.20272025, all versions)
 -- Part IV. Real Numbers ℝ via Cauchy Sequences.
 
 import VRClassical.Numbers.Rationals

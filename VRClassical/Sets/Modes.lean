@@ -1,4 +1,4 @@
--- VR-Sets: Modes (DOI 10.5281/zenodo.20303536)
+-- VR-Sets: Modes (DOI 10.5281/zenodo.20303535, all versions)
 -- Part IV. ZFC-Mode and ZFA-Mode.
 --
 -- Stage 9: ZFC-mode predicate (isZFCmode), universality theorem

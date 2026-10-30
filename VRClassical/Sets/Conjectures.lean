@@ -1,4 +1,4 @@
--- VR-Sets: Conjectures (DOI 10.5281/zenodo.20303536)
+-- VR-Sets: Conjectures (DOI 10.5281/zenodo.20303535, all versions)
 -- Part IV. Conjectures IV.1 and IV.2.
 --
 -- Stage 11: Conjecture IV.1 (ZFC-mode mutual interpretability) and

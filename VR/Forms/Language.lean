@@ -1,4 +1,4 @@
--- VR-Forms: Language (DOI 10.5281/zenodo.20313735)
+-- VR-Forms: Language (DOI 10.5281/zenodo.20313734, all versions)
 -- Part II. The Formal Language.
 --
 -- Stage 1: Register inductive, FormalTerm structure, ⌜·⌝ notation.

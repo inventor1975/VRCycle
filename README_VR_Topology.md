@@ -149,9 +149,9 @@ in `T_FINDINGS.md`.
 
 This is the ninth work in the VR cycle by Vitaly Reznik:
 
-1. VR. A Formal System (DOI 10.5281/zenodo.20212092)
-2. VR-Numbers (DOI 10.5281/zenodo.20272743)
-3. VR-Sets (DOI 10.5281/zenodo.20303536)
+1. VR. A Formal System (DOI 10.5281/zenodo.20212091, all versions)
+2. VR-Numbers (DOI 10.5281/zenodo.20272025, all versions)
+3. VR-Sets (DOI 10.5281/zenodo.20303535, all versions)
 4. VR-Forms (DOI 10.5281/zenodo.20355939)
 5. VR-Audit (DOI 10.5281/zenodo.20364111)
 6. VR-Sets-ZFA (DOI 10.5281/zenodo.20369346)

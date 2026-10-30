@@ -1,4 +1,4 @@
--- VR-Sets: ZF Closure Theorems (DOI 10.5281/zenodo.20303536)
+-- VR-Sets: ZF Closure Theorems (DOI 10.5281/zenodo.20303535, all versions)
 -- Part III. The ZF Axioms as Closure Theorems.
 --
 -- Stages 3–8: Pairing, Union, Power, Infinity, Replacement, Choice.

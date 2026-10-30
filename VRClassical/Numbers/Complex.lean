@@ -1,4 +1,4 @@
--- VR-Numbers: Complex ℂ_VR (DOI 10.5281/zenodo.20272743)
+-- VR-Numbers: Complex ℂ_VR (DOI 10.5281/zenodo.20272025, all versions)
 -- Part V. Complex Numbers ℂ.
 
 import VRClassical.Numbers.Reals

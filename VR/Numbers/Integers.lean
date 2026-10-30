@@ -1,4 +1,4 @@
--- VR-Numbers: Integers ℤ_VR (DOI 10.5281/zenodo.20272743)
+-- VR-Numbers: Integers ℤ_VR (DOI 10.5281/zenodo.20272025, all versions)
 -- Part II. Integers ℤ as an Operational Superstructure.
 
 import VR.Arithmetic

@@ -1,4 +1,4 @@
--- VR-Sets: Foundation (DOI 10.5281/zenodo.20303536)
+-- VR-Sets: Foundation (DOI 10.5281/zenodo.20303535, all versions)
 -- Part II. The Operational Construction of Sets.
 --
 -- Stage 1: type OSet, empty set osetEmpty, operational identity ≡.
@@ -21,7 +21,7 @@ namespace VR.Sets
 -- §II.1, Definition 1 — The type of operational sets
 -- ============================================================
 
-/-- # Operational sets (VR-Sets preprint, DOI 10.5281/zenodo.20303536)
+/-- # Operational sets (VR-Sets preprint, DOI 10.5281/zenodo.20303535, all versions)
 Part II §II.1, Definition 1.
 
 ## Definition 1 (set) — verbatim

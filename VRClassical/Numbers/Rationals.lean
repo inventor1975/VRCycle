@@ -1,4 +1,4 @@
--- VR-Numbers: Rationals ℚ_VR (DOI 10.5281/zenodo.20272743)
+-- VR-Numbers: Rationals ℚ_VR (DOI 10.5281/zenodo.20272025, all versions)
 -- Part III. Rationals ℚ as an Operational Superstructure.
 
 import VR.Numbers.Integers

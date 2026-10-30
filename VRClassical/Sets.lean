@@ -1,4 +1,4 @@
--- VR-Sets (DOI 10.5281/zenodo.20303536)
+-- VR-Sets (DOI 10.5281/zenodo.20303535, all versions)
 -- Operational set theory
 
 import VRClassical.Sets.Foundation

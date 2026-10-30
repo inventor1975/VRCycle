@@ -1,4 +1,4 @@
--- VR. A Formal System (DOI 10.5281/zenodo.20212092)
+-- VR. A Formal System (DOI 10.5281/zenodo.20212091, all versions)
 -- Lean 4 formalisation of the VR formal system
 
 namespace VR

@@ -1,4 +1,4 @@
--- VR-Forms (DOI 10.5281/zenodo.20313735)
+-- VR-Forms (DOI 10.5281/zenodo.20313734, all versions)
 -- Two-register system with formal terms
 --
 -- **Clarification on register language (added 2026-05-26):**

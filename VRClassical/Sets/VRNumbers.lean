@@ -1,4 +1,4 @@
--- VR-Sets: VR-Numbers bridge (DOI 10.5281/zenodo.20303536)
+-- VR-Sets: VR-Numbers bridge (DOI 10.5281/zenodo.20303535, all versions)
 -- Part V. VR Numbers as von Neumann Ordinals in VR-Sets.
 --
 -- Stage 12: Embedding VRObj into OSet as von Neumann ordinals,

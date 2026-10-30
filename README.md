@@ -232,7 +232,7 @@ A complete Lean 4 formalisation of **VR-Numbers**, Parts II–V. Operational sup
 
 ### VR-Sets (`VRClassical/Sets/`)
 
-A complete Lean 4 formalisation of **VR-Sets** (DOI 10.5281/zenodo.20303536), Parts II–V,
+A complete Lean 4 formalisation of **VR-Sets** (DOI 10.5281/zenodo.20303535, all versions), Parts II–V,
 built on mathlib's `ZFSet = Quotient PSet.setoid`. The formalisation covers
 positive theorems (9 ZFC axioms), negative boundary results (ZFA provably absent),
 and formulations of open questions — a three-tier result structure new to the VR cycle.
@@ -305,7 +305,7 @@ Open questions formalised as `def : Prop` — a third Lean status distinct from 
 
 ### VR-Forms (`VR/Forms/`)
 
-A partial Lean 4 formalisation of **VR-Forms** (DOI 10.5281/zenodo.20313735), Parts II, IV–V, and VII.
+A partial Lean 4 formalisation of **VR-Forms** (DOI 10.5281/zenodo.20313734, all versions), Parts II, IV–V, and VII.
 VR-Forms is proof-theoretic: it introduces a two-register system (formal register L₁ / operational register L₀),
 formal terms, operational realisability, and the transit pattern. The central result (Theorem III.1:
 conservativity of T₁ over T₀) is the **explicit structural boundary** of this Lean cycle — documented in code
