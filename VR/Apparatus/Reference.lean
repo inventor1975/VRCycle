@@ -106,9 +106,11 @@ class ReferenceOperationality (Q : Type _) [s : Setoid Q] where
 -- Proof via Subsingleton: all elements of Quotient trivialUnitSetoid
 -- are equal (trivial setoid makes all Unit elements equivalent).
 -- `fun _ _ _` avoids any unused-variable binding.
+-- 2026-10-30: was `Quotient.sound trivial` — `[Quot.sound]`, unseen because the guard skipped private
+-- declarations. Both representatives are `()`, so the classes are equal by `rfl`: on `[]`.
 private instance trivialQuotientSubsingleton :
     Subsingleton (Quotient trivialUnitSetoid) :=
-  ⟨fun x y => Quotient.inductionOn₂ x y (fun _ _ => Quotient.sound trivial)⟩
+  ⟨fun x y => Quotient.inductionOn₂ x y (fun a b => by cases a; cases b; rfl)⟩
 
 private instance : ReferenceOperationality Unit where
   membership := fun _ _ => True
