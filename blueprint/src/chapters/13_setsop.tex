@@ -28,6 +28,10 @@ under \texttt{VR/SetsOp/} (\texttt{Pointed}, \texttt{Builder},
 After the 2026-07-12 tier pass (Iff-\texttt{rw} replaced by combinators)
 every object is \axiomprofile{[]} --- the empty axiom list --- except the
 describable-register encoding flagged in \S\ref{sec:setsop_cardinality}.
+\emph{As of 2026-10-30} there is no exception: that encoding has been rewritten
+(Finding~\ref{find:setsop_choice}), \texttt{describable\_countable} is on \texttt{[]}, and
+\texttt{VR/SetsOp/} is part of the core library \texttt{VR}, which imports no mathlib and
+checks every declaration on \texttt{[]} at build time.
 
 %──────────────────────────────────────────────────────────────────────
 \section{The carrier: sets as revealing functionalities}
@@ -279,6 +283,12 @@ constructively true; mathlib proves it with incidental choice.  The countability
 of a register of \emph{descriptions} is in any case formal-register
 meta-accounting, where classical reasoning is admitted with its cost made
 visible.  Kept and documented (decision A).
+
+\emph{Superseded (as of 2026-10-30).}  The borrowed choice was repaid on 2026-09-12: the
+descriptions are now enumerated by nested finite stages (\texttt{descEnum}\,$k$ reads
+the $k$-th entry of stage $k$) instead of mathlib's derived \texttt{Encodable} and
+\texttt{Nat.unpair\_pair}, and \texttt{describable\_countable} is measured at
+\axiomprofile{[]}.  The universe \texttt{OpSet} now has no Tier-3 object at all.
 \end{finding}
 
 Theorems~\ref{thm:setsop_nonenum} and~\ref{thm:setsop_describable} together are
