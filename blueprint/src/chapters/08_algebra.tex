@@ -263,7 +263,10 @@ $\texttt{IsOperationalAddSubgroup}\,H := \forall x \in H,\;
 elements are operational.
 Closure: $\bot$ is always operational; $\top$ is operational when
 all elements are; $H \sqcap K$ inherits from $H$.
-All at \axiomprofile{[]}.
+All at \axiomprofile{[]}.  (\emph{Re-measured 2026-10-30:} \texttt{IsOperationalAddSubgroup},
+\texttt{top\_\ldots} and \texttt{inf\_\ldots} are on \texttt{[propext]},
+\texttt{bot\_isOperationalAddSubgroup} on \texttt{[propext, Quot.sound]} --- mathlib's
+subgroup membership, not the predicate.)
 \end{definition}
 
 \begin{theorem}[Substantive Mode~B audit: image is operational]
@@ -283,6 +286,8 @@ $\texttt{AddSubgroup.mem\_map}$; \texttt{exact hW x (hS x hxS)}.
 This is one tactic step after the constructive existential is extracted.
 \axiomprofile{[]}.  \texttt{Classical.choice} absent: \texttt{AddSubgroup.mem\_map}
 is constructive (no classical reasoning in the membership proof).
+(\emph{Re-measured 2026-10-30:} \texttt{[propext]}, as in the transit table of
+Chapter~\ref{chap:transit}; still no \texttt{Classical.choice}.)
 \end{theorem}
 
 \subsection*{Structural contrast with VR-Audit Mode~B}
@@ -330,6 +335,13 @@ appears in the \texttt{IsModeAOp} type.
 This is an import-context effect, not a logical property of
 \texttt{inv\_isOperational}.  The logical ceiling remains
 \texttt{[propext, Quot.sound]}.
+
+\emph{As of 2026-10-30} the import chain named here no longer exists: the apparatus
+module is now the core \texttt{VR.Apparatus.ModeA}, which imports no mathlib, and
+\texttt{VRClassical/Algebra/ModeA.lean} does not import \texttt{Audit.Computable}.
+\texttt{inv\_isModeAOp\_field} is nevertheless still measured at
+\texttt{[propext, Classical.choice, Quot.sound]}, so the root cause given above is not
+borne out by the current code; the actual source has not been re-investigated.
 \end{remark}
 
 \begin{remark}[Finding~A16 --- Structural confirmation]
@@ -677,6 +689,15 @@ add nothing; \texttt{Classical.choice} enters only through $\mathbb{Q}$'s
 field inversion infrastructure.
 
 Zero sorry.  Zero admit.  All 64 public objects are axiom-clean.
+
+\emph{Re-measured 2026-10-30} (the code now lives in \texttt{VRClassical/Algebra/}).
+Some objects listed above under \texttt{[]} are higher in the current code:
+\texttt{instOperationalModuleIntInt}, \texttt{IsOperationalAddSubgroup} with its
+\texttt{top}/\texttt{inf} theorems, and the Mode~B main theorem
+\texttt{image\_isOperationalAddSubgroup\_isModeBOp} are on \texttt{[propext]};
+\texttt{bot\_isOperationalAddSubgroup} is on \texttt{[propext, Quot.sound]}.  The
+\texttt{[propext, Quot.sound]} and full-ceiling lists match the code.  No object of this
+chapter gained \texttt{Classical.choice}.
 
 %──────────────────────────────────────────────────────────────────────
 \section{References}

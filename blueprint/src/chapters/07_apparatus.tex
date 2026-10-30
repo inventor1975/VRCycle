@@ -651,6 +651,18 @@ VR-Forms integration instances (\texttt{instPredicateOpFormalTerm},
 \axiomprofile{[propext, Classical.choice, Quot.sound]}: 17 objects.
 Concrete Riesz instances, analysis-based Mode~A instances, CoPSet instance.
 
+\emph{Re-measured 2026-10-30.}  The counts above are the published v1.0.0 profile.
+Since the 2026-09-12 split the abstract apparatus (identity natures, the two marker
+classes, Mode~A/B, \texttt{Factorisable}, \texttt{InterApparatusMorphism}, composition,
+the VR-Forms integration) lives in the core library under \texttt{VR/Apparatus/} and is
+on \texttt{[]} by the build-time guard; the concrete instances over $\mathbb{R}$,
+\texttt{PSet}, \texttt{CoPSet}, the Hilbert space and the quotient lift live in
+\texttt{VRClassical/Apparatus/} and keep the tiers stated above.  One change of tier:
+the VR-Forms integration instances \texttt{instPredicateOpFormalTerm} and
+\texttt{instPredicateOpTranslatePi} are now on \texttt{[]} (VR-Forms moved onto
+\texttt{OpSet}, Chapter~\ref{chap:forms}), so of the \texttt{[propext, Quot.sound]}
+objects named above only \texttt{instRefOpPSet} remains there.
+
 Axiom asymmetry (Finding~S5-B): set-theory track is constructive;
 analysis track inherits classical ceiling through type elaboration.
 
