@@ -9,6 +9,10 @@ VR-Topology is the ninth and final work of the cycle.  It formalises
 point-free topology in the style of Coquand~(1992) and Vickers~(2006),
 proving a binary Tychonoff theorem with axiom profile
 \texttt{[propext, Quot.sound]} --- no \texttt{Classical.choice}.
+\emph{As of 2026-10-30} the profile is sharper: the topology tower lives in the
+core library \texttt{VR} (\texttt{VR/Topology/}, no mathlib import) and
+\texttt{tychonoff\_binary}, with every lemma it uses, is on \texttt{[]}, the empty
+axiom list, under the core's build-time guard.
 
 \textbf{Architectural principle.} The formal topology structure
 $(\text{S},\,\text{le},\,\text{cov})$ is predicative: \texttt{cov}
@@ -16,7 +20,10 @@ lives in \texttt{Prop}, avoiding the universe-inflation problem that
 blocked the original free-frame construction (Finding~T0).
 The bridge to mathlib's impredactive \texttt{Order.Frame} is built
 separately (Stage~7) and legitimately inherits \texttt{Classical.choice};
-this does not affect the Tychonoff theorem.
+this does not affect the Tychonoff theorem.  (As of 2026-10-30 the bridge is
+\texttt{VRClassical/Topology/Bridge.lean} and is measured at
+\texttt{[propext, Quot.sound]}, without \texttt{Classical.choice}; see
+Remark~\ref{rem:topology_bridge}.)
 
 \textbf{Unique status.} VR-Topology has no companion preprint by
 curatorial decision.  This chapter is the canonical exposition of the
@@ -285,7 +292,7 @@ This is the core technical lemma: structural induction on
 \texttt{CoverGen} derivations, following Vickers~(2006).
 The proof uses \texttt{cov\_meet} at the product level to handle
 rectangular covers (the reason \texttt{cov\_meet} is load-bearing).
-\axiomprofile{[propext, Quot.sound]}.
+\axiomprofile{[propext, Quot.sound]} at release; \texttt{[]} as of 2026-10-30.
 \end{theorem}
 
 \begin{definition}[\texttt{tychonoff\_binary}]
@@ -312,7 +319,8 @@ Proof sketch: structural induction on \texttt{CoverGen} derivations
 respectively.  Decidability hypotheses (Finding~T16) are required for
 constructive case splits in the \texttt{basic} case.
 
-\noindent\axiomprofile{[propext, Quot.sound]}.
+\noindent\axiomprofile{[propext, Quot.sound]} at release (v1.0.0);
+\axiomprofile{[]} as of 2026-10-30 (re-measured with \texttt{\#print axioms}).
 Zero \texttt{Classical.choice}.  This is the primary claim of
 VR-Topology: a constructive binary Tychonoff without the Axiom of Choice.
 \end{definition}
@@ -361,6 +369,13 @@ typeclass machinery.  The bridge is expected and documented.
 \texttt{instFrame} has \axiomprofile{[propext, Classical.choice, Quot.sound]}.
 The Tychonoff theorem (\texttt{tychonoff\_binary}) is unaffected:
 it is proved before the bridge and sits in its own constructive stratum.
+
+\emph{Re-measured 2026-10-30.}  Stages~1--6 are now on \texttt{[]} (core library,
+\texttt{VR/Topology/}).  The bridge (\texttt{VRClassical/Topology/Bridge.lean}) is lower
+than stated above: \texttt{instCompleteLattice}, \texttt{frameMinAx} and
+\texttt{instFrame} are on \texttt{[propext, Quot.sound]}, the saturation layer
+(\texttt{IsSaturated}, \texttt{SatSet}, \texttt{saturate}) on \texttt{[]}; the bridge
+does not reach \texttt{Classical.choice} in the current mathlib.
 \end{remark}
 \end{definition}
 
@@ -523,14 +538,16 @@ prepares the infrastructure for sheaf-theoretic applications.
 \axiomprofile{[propext, Quot.sound]} for the central results:
 \texttt{tychonoff\_binary}, \texttt{prodF\_cover\_closure},
 \texttt{prodF\_cover\_closure\_head}, and all theorems derived through
-\texttt{CoverGen} induction.
+\texttt{CoverGen} induction.  \emph{As of 2026-10-30 these are on \texttt{[]}}: the whole
+of \texttt{VR/Topology/} is in the core library, guarded at build time.
 
 \axiomprofile{[propext, Classical.choice, Quot.sound]} for the
 \texttt{Order.Frame} bridge: \texttt{instCompleteLattice},
 \texttt{frameMinAx}, \texttt{instFrame}.  The \texttt{Classical.choice}
 here is inherited from mathlib's impredicative frame infrastructure
 and does not affect the Tychonoff theorem (proved in Stage~6, before
-Stage~7's bridge).
+Stage~7's bridge).  \emph{As of 2026-10-30} these three are measured at
+\texttt{[propext, Quot.sound]} (Remark~\ref{rem:topology_bridge}).
 
 Zero sorry.  Zero admit.  All deferred content is either concrete instances
 or explicitly marked as v1.1.0 scope.
@@ -544,5 +561,6 @@ canonical exposition of VR-Topology.
 
 The Lean~4 formalisation is accessible at
 \href{https://github.com/inventor1975/VRCycle}{github.com/inventor1975/VRCycle},
-directory \texttt{VR/Topology/},
+directory \texttt{VR/Topology/} (the \texttt{Order.Frame} bridge in
+\texttt{VRClassical/Topology/Bridge.lean}),
 git tag \texttt{v1.13-vr-topology-v1.0.0}.
