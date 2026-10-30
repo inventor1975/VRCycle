@@ -15,9 +15,12 @@
 --   ℂ_op  (GaussQ)  ✓             ✗ (ℂ unorderable, ✓ TOTAL                 witnessed layer []
 --                                   a CLASSICAL fact)                       (GaussE); bridge
 --                                                                           [Quot.sound]
---   ℝ_op  (Real)    ✗ (Markov)    ✗ apartness       witnessed (`Pre.invPos`) [propext, Quot.sound]
---                                                                           (still over Mathlib ℤ —
---                                                                           integrity step 1e)
+--   ℝ_op  (Real)    ✗ (Markov)    ✗ apartness       witnessed (`Pre.invPos`) quotient over VR's RExpr:
+--                                                                           CommRing [Quot.sound], le/lt
+--                                                                           [propext], ofBranch []
+--                                                                           (measured 2026-10-30; was
+--                                                                           [propext, Quot.sound] over
+--                                                                           Mathlib ℤ before step 1e)
 --   Ω               —             —                 —                       silhouette only
 --
 -- BOUNDARY 1 — the Markov line (decidability of zero):  ℚ/ℂ have a TOTAL inverse, choice-free,
