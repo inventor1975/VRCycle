@@ -197,30 +197,85 @@ elab "#axiom_offenders_all " ax:ident " in " "[" ms:ident,* "]" : command => do
     lines := lines.push s!"{env.header.moduleNames[midx.toNat]!} :: {n}  ← ext: {ext}  int: {intl}"
   logInfo m!"{lines.size} carry {axName}\n{String.intercalate "\n" (lines.qsort (· < ·)).toList}"
 
-/-- `#assert_axiom_free_library pfx` — the build-time GUARD of the VR core: fails the build unless every
-declaration of every module whose name starts with `pfx` has an empty axiom list (`propext`,
-`Quot.sound`, `Classical.choice`, `sorryAx` — all of them). Structural constants (inductives, constructors,
-recursors) and internal auxiliaries are skipped; so is META CODE — any declaration whose type or value
-mentions a `Lean.*` constant (tactics and census commands are instruments, not theorems). Prints the
-count checked on success; on failure lists every offender with its axioms. -/
-elab "#assert_axiom_free_library " pfx:ident : command => do
+/-- The user-level definition an auxiliary constant belongs to: strips internal (`_…`), `match_…` and
+equation-lemma components (`reify.match_1` ↦ `reify`, `lfAdd._unary._proof_2` ↦ `lfAdd`). -/
+def DependsOn.toolOwner : Name → Name
+  | .str q s =>
+    if !q.isAnonymous && (s.startsWith "_" || s.startsWith "match_" || Meta.isEqnLikeSuffix s) then
+      DependsOn.toolOwner q
+    else .str q s
+  | u => u
+
+/-- `#assert_axiom_free_library pfx tools [T₁, T₂, …]` — the build-time GUARD of the VR core: fails the
+build unless every constant of every module whose name starts with `pfx` has an empty axiom list
+(`propext`, `Quot.sound`, `Classical.choice`, `sorryAx` — all of them).
+
+EVERY constant is checked: structural ones (inductives, constructors, recursors), private and
+compiler-generated auxiliaries (`match_`, `_proof_`, `_unsafe_rec`, `eq_def`, …), auto-generated
+lemmas (`injEq`, …) and meta code (anything mentioning a `Lean.*` constant) alike. The only exemption
+is TOOL code: (i) a constant of a module listed after `tools` that is not a user-facing theorem — a
+tactic metaprogram, an elaborator, or one of their auxiliaries; (ii) anywhere in the library, a
+definition whose type is a syntax-extension type (`Lean.Macro`, `CommandElab`, `TermElab`, `Tactic`) —
+the implementation of a notation such as `⌜·⌝` in `VR.Forms.Language`, listed by name in the output. Those are instruments that build proof terms,
+not mathematics; their own axioms (the `Lean` meta library's) do not enter the terms they produce, and
+`#print axioms` on each theorem a tactic closes stays the arbiter. A user-facing theorem of a tool module
+(not internal, not an equation lemma) is still checked. The success line prints how many constants
+were checked, how many were exempt and which tool definitions they belong to.
+
+History: until 2026-10-30 the guard SKIPPED internal/private constants and every constant mentioning a
+`Lean.*` name (50 of them), unchecked. Measured that day: among them `VR.Numbers.IntExpr.mk.injEq`
+carried `propext` (its proof mentions `Lean.injEq_helper`) and two private test instances in
+`VR.Apparatus.Reference` carried `Quot.sound` — both now on `[]`; nothing is skipped silently any more. -/
+syntax (name := assertAxiomFreeLibrary)
+  "#assert_axiom_free_library " ident (" tools " "[" ident,* "]")? : command
+
+@[command_elab assertAxiomFreeLibrary] def elabAssertAxiomFreeLibrary : CommandElab := fun stx => do
   let env ← getEnv
-  let p := pfx.getId.toString
+  let p := stx[1].getId.toString
+  let toolMods : Array Name :=
+    if stx[2].isNone then #[] else (stx[2][2].getSepArgs.map (·.getId))
   let isOurs (m : Name) : Bool := m.toString == p || m.toString.startsWith (p ++ ".")
+  -- a user-facing theorem: a theorem whose (de-privatised) name is neither internal nor an equation lemma
+  let isUserTheorem (n : Name) (ci : ConstantInfo) : Bool :=
+    let u := privateToUserName n
+    ci matches .thmInfo _ && !u.isInternal &&
+      !(match u with | .str _ s => Meta.isEqnLikeSuffix s | _ => false)
+  -- a notation or tactic implementation: a definition whose type is a syntax-extension type
+  let isSyntaxExt (ci : ConstantInfo) : Bool :=
+    ci matches .defnInfo _ &&
+      (match ci.type with
+       | .const c _ => [``Lean.Macro, ``Lean.Elab.Command.CommandElab, ``Lean.Elab.Term.TermElab,
+                        ``Lean.Elab.Tactic.Tactic].contains c
+       | _ => false)
+  let mut exemptSyntax : Array Name := #[]
   let mut checked := 0
+  let mut internal := 0
+  let mut metaN := 0
+  let mut exempt := 0
+  let mut exemptOwners : NameSet := {}
   let mut offenders : Array String := #[]
   for (n, ci) in env.constants.map₁.toList do
     let some midx := env.getModuleIdxFor? n | continue
     let m := env.header.moduleNames[midx.toNat]!
     if !isOurs m then continue
-    if n.isInternal || n.isInternalDetail then continue
-    if ci matches .ctorInfo _ | .recInfo _ | .inductInfo _ then continue
-    let used := ci.type.getUsedConstants ++ (ci.value?.map (·.getUsedConstants)).getD #[]
-    if used.any (fun d => d.toString.startsWith "Lean.") then continue
     let (_, st) := ((CollectAxioms.collect n).run env).run {}
+    if st.axioms.size > 0 && toolMods.contains m && !isUserTheorem n ci then
+      exempt := exempt + 1
+      exemptOwners := exemptOwners.insert (DependsOn.toolOwner (privateToUserName n))
+      continue
+    if st.axioms.size > 0 && isSyntaxExt ci then
+      exempt := exempt + 1
+      exemptSyntax := exemptSyntax.push n
+      continue
     checked := checked + 1
+    if n.isInternal || n.isInternalDetail then internal := internal + 1
+    let used := ci.type.getUsedConstants ++ (ci.value?.map (·.getUsedConstants)).getD #[]
+    if used.any (fun d => d.toString.startsWith "Lean.") then metaN := metaN + 1
     if st.axioms.size > 0 then
       offenders := offenders.push s!"{m} :: {n}  {st.axioms}"
   if offenders.size > 0 then
     throwError "AXIOM GUARD FAILED for {p}: {offenders.size} declaration(s) carry axioms:\n{String.intercalate "\n" (offenders.qsort (· < ·)).toList}"
-  logInfo m!"axiom guard {p}: {checked} declarations checked, all on []"
+  let owners := String.intercalate ", " ((exemptOwners.toList.map toString).toArray.qsort (· < ·)).toList
+  let syn := String.intercalate ", " (exemptSyntax.toList.map toString)
+  let mods := String.intercalate ", " (toolMods.toList.map toString)
+  logInfo m!"axiom guard {p}: {checked} constants checked, all on [] ({internal} internal/private/auxiliary, {metaN} meta); {exempt} exempt as tool code (carry axioms; modules {mods}; not user-facing theorems), belonging to {exemptOwners.size} tool definitions: {owners}; plus {exemptSyntax.size} notation/tactic implementation(s) elsewhere (type `Macro`/`…Elab`/`Tactic`): {syn}"
