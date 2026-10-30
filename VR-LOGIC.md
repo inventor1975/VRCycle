@@ -76,7 +76,16 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 >    the bridges (everything stated about Mathlib objects or lifted to `Quotient`). The core is
 >    guarded at build time (`VR/Guard.lean`, `#assert_axiom_free_library`): any declaration of
 >    any `VR.*` module carrying `propext`, `Quot.sound`, `Classical.choice` or `sorryAx` fails
->    the build. Measured 2026-09-13: 1555 declarations, all on `[]`; and since 2026-09-13 the core
+>    the build. Measured 2026-09-13: 1555 declarations, all on `[]` (**2026-10-30 correction:** that
+>    guard skipped internal/private constants and anything mentioning a `Lean.*` name; among the
+>    skipped were `IntExpr.mk.injEq` `[propext]` and two private Q1 test instances in
+>    `Apparatus/Reference` `[Quot.sound]` — both walked around (kind 1: `genInjectivity false` +
+>    a hand `IntExpr.mk_eq_iff`; `rfl` on `Unit` classes). The guard now checks EVERY constant and
+>    exempts only tool code — the tactic/elaborator metaprograms of `Meta/CSRNorm` and
+>    `Meta/DependsOn` and the `⌜·⌝` macro, which carry the `Lean` meta library's axioms but put none
+>    into the proof terms they build — naming each exempt definition in its output: 2623 constants
+>    on `[]`, 73 tool constants exempt. "Instruments … all on `[]`" above means the instruments'
+>    *mathematics* and the proof terms they emit, not the metaprograms themselves); and since 2026-09-13 the core
 >    imports NOTHING but Lean itself — no Mathlib (`VR/Prelude/` supplies `Set`, `Nat.find`, `∃!` on `[]`). So "VR is formalised in Lean 4
 >    with an empty axiom list" is a build invariant of the `VR` library; "without axioms" means
 >    without Lean's three declared axioms — Lean's type theory is the checker, not an axiom of VR.
@@ -88,12 +97,21 @@ arbiter — narrative (README, blueprint) summarises it but does not override it
 Axiom tiers used below (mathlib/Lean): `[]` axiom-free · `[Quot.sound]` · `[propext,
 Quot.sound]` (the cycle's constructive ceiling) · `[propext, Classical.choice, Quot.sound]`
 (full classical ceiling). The tier is a property of the *construction*, stated per object.
+*(2026-10-30 note: since the 2026-09-12 sweep every constant of the `VR` library is on `[]`,
+build-guarded; the three higher tiers now occur only in `VRClassical`. Where a figure below for a
+`VR/` object was changed, the old one is kept in brackets with its date.)*
 
-**Build status (verified in code).** The root `VRCycle.lean` aggregates all twelve modules —
-including Continuum and Brouwer (the Continuum module's own README still says "not in the root
-aggregator"; that is stale — it *is* imported and built). The whole cycle is **`sorry`-free**
-except (a) one intentional teaching skeleton, `Examples/E04_ModeBSkeleton` (a documented
-`sorryAx` warning), and (b) `Topology/_attic/` — historical, **not** imported, not built.
+**Build status (verified in code, 2026-10-30).** There is no `VRCycle.lean` root any more (it
+aggregated the twelve modules of the pre-2026-09-12 layout). The package builds two Lake libraries:
+`VR` (root `VR.lean`: `Arithmetic`, `Numbers`, `Forms`, `Apparatus`, `Topology`, `Continuum`,
+`SetsOp`, `ZTL`, and `Guard`, which runs the axiom guard) and `VRClassical` (root
+`VRClassical.lean`: `Numbers`, `Sets`, `SetsZFA`, `Algebra`, `Audit`, `Brouwer`, `Transit`,
+`Continuum`, `Forms`, `Topology`, `Apparatus`, `Meta`). Continuum is split: the operational core
+in `VR/Continuum/`, the quotient bridges (`Qop`, `GaussQ`, `Real`, `Spectrum`) and the classical
+boundary in `VRClassical/Continuum/`; Brouwer is `VRClassical/Brouwer/`. Both are imported and
+built. The whole cycle is **`sorry`-free** except (a) one intentional teaching skeleton,
+`VRClassical/Examples/E04_ModeBSkeleton` (a documented `sorryAx` warning), and (b)
+`VRClassical/Topology/_attic/` — historical, **not** imported, not built.
 
 ### Foundation — the formal system (`VR.lean`)
 
@@ -166,11 +184,13 @@ except (a) one intentional teaching skeleton, `Examples/E04_ModeBSkeleton` (a do
   `piTr_subst` (π commutes with substitution — kept trivial by 0-ary formal atoms + closed `tr`,
   avoiding de-Bruijn substitution-composition); and `conservativity`. A concrete VR instance
   (∅, ∈, succ, `⌜∅⌝` ↦ `∀x ¬(x∈∅)`) with `conservativity_empty_concrete` discharging the
-  hypothesis end-to-end. All choice-free (`[propext]`, instances `[propext, Quot.sound]`),
+  hypothesis end-to-end. All on `[]` (2026-10-30 note; was `[propext]`, instances `[propext,
+  Quot.sound]`, before the 2026-09-12 sweep),
   self-contained, lint-clean. **Boundaries (documented, by choice):** `gen` is stated without
   the eigenvariable side-condition (a refinement for matching standard FOL soundness; not needed
   for the syntactic π-transport that conservativity is); the VR instance covers ∅ (richer ω etc.
-  marginal). `[propext, Quot.sound]` for the shallow predicates.
+  marginal). `[]` for the shallow predicates (2026-10-30 note; was `[propext, Quot.sound]`
+  over `ZFSet`, before they moved to `OpSet` on 2026-09-12).
   **Extraction asymmetry, machine-checked.** `translate_implies_realisable : ∀ t, translate_pi
   t → isRealisable t` holds — from a specific operational fact (witness in hand) one obtains
   the formal term's realisability (**O→T**: operational ⟶ formal). The **converse fails**:
@@ -195,7 +215,8 @@ except (a) one intentional teaching skeleton, `Examples/E04_ModeBSkeleton` (a do
 - **VR-Algebra** — apparatus across additive groups, rings, fields, modules; both modes
   exercised. Confirms apparatus transfers (Finding A3: zero modification).
 - **VR-Topology** — point-free binary Tychonoff (`tychonoff_binary`) reached
-  **`[propext, Quot.sound]` — choice-free**, even though classical Tychonoff ⇔ AC; the
+  **`[propext, Quot.sound]` — choice-free** at v1.0.0, and stands on **`[]`** since the 2026-09-12
+  sweep (2026-10-30 note), even though classical Tychonoff ⇔ AC; the
   point-free formulation is what makes the choice-free profile attainable.
 - **VR-Transit** — transit conservativity exhibited + a bounded-witness library
   (`finiteGen_provides_factorisable` axiom-free; `finiteSpan_provides_factorisable`
@@ -210,20 +231,23 @@ except (a) one intentional teaching skeleton, `Examples/E04_ModeBSkeleton` (a do
 
 Built **after Brouwer (Path 1)**, every object kept **below the `Classical.choice` floor**
 (over pure ℤ; never through mathlib ℚ/ℝ, which are entirely Tier-3 — Finding CONT-7: even
-`(2:ℚ)+3` pulls choice). All objects **`[propext, Quot.sound]`**.
+`(2:ℚ)+3` pulls choice). All objects of `VR/Continuum/` are on **`[]`** (2026-10-30 note: this
+line said `[propext, Quot.sound]` — the 2026-06 figure; the 2026-09-12 sweep took the core to `[]`,
+the guard enforces it; the quotient bridges `Qop`/`GaussQ`/`Real` and `not_continuity` are in
+`VRClassical/Continuum/` and keep their own tiers).
 
 - **The diagonal, with a different character.** `branches_not_enumerable` is an
-  **unconditional Cantor diagonal**, choice-free `[propext]`: the branch space (`ℕ → Bool`,
+  **unconditional Cantor diagonal**, on `[]` (2026-06: `[propext]`): the branch space (`ℕ → Bool`,
   the *becoming* register) is non-enumerable. The diagonal does **not** "fail" in VR — its
   *meaning* changes. `no_node_surjection`: the countable *operational* register (performed
   nodes `List Bool`) cannot surject onto branches. So the diagonal witnesses **the
   inexhaustibility of becoming by the countable performed** — a cut between *done* and
   *becoming*, not the selection of an element from a completed uncountable totality (as the
   Power-Set diagonal does in ZF). Reinterpreted, not removed. **Consolidated** as the citable
-  `operational_cantor` (`Continuum/Cantor.lean`, `[propext, Quot.sound]`, machine-checked):
+  `operational_cantor` (`Continuum/Cantor.lean`, `[]` — 2026-06: `[propext, Quot.sound]`, machine-checked):
   *done countable* (`operational_register_countable`, witness `decodeNode`) ∧ *becoming
   non-enumerable* ∧ *done cannot exhaust becoming* — the three registers of the diagonal in one
-  statement. **Bridge to ℘(ℕ):** `powerset_diagonal` (`Continuum/Cantor.lean`, `[propext]`,
+  statement. **Bridge to ℘(ℕ):** `powerset_diagonal` (`Continuum/Cantor.lean`, `[]` — 2026-06: `[propext]`,
   choice-free) — the full ℘(ℕ) (characteristic functions `ℕ→Bool`) is non-enumerable AND every
   enumerable (describable) family of subsets misses its own diagonal. So the uncountability of
   ℘(ℕ) requires the **non-describable** diagonal subset — it lives in the completed totality,
@@ -238,10 +262,10 @@ Built **after Brouwer (Path 1)**, every object kept **below the `Classical.choic
   thesis is machine-checked on a genuinely Brouwerian principle: FALSE formally, TRUE
   operationally.
 - **Choice, read operationally (`Continuum/Choice.lean`).** **DC is operationally available,
-  choice-free:** `operational_dependent_choice` (`[propext]`) — a history-dependent rule
+  choice-free:** `operational_dependent_choice` (`[]`; 2026-06: `[propext]`) — a history-dependent rule
   `f : List Bool → Bool` determines a branch `α n = f (α.take n)` by recursion (choice is
   available because there is a *rule*). Bundled with operational continuity as
-  `operational_choice_available` (`[propext, Quot.sound]`, choice-free). The picture: **DC**
+  `operational_choice_available` (`[]`; 2026-06: `[propext, Quot.sound]`). The picture: **DC**
   (by rule) and **WC-N** (`Continuity` two-register) are operational; **full AC** (selection
   over an uncountable family with no rule) is a formal-register label with no operational
   correlate; **AC+AD→⊥** is a T→T phenomenon (ADDENDUM, §2) that never returns through the
@@ -374,9 +398,9 @@ These are genuine questions, stated to be settled by logic, not asserted.
     reals would be, and they are not isolated as a type. So CH is a formal-register label, read
     philosophically in the essay; the honest machine fact under it is `powerset_diagonal`.
   - **AC — machine core DONE (2026-06-06), `Continuum/Choice.lean`.** **DC is operationally
-    available, choice-free:** `operational_dependent_choice` (`[propext]`) — a rule
+    available, choice-free:** `operational_dependent_choice` (`[]`; 2026-06: `[propext]`) — a rule
     `f : List Bool → Bool` determines a branch by recursion. Bundled with operational
-    continuity: `operational_choice_available` (`[propext, Quot.sound]`). Plus the Continuity
+    continuity: `operational_choice_available` (`[]`; 2026-06: `[propext, Quot.sound]`). Plus the Continuity
     two-register (`not_continuity` formal-FALSE / `continuity_of_nbhd` operational-TRUE) = WC-N.
     **Still essay (by design):** full AC (selection over an uncountable family with NO rule) has
     no operational correlate → formal-register label, not a machine object; and AC+AD→⊥ is a

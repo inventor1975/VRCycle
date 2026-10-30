@@ -4,8 +4,11 @@ An exploratory tower giving VR a **non-enumerable continuum** built operationall
 the Brouwerian principles carried as **tracked hypotheses** (never adopted as axioms —
 adopting them over classical mathlib would be inconsistent).
 
-**Status:** exploratory. Not in the root `VRCycle.lean` aggregator; build per-module
-(`lake build VRCycle.Continuum.<Module>`). All modules green, lint-clean.
+**Status:** exploratory. All modules green, lint-clean. *(2026-10-30: this README predates the
+2026-09-12 layout. The core modules are in the `VR` library (`VR/Continuum/`, imported by
+`VR.lean`, built by `lake build VR`) and every constant there is on `[]`, build-guarded; the
+quotient bridges and the classical boundary are in `VRClassical/Continuum/`. The tier column
+below gives the 2026-06 figures.)*
 
 ## The three registers
 - **operational** — a node `s : List Bool`, a finite performed segment (the "done").
