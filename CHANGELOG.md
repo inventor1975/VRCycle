@@ -1,5 +1,21 @@
 # Changelog
 
+## The guard checks every constant; docs and headers brought to the code — 2026-10-30
+
+* **Guard hardened.** `#assert_axiom_free_library` had skipped internal/private constants and anything
+  mentioning a `Lean.*` name. It missed `IntExpr.mk.injEq` `[propext]` and two private test instances in
+  `Apparatus/Reference` `[Quot.sound]`; both are now on `[]` (`genInjectivity false` + `IntExpr.mk_eq_iff`;
+  `rfl` on `Unit` classes). The guard now checks every constant and exempts only tool code (the
+  metaprograms of `Meta/CSRNorm`, `Meta/DependsOn` and the `⌜·⌝` macro), naming each exempt definition:
+  **2623 constants on `[]`, 73 tool constants exempt.** A negative test (private `Quot.sound` theorem,
+  inductive with `injEq`, user theorem with `propext` in a tool module) fails the build.
+* **Docs to the code.** The README publication table, badges, "What is formalised" and "Axiom audit" sections;
+  the blueprint overview; `VR-LOGIC.md` (roots, tiers); `Continuum/README.md` (tier column); the
+  "ZTL never depends on VR" comments (since 2026-10-10 ZTL imports `VR.Numbers.RealsOp`); and the file-header
+  DOIs (now concept DOIs). Changed tier figures keep the old value beside a dated note.
+* **publications/05-forms:** the published v1.0.3 PDF (md5-identical to the Zenodo file) at the top; the
+  unpublished revision note renamed as such.
+
 ## The VR core depends on Lean alone: no Mathlib import in `VR/` — 2026-09-13
 
 Curator: "Заманчиво. Давай делать." Eleven of the core's files still imported pieces of Mathlib

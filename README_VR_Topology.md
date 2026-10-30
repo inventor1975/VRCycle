@@ -13,6 +13,8 @@ proved constructively via Vickers (2006) Theorem 19.
 
 **Axiom profile**: `[propext, Quot.sound]`. **Zero `Classical.choice`**.
 
+> **2026-10-30 note.** This file describes the v1.0.0 release (tag `v1.13-vr-topology-v1.0.0`). Since the 2026-09-12 integrity pass the topology tower lives in the core library `VR/Topology/`, and every object there — `tychonoff_binary` included — is on `[]`, build-guarded. The Mathlib Frame bridge is `VRClassical/Topology/Bridge.lean`, where `instFrame` is re-measured at `[propext, Quot.sound]`. The figures and paths below are the v1.0.0 ones.
+
 ```lean
 def tychonoff_binary
     (T₁ T₂ : FormalTopology)

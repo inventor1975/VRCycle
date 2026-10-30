@@ -138,6 +138,8 @@ The profile must match one of the four established tiers:
 
 Ceiling `[propext, Classical.choice, Quot.sound]` is **accepted** for objects touching `ℝ`, `Cauchy`, mathlib Hilbert spaces, or ZFA coinductive infrastructure. No axioms beyond this ceiling are permitted.
 
+**In the `VR` library only tier 1 is allowed** (since 2026-09-12): `VR/Guard.lean` fails `lake build VR` on any constant of a `VR.*` module that carries an axiom. Since 2026-10-30 that covers every constant — private, auxiliary, auto-generated (`injEq`: use `set_option genInjectivity false` and a hand-written `mk_eq_iff`) and meta ones. The only exemption is tool code that carries axioms: non-theorem constants of the modules listed after `tools` in `VR/Guard.lean` (`VR.Meta.CSRNorm`, `VR.Meta.DependsOn`) and syntax-extension definitions (`Macro`/`…Elab`/`Tactic`). The guard names each one in its output. Tiers 2–4 belong to `VRClassical`.
+
 **Note on common classical triggers** (from project experience):
 - `linarith` → pulls `Classical.choice`. Use `omega` or `ring` instead when possible.
 - `ring` on ℕ → `[propext]`. Acceptable.
