@@ -18,8 +18,12 @@ Nothing is translated between the two sides --- the disciplines coincide;
 the Lean development makes the coincidence a set of kernel-checked theorems.
 
 The ZTL value kernel is \emph{vendored} into
-\texttt{VR/ZTL/Kernel.lean} with a commit pin (the dependency is
-one-way: ZTL never depends on VR).  The kernel stands on the \emph{empty}
+\texttt{VR/ZTL/Kernel.lean} with a commit pin: VR never depends on the ZTL
+repository.  (The converse, ``ZTL never depends on VR'', held when Part~II
+was published and no longer does: since 2026-10-10 ZTL's
+\texttt{lean/ZSlope.lean} and \texttt{lean/ZExp.lean} import VR's
+\texttt{VR.Numbers.RealsOp}, read through its library \texttt{VRNumbers}
+at a pinned VRCycle commit.)  The kernel stands on the \emph{empty}
 axiom list, as it does at home; the whole verdict layer of this chapter is
 likewise \axiomprofile{[]}; after the 2026-07-12 tier pass of
 Chapter~\ref{chap:setsop} (Iff-\texttt{rw} repaid with combinators) even the

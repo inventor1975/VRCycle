@@ -6,9 +6,15 @@
 --   github.com/inventor1975/ZTL  lean/ZTL.lean  @ 3c5ff34 (2026-07-12),
 -- where the full corpus (tables, entailment, certified tableaux,
 -- grounding) is machine-checked on the EMPTY axiom list. One small
--- file is vendored rather than lake-depended: the dependency direction
--- of Part II is one-way (ZTL never depends on VR), and the honesty of
+-- file is vendored rather than lake-depended: VR does not depend on the
+-- ZTL repository — this copy is one-way and pinned, and the honesty of
 -- the stitch is carried by this pin, not by build plumbing.
+-- 2026-10-30 correction: the converse no longer holds. Since 2026-10-10
+-- ZTL depends on VR's numbers — its lean/ZSlope.lean and lean/ZExp.lean
+-- import VR.Numbers.RealsOp, read (not copied) through the ZTL library
+-- VRNumbers (lean/lakefile.toml; CI pins inventor1975/VRCycle @ de72f58).
+-- So "ZTL never depends on VR" (Part II, as published) is now false;
+-- what stays true is that VR never depends on ZTL.
 --
 -- Values T/F (verdicts are two-valued) + the input mark Z; the
 -- generating principle "truth is not granted on credit": a connective
