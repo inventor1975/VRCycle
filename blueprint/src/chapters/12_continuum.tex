@@ -11,8 +11,18 @@ number spectrum} $\mathbb{Z} \to \mathbb{Q} \to \mathbb{C} \to \mathbb{R} \to \O
 every node constructed from $\mathbb{Z}$ and kept \textbf{below the
 \texttt{Classical.choice} floor}.  Nothing here passes through mathlib's $\mathbb{Q}$
 or $\mathbb{R}$, which are entirely Tier-3 (Finding CONT-7: even $(2:\mathbb{Q})+3$
-pulls \texttt{Classical.choice}); the construction stays in pure $\mathbb{Z}$
-arithmetic, so every object below is \axiomprofile{[propext, Quot.sound]}.
+pulls \texttt{Classical.choice}).  Since the 2026-09-12 integrity pass every node has
+two layers.  The \emph{witnessed} layer is built on VR's own integers (pairs
+\texttt{IntExpr} of VR numbers, not mathlib's $\mathbb{Z}$): pre-rationals
+\texttt{QExpr} and pre-reals \texttt{RExpr} in the core library
+(\texttt{VR/Numbers/RationalsOp.lean}, \texttt{RealsOp.lean}), Gaussian pre-rationals
+\texttt{GaussE} in \texttt{VRClassical/Continuum/GaussianRational.lean}; identity is an
+explicit relation, no quotient, and every law is on \axiomprofile{[]}.  The
+\emph{bridge} layer in \texttt{VRClassical/Continuum/} takes the quotient
+(\texttt{Qop}, \texttt{GaussQ}, \texttt{Real}) and packages mathlib-style instances
+(\texttt{CommRing}, \texttt{Inv}, \texttt{DecidableEq}); it costs
+\axiomprofile{[Quot.sound]}, plus \texttt{propext} where a \texttt{Prop}-valued relation
+such as the order is lifted.  (Tiers re-measured 2026-10-30.)
 
 The deliverable is not new mathematics --- these are textbook rationals and Gaussian
 rationals --- but the precise \emph{location} of two boundaries, each machine-checked,
@@ -33,19 +43,25 @@ $\mathbb{R}_{\mathrm{op}}$ (\texttt{Real})   & no (Markov) & apartness only & wi
 \end{tabular}
 \end{center}
 
-\noindent Every row is \axiomprofile{[propext, Quot.sound]}.  $\mathbb{Q}_{\mathrm{op}}$
-is the \emph{decidable pole}: equality, order and a total reciprocal are all decidable
-and choice-free.
+\noindent Every row is choice-free: the witnessed layer (\texttt{QExpr},
+\texttt{GaussE}, \texttt{RExpr}) on \axiomprofile{[]}, the quotient bridge
+(\texttt{CommRing} instances, \texttt{mul\_inv\_cancel}) on \axiomprofile{[Quot.sound]},
+the lifted orders (\texttt{Qop.lt\_trichotomy}) on \axiomprofile{[propext, Quot.sound]}
+and (\texttt{Real.le}, \texttt{Real.lt}) on \axiomprofile{[propext]}.
+$\mathbb{Q}_{\mathrm{op}}$ is the \emph{decidable pole}: equality, order and a total
+reciprocal are all decidable and choice-free.
 
 \begin{theorem}[Operational $\mathbb{Q}$ is a decidable ordered field-content]
 \label{thm:continuum_qop}
 \lean{VRCycle.Continuum.Qop.lt_trichotomy, VRCycle.Continuum.Qop.mul_inv_cancel}
 \leanok
-\texttt{Qop} (cross-multiplication quotient of $\mathbb{Z} \times \mathbb{Z}_{>0}$) is a
+\texttt{Qop} (the quotient of the pre-rationals \texttt{QExpr} --- numerator and
+positive denominator as VR integer pairs --- by cross-multiplication \texttt{qEq}) is a
 \texttt{CommRing} with \texttt{DecidableEq}, full trichotomy
-(\texttt{lt\_trichotomy}), and a \emph{total} reciprocal with
-$a \ne 0 \to a \cdot a^{-1} = 1$ (\texttt{mul\_inv\_cancel}).  All
-\axiomprofile{[propext, Quot.sound]}.
+(\texttt{lt\_trichotomy}, \axiomprofile{[propext, Quot.sound]}), and a \emph{total}
+reciprocal with $a \ne 0 \to a \cdot a^{-1} = 1$ (\texttt{mul\_inv\_cancel},
+\axiomprofile{[Quot.sound]}).  Underneath, the witnessed \texttt{qlt\_trichotomy} and
+\texttt{qmul\_inv\_cancel} are on \axiomprofile{[]}.
 \end{theorem}
 
 \begin{theorem}[Operational $\mathbb{C}$ --- the Gaussian rationals]
@@ -55,7 +71,9 @@ $a \ne 0 \to a \cdot a^{-1} = 1$ (\texttt{mul\_inv\_cancel}).  All
 \uses{thm:continuum_qop}
 \texttt{GaussQ} $= \texttt{Qop}[i]$ ($\{re, im : \texttt{Qop}\}$) is a \texttt{CommRing}
 with \texttt{DecidableEq} and a total reciprocal $z^{-1} = \bar z/|z|^2$ for $z \ne 0$.
-\axiomprofile{[propext, Quot.sound]}.  A \emph{completeness} node: it inherits its base
+\axiomprofile{[Quot.sound]}; the witnessed \texttt{gmul\_inv\_cancel} on
+\texttt{GaussE} is on \axiomprofile{[]}.  This is the only $\mathbb{C}$ of the
+operational line; the core library \texttt{VR} has none.  A \emph{completeness} node: it inherits its base
 $\texttt{Qop}$'s operational character and opens no new operational boundary (its lack
 of order is classical algebra --- $\mathbb{C}$ is unorderable --- not operationality).
 \end{theorem}
@@ -76,22 +94,28 @@ of zero.
 \section{Boundary II: content versus packaging (machine-checked)}
 \label{sec:continuum_typeclass}
 
-The field \emph{content} (\texttt{mul\_inv\_cancel}) is choice-free, but registering
-\texttt{Qop} as a mathlib \texttt{Field} is blocked below the floor: \texttt{Field}
-extends \texttt{DivisionRing extends RatCast}, forcing a map
-$\texttt{ratCast} : \mathbb{Q} \to \texttt{Qop}$.  Any such map reads mathlib
-$\mathbb{Q}$ (Tier-3), so it pulls \texttt{Classical.choice}.
+The field \emph{content} (\texttt{mul\_inv\_cancel}) is choice-free.  Registering
+\texttt{Qop} as a mathlib \texttt{Field} would force more: \texttt{Field} extends
+\texttt{DivisionRing extends RatCast}, forcing a map
+$\texttt{ratCast} : \mathbb{Q} \to \texttt{Qop}$ together with laws stated over
+mathlib's $\mathbb{Q}$, whose arithmetic is Tier-3 (\texttt{Rat.add} is measured at
+\axiomprofile{[propext, Classical.choice, Quot.sound]}).
 
 \begin{finding}[CONT-M5: content free, packaging not]
 \label{find:continuum_packaging}
 \lean{VRCycle.Continuum.Qop.ofRat}
 \leanok
 \uses{thm:continuum_qop}
-\texttt{Qop.ofRat} (the forced \texttt{ratCast}) is
-\axiomprofile{[propext, Classical.choice, Quot.sound]}, while
-\texttt{Qop.mul\_inv\_cancel} is \axiomprofile{[propext, Quot.sound]}.  The field's
-\emph{doing} (its operations) is operational; the \texttt{Field} \emph{label} (its
-packaging) is not.  This is the doing/being asymmetry at the typeclass level.
+\texttt{Qop.mul\_inv\_cancel} is \axiomprofile{[Quot.sound]}.  The map
+\texttt{Qop.ofRat} (the would-be \texttt{ratCast}) was
+\axiomprofile{[propext, Classical.choice, Quot.sound]} when this finding was first
+recorded; since 2026-09-12 it only reads the fields \texttt{q.num}, \texttt{q.den} of
+mathlib's $\mathbb{Q}$ and is itself on \axiomprofile{[]}.  What remains Tier-3 is
+mathlib's $\mathbb{Q}$ \emph{arithmetic}, which the \texttt{Field} laws would have to
+cite.  No \texttt{Field Qop} instance is built, so ``the label pulls choice'' is
+argued from \texttt{Rat.add}, not measured on an instance.  The field's \emph{doing}
+(its operations) is operational; the \texttt{Field} \emph{label} (its packaging) is
+not.  This is the doing/being asymmetry at the typeclass level.
 \end{finding}
 
 \textbf{The boundary is a build invariant.}  The exhibit
@@ -105,28 +129,37 @@ checker \texttt{Meta/DependsOn.lean}:
 \texttt{Qop.mul\_inv\_cancel} (field content)    & free \\
 \texttt{GaussQ.mul\_inv\_cancel} (field content) & free \\
 \texttt{Qop.lt\_trichotomy} (decidable order)    & free \\
-\texttt{Qop.ofRat} (\texttt{ratCast} packaging)  & \textbf{depends} \\
+\texttt{Qop.ofRat} (\texttt{ratCast} map)      & free (since 2026-09-12) \\
 \end{tabular}
 \end{center}
+
+\noindent The exhibit asserts all four rows at build time
+(\texttt{\#assert\_not\_depends\_on \ldots\ on Classical.choice}), and additionally the
+choice-freeness of the ring laws of \texttt{Qop} and \texttt{Real}.
 
 %──────────────────────────────────────────────────────────────────────
 \section{Two rationals, by necessity}
 \label{sec:continuum_two_q}
 
-The repository now contains \emph{two} constructions of the rationals, and this is not
-redundancy --- they are the two horns of the floor:
+The repository contains two constructions of the rationals on either side of the
+floor (as of 2026-10-30; the choice-free one in two layers):
 \begin{itemize}
   \item $\mathbb{Q}_{\mathrm{VR}}$ (Chapter~\ref{chap:numbers}, published): built to
   prove an \emph{isomorphism} to mathlib $\mathbb{Q}$; the isomorphism forces the path
-  through mathlib and is Tier-3 by necessity.
-  \item \texttt{Qop} (this chapter): built to be choice-free below the floor; it makes
-  \emph{no} isomorphism claim, which choice-freeness forbids.
+  through mathlib's arithmetic and is Tier-3.
+  \item \texttt{QExpr} (core, witnessed, \axiomprofile{[]}) and its quotient
+  \texttt{Qop} (this chapter, \axiomprofile{[Quot.sound]}): built to be choice-free;
+  they make \emph{no} isomorphism claim.
 \end{itemize}
-A single $\mathbb{Q}$ that is \emph{both} choice-free \emph{and} proven isomorphic to
-mathlib $\mathbb{Q}$ is impossible: the isomorphism is a \texttt{ratCast}, which pulls
-\texttt{Classical.choice} (Finding~\ref{find:continuum_packaging}).  The same object,
-two constructions, one above and one below the floor --- the construction-relativity of
-the floor, exhibited concretely.
+No $\mathbb{Q}$ in the repository is \emph{both} choice-free \emph{and} proven
+isomorphic to mathlib $\mathbb{Q}$.  The map is not the obstacle --- \texttt{Qop.ofRat}
+is on \texttt{[]} (Finding~\ref{find:continuum_packaging}) --- but the
+\emph{statement} that it preserves addition already mentions mathlib's \texttt{Rat.add}
+(measured at the full ceiling), and \texttt{\#print axioms} counts the constants of a
+statement, not only of its proof.  So against mathlib's present $\mathbb{Q}$ the
+isomorphism inherits \texttt{Classical.choice} whatever the proof; the obstacle is the
+target's arithmetic, not the map.  The same object, two constructions, one above and one below the floor ---
+the construction-relativity of the floor, exhibited concretely.
 
 %──────────────────────────────────────────────────────────────────────
 \section{Doing, not being (meta)}
@@ -156,7 +189,7 @@ is, all is doing'' at the meta level.
 The becoming/Brouwerian core (\texttt{Spread}\,\dots\,\texttt{Model}) realises a
 non-enumerable operational continuum via choice sequences
 (\texttt{branches\_not\_enumerable}, an unconditional Cantor diagonal,
-\axiomprofile{[propext]}), with Brouwerian continuity tracked as a hypothesis or earned
+\axiomprofile{[]}), with Brouwerian continuity tracked as a hypothesis or earned
 in a finite-information model --- never adopted over classical mathlib, where it is
 inconsistent.
 
@@ -175,11 +208,11 @@ dissolve or are reinterpreted, formally they remain meaningful.
 \lean{VRCycle.Continuum.operational_cantor, VRCycle.Continuum.powerset_diagonal}
 \leanok
 \uses{thm:continuum_doingbeing}
-\texttt{operational\_cantor} \axiomprofile{[propext, Quot.sound]}: the performed (node)
+\texttt{operational\_cantor} \axiomprofile{[]}: the performed (node)
 register is countable (\texttt{operational\_register\_countable}, witness \texttt{decodeNode}),
 the becoming register is non-enumerable (\texttt{branches\_not\_enumerable}), and the countable
 performed cannot exhaust the becoming (\texttt{no\_node\_surjection}).  The $\wp(\mathbb{N})$
-bridge \texttt{powerset\_diagonal} \axiomprofile{[propext]}: the full powerset (characteristic
+bridge \texttt{powerset\_diagonal} \axiomprofile{[]}: the full powerset (characteristic
 functions $\mathbb{N}\to\mathrm{Bool}$) is non-enumerable, and every enumerable (describable)
 family of subsets misses its own diagonal.  So the diagonal \emph{works}, but it cuts
 done/becoming --- it does not select an element from a completed uncountable totality (there
@@ -198,11 +231,11 @@ CH is therefore a formal-register label, read philosophically; its honest machin
 \label{thm:continuum_dc}
 \lean{VRCycle.Continuum.operational_dependent_choice, VRCycle.Continuum.operational_choice_available}
 \leanok
-\texttt{operational\_dependent\_choice} \axiomprofile{[propext]}: a history-dependent rule
+\texttt{operational\_dependent\_choice} \axiomprofile{[]}: a history-dependent rule
 $f:\mathrm{List\ Bool}\to\mathrm{Bool}$ determines a branch $\alpha\,n = f(\alpha.\mathrm{take}\,n)$
 by recursion --- DC is operationally available, choice-free, \emph{because there is a rule}.
 Bundled with operational continuity as \texttt{operational\_choice\_available}
-\axiomprofile{[propext, Quot.sound]}.  Full AC (selection over an uncountable family with no
+\axiomprofile{[]}.  Full AC (selection over an uncountable family with no
 rule) has no operational correlate --- a formal-register label; and
 $\mathrm{AC}+\mathrm{AD}\to\bot$ is a $T\!\to\!T$ phenomenon that never returns through the
 operational floor.  Only DC and WC-N (the \texttt{Continuity} two-register,
@@ -233,7 +266,12 @@ alongside the classical one, not a replacement.  \textbf{The witness is meta-tru
 --- the dependency checker certifies the relation but is not itself kernel-verified, the
 same tier as \texttt{\#print axioms}.
 
-The Lean~4 formalisation lives under \texttt{VR/Continuum/} (\texttt{Rational},
-\texttt{GaussianRational}, \texttt{Real}, \texttt{UnitInterval}, the becoming core
-\texttt{Spread}\,\dots\,\texttt{Model}, and the consolidated exhibit \texttt{Spectrum}),
-with the meta-thesis in \texttt{VRClassical/Meta/DoingNotBeing.lean}.
+The Lean~4 formalisation is split between the two libraries.  The core
+\texttt{VR/Continuum/} holds the becoming core \texttt{Spread}\,\dots\,\texttt{Model},
+\texttt{UnitInterval} and the pillars (\texttt{Cantor}, \texttt{Choice}), all on
+\texttt{[]}; the witnessed numbers are \texttt{VR/Numbers/\{IntegersOp, IntegersOrd,
+RationalsOp, RealsOp\}.lean}.  \texttt{VRClassical/Continuum/} holds the quotient bridges
+(\texttt{Rational}, \texttt{GaussianRational} with \texttt{GaussE}, \texttt{Real}), the
+classical boundary (\texttt{ClassicalBoundary}: \texttt{not\_continuity}, on the full
+ceiling) and the consolidated exhibit \texttt{Spectrum}; the meta-thesis is in
+\texttt{VRClassical/Meta/DoingNotBeing.lean}.
