@@ -25,6 +25,13 @@ extra axioms are introduced.  The ZFA-mode cannot be modelled in
 boundary is formalized as \texttt{AFA\_Refuted} and
 \texttt{quineAtom\_impossible}, both axiom-free.
 
+\textbf{Where the code stands (as of 2026-10-30).}  This construction is the
+classical register of the cycle: it lives in the library \texttt{VRClassical}
+(\texttt{VRClassical/Sets/}, \texttt{abbrev OSet := ZFSet} in
+\texttt{Foundation.lean}).  The core library \texttt{VR} imports no mathlib; its set
+universe is the choice-free \texttt{OpSet} of Chapter~\ref{chap:setsop}, on
+\texttt{[]}.
+
 %──────────────────────────────────────────────────────────────────────
 \section{Foundation (Part II)}
 \label{sec:sets_foundation}
@@ -727,7 +734,7 @@ preserve\_succ, preserve\_mem, injective.  Arithmetic preservation
 deliberately excluded.  It follows by composition:
 $\mathrm{VRObj} \xrightarrow{\texttt{Theorem\_11\_VR\_PA}} \mathbb{N}
 \xrightarrow{\texttt{embedVR} \circ O} \mathrm{OSet}$.
-Re-proving at the OSet level would duplicate VR.lean without adding
+Re-proving at the OSet level would duplicate the formal system (\texttt{VR/Arithmetic.lean}) without adding
 mathematical content.  Contrast with \texttt{VR\_PA\_iso} (Chapter~\ref{chap:vr}):
 that is a bijection; \texttt{VR\_OSet\_iso} is an embedding (OSet
 contains vastly more than the image of VRObj).
@@ -776,6 +783,18 @@ VR-Sets is the first module in the VR Cycle where axiom-free objects
 appear.  Both refutations (\texttt{AFA\_Refuted},
 \texttt{quineAtom\_impossible}) are axiom-free, unlike any result in
 VR-Numbers.
+
+\emph{Re-measured 2026-10-30.}  The lists above are the published profile.  In the
+current code: besides the four theorems, the definitions \texttt{OSet},
+\texttt{osetEmpty}, \texttt{omega\_OSet}, \texttt{isZFAmode}, \texttt{quineAtomSpec}
+and \texttt{AFA\_Statement} are on \texttt{[]}; a \texttt{[Quot.sound]} tier, not listed
+above, holds \texttt{osetPair}, \texttt{osetUnion}, \texttt{osetPower},
+\texttt{osetSuccOp}, \texttt{embedVR}, \texttt{embedVR\_zero}, \texttt{embedVR\_succ};
+the full ceiling holds, besides the six named, \texttt{Lemma\_II\_3\_DepthEmpty} and
+\texttt{osetReplacement}.  ``First module with axiom-free objects'' and ``unlike any
+result in VR-Numbers'' no longer hold: the formal system (Chapter~\ref{chap:vr}) is on
+\texttt{[]} throughout, and so is the expression layer of $\mathbb{Z}_{\mathrm{VR}}$
+(Chapter~\ref{chap:numbers}).
 
 %──────────────────────────────────────────────────────────────────────
 \section{References}

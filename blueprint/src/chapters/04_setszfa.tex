@@ -613,6 +613,16 @@ mathlib ceiling.  VR-Sets-ZFA is the largest module in the VR Cycle
 by line count (2109 lines) and the first to prove AFA as a theorem in
 the Lean~4 type-theoretic framework.
 
+\emph{Re-measured 2026-10-30} (the code now lives in \texttt{VRClassical/SetsZFA/}).
+The \texttt{[]} objects among those this chapter names are \texttt{CoPSetFunctor},
+\texttt{CoPSet}, \texttt{CoPSet.mk}, \texttt{CoPSet.corec}, \texttt{graphCoalg},
+\texttt{graphCoPSet} and \texttt{embedPSet}.  Three items of the \texttt{[]} list above are
+on the full ceiling in the current code: the projections (\texttt{CoPSet.shape},
+\texttt{CoPSet.children}, which go through \texttt{PFunctor.M.dest}),
+\texttt{isDecoration} and \texttt{CoPSet.isBisim}.  The directory has grown to 2519
+lines.  An axiom-free AFA now exists as well, on the operational universe
+\texttt{OpSet} (Chapter~\ref{chap:setsop}, \texttt{OpSet.afa} on \texttt{[]}).
+
 %──────────────────────────────────────────────────────────────────────
 \section{References}
 \label{sec:setszfa_refs}
