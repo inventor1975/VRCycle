@@ -464,6 +464,13 @@ No mathlib lemmas about Peano arithmetic are used; the only standard
 library contribution is \texttt{Init.Data.Nat} at the definitional level
 (the type \texttt{Nat} as external index).
 
+As of 2026-10-30 the formal system is the file \texttt{VR/Arithmetic.lean}
+of the core library \texttt{VR}: it has no \texttt{import} line at all (only
+Lean's implicit \texttt{Init}), the library imports no mathlib, and the
+build-time guard \texttt{VR/Guard.lean} checks every declaration of the
+library on \texttt{[]}.  Re-measured with \texttt{\#print axioms}: every
+declaration this chapter names is on \texttt{[]}.
+
 %──────────────────────────────────────────────────────────────────────
 \section{References}
 \label{sec:vr_refs}
