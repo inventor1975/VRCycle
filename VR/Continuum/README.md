@@ -17,15 +17,18 @@ below gives the 2026-06 figures.)*
 
 ## Honest status of each result — REAL vs DERIVATION vs (classically) VACUOUS
 
+Axiom figures re-measured 2026-10-30 (`#print axioms`); where one changed, the 2026-06 figure is
+kept in brackets. The 2026-09-12 sweep took every result of `VR/Continuum/` to `[]`.
+
 | result | file | hypotheses | classical status | honest reading |
 |---|---|---|---|---|
-| `branches_not_enumerable` | Branch | none | `[propext]` | **REAL, unconditional.** Cantor diagonal. |
-| `no_node_surjection` | Registers | none | `[propext, Quot.sound]` | **REAL, unconditional.** The payoff: the countable operational register cannot exhaust the becoming register. |
-| `through_meets_children`, `Meets.mono` | Cover | none | `[propext]` | **REAL.** One-step cover soundness + monotonicity. |
-| `cover_sound` | BarSound | `BarInduction` | classically **TRUE** hyp | **REAL derivation.** `BarInduction` is classically valid, so this is meaningful — it just makes bar induction explicit. |
-| `uniform_continuity` | UniformContinuity | `Continuity`, `FanTheorem` | `Continuity` classically **FALSE** | **DERIVATION ONLY; VACUOUS in classical Lean** (see CONT-4). A valid implication, real in an intuitionistic model — not before. |
-| `not_continuity` | ClassicalBoundary | none | `[…Classical.choice…]` | **REAL (classical).** `Continuity` is classically false (formal register). |
-| `continuity_of_nbhd` | Model | none | `[propext, Quot.sound]` | **REAL, choice-free.** `Continuity` holds for operationally-presented functionals (operational register) — earned, not assumed. |
+| `branches_not_enumerable` | Branch | none | `[]` (2026-06: `[propext]`) | **REAL, unconditional.** Cantor diagonal. |
+| `no_node_surjection` | Registers | none | `[]` (2026-06: `[propext, Quot.sound]`) | **REAL, unconditional.** The payoff: the countable operational register cannot exhaust the becoming register. |
+| `through_meets_children`, `Branch.Meets.mono` | Cover | none | `[]` (2026-06: `[propext]`) | **REAL.** One-step cover soundness + monotonicity. |
+| `cover_sound` | BarSound | `BarInduction` | classically **TRUE** hyp; `[]` | **REAL derivation.** `BarInduction` is classically valid, so this is meaningful — it just makes bar induction explicit. |
+| `uniform_continuity` | UniformContinuity | `Continuity`, `FanTheorem` | `Continuity` classically **FALSE**; `[]` | **DERIVATION ONLY; VACUOUS in classical Lean** (see CONT-4). A valid implication, real in an intuitionistic model — not before. |
+| `not_continuity` | ClassicalBoundary (`VRClassical/Continuum/`) | none | `[propext, Classical.choice, Quot.sound]` | **REAL (classical).** `Continuity` is classically false (formal register). |
+| `NbhdFun.continuity_of_nbhd` | Model | none | `[]` (2026-06: `[propext, Quot.sound]`) | **REAL, choice-free.** `Continuity` holds for operationally-presented functionals (operational register) — earned, not assumed. |
 
 ## Finding CONT-4 (the key honesty point)
 Because `not_continuity` shows `Continuity` is **classically false**, every theorem that
@@ -55,6 +58,12 @@ but operationally TRUE.
 - **CONT-8** `omega` on a **conjunction** goal fails / drags `Classical.choice`+`sorryAx`; a single `ℤ` inequality via `omega` is axiom-free. Split `∧` into separate `omega` calls. (State two-sided bounds, prove each side separately.)
 
 ## Operational ℝ (`Real.lean`) — Bishop reals over `ℤ`, **below the ℚ/ℝ choice floor**
+
+*(2026-10-30 note: `Real.lean` is now `VRClassical/Continuum/Real.lean` — a quotient bridge over
+Mathlib's `ℤ`, for Mathlib-style consumers. The witnessed reals on `[]` are `RExpr` in
+`VR/Numbers/RealsOp.lean`. Measured today: `Real.add`, `Real.mul` and `instance : CommRing Real`
+`[Quot.sound]`; `Real.zero_ne_one` `[propext]`; the pre-quotient layer (`Pre.ofBranch`,
+`Pre.invPos_mul`) `[]`. The `[propext, Quot.sound]` figures below are the 2026-06 ones.)*
 A real is a **dyadic asymptotic-Cauchy sequence** `Pre = (seq : ℕ → ℤ)` with
 `∀k ∃N ∀m,n≥N, |seq m·2^n - seq n·2^m|·2^k ≤ 2^(m+n)` (pure `ℤ`, ring-closed); `Real := Quotient`
 by asymptotic agreement. **All choice-free `[propext, Quot.sound]`** (plan: `PLAN_OPERATIONAL_REAL.md`).
@@ -89,9 +98,13 @@ replace with `rw` of the pow-equalities + `ring`.
 
 ## Operational unit interval (`UnitInterval.lean`)
 The integer-numerator substrate feeding `Real` (and the first below-floor result): a branch's `[0,1]`
-point is `intval α N : ℤ` over `2^N`; `intval_nonneg`/`intval_lt_pow`/`intval_mono_step` choice-free;
+point is `intval α N` over `2^N`; `intval_nonneg`/`intval_lt_pow`/`intval_mono_step` choice-free;
 plus the reusable `ℤ` toolkit (`two_pow_*`, `int_two_pow_bound`, `int_ediv_bracket`, `mul_cross_pow`,
-`mul_abs_bound`, `dyadic_bound`, cancellation/scaling bridges) — all `[propext, Quot.sound]`.
+`mul_abs_bound`, `dyadic_bound`, cancellation/scaling bridges) — all `[propext, Quot.sound]` in 2026-06.
+*(2026-10-30 note: since 2026-09-12 `VR/Continuum/UnitInterval.lean` is over VR's own integer pairs
+`IntExpr` and every theorem in it is on `[]`. The Mathlib-`ℤ` toolkit lemmas named above no longer
+exist under these names; their witnessed counterparts live in `VR/Numbers/RealsOp.lean`, e.g.
+`qmul_abs_bound`.)*
 
 - **CONT-9** (the `ℤ`-arithmetic choice toolkit) general `mul_nonneg`/`mul_le_mul`/`mul_lt_mul_of_pos_*`/
   `mul_zero`/`neg_mul`/`pow_pos`/`pow_le_pow_right`/`abs_mul`/`lt_or_eq_of_le`/`Nat.le.dest` all pull
@@ -104,9 +117,12 @@ plus the reusable `ℤ` toolkit (`two_pow_*`, `int_two_pow_bound`, `int_ediv_bra
   (the `LinearOrder ℤ` instance path); **choice-free** replacements: `omega` (reflexivity, and any
   *linear* transitivity) and `Int.le_trans` (when the terms are nonlinear products `omega` can't atomise).
   Also: `omega` over a `set`-bound nonlinear product re-distributes it — `clear_value` first to keep it
-  opaque. The `CommRing Real` instance built from choice-free fields stays `[propext, Quot.sound]`.
+  opaque. The `CommRing Real` instance built from choice-free fields stays `[propext, Quot.sound]`
+  (2026-06; measured 2026-10-30: `[Quot.sound]`).
 
 ## Files
 `Spread` (A) · `Branch` (B1) · `Cover` (B2) · `UniformContinuity` (B3) · `BarSound` (B4) ·
 `ClassicalBoundary` (B5) · `Registers` (B6) · `Model` (C) · `UnitInterval` (`ℤ` substrate) ·
-`Real` (operational ℝ: group + multiplication, choice-free).
+`Real` (operational ℝ: group + multiplication, choice-free). Since 2026-09-12 `ClassicalBoundary`,
+`Real`, `Rational` (`Qop`), `GaussianRational` and `Spectrum` are in `VRClassical/Continuum/`; the
+rest (and `Cantor`, `Cardinal`, `Choice`, `ListCore`) in `VR/Continuum/`.
