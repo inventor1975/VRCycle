@@ -28,7 +28,12 @@
 --                 substitutive in every closed formula (`earned_eq_subst`, a meta theorem;
 --                 Gilmore's object-language sentence is not claimed); D ≐ D is quarantined
 --                 lazily, EARNED IF STABLE, greedy value xnor(Z,Z) = F; E ≐ D is OPEN — the
---                 identity verdict keeps the mark the two-valued carrier forgot.
+--                 identity verdict keeps the mark the two-valued carrier forgot;
+--   N10 Numerals — STRENGTH, negative and sharp: an earned identity forces both sides to be
+--                 trivial (the ∀ inside ≐ meets D), so a nontrivial set fails even X ≐ X; the
+--                 von Neumann 1 is fine, but 1 ∈ 2 is quarantined (`vn_two_breaks`) — the lazy
+--                 register does not reach 2 (the classical one does: EARNED IF STABLE).  SetsOp
+--                 has ℕ and ω natively with total identity: arithmetic lives in the CARRIER.
 -- Universe: potential infinity (the CLOSED terms, an inductive type of finite records); a
 -- universal is earned by a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
 import VR.SetsNaive.Syntax
@@ -40,3 +45,4 @@ import VR.SetsNaive.Strength
 import VR.SetsNaive.Leak
 import VR.SetsNaive.Judge
 import VR.SetsNaive.Identity
+import VR.SetsNaive.Numerals
