@@ -10,10 +10,13 @@
 --                 UNDERDETERMINED (two consistent stipulations); clean cells are absolute;
 --   N4 Bridge   — every term is an OpSet via its earned memberships (T-graph); earned ∈ ⇒
 --                 OpSet.Mem; and the price: the two-valued carrier FORGETS the mark
---                 (`carrier_forgets_mark`: a clean ∅ and a dirty set are one OpSet).
+--                 (`carrier_forgets_mark`: a clean ∅ and a dirty set are one OpSet);
+--   N5 Ext      — extensionality as a META congruence: co-extensional sets (three-valued
+--                 extension, the mark included) are indiscernible by every formula (`val_cong`).
 -- Universe: potential infinity (an inductive type of finite records); a universal is earned by
 -- a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
 import VR.SetsNaive.Syntax
 import VR.SetsNaive.Ground
 import VR.SetsNaive.Passport
 import VR.SetsNaive.Bridge
+import VR.SetsNaive.Ext
