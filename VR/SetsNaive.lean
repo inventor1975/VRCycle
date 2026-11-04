@@ -17,8 +17,13 @@
 --                 information, so a set deciding D is ∅ or V; every nontrivial set is dirty at D.
 --                 Strength must be measured relative to clean probes;
 --   N7 Leak     — …and the unbounded ∀ imports the dirt: A={x: x∈Empt ∧ ¬x∈Empt} has no member,
---                 is clean at every decided probe, yet "A is empty" is quarantined.  The fork
---                 (unbounded vs bounded/relativised quantifiers) is the curator's decision.
+--                 is clean at every decided probe, yet "A is empty" is quarantined — in the LAZY
+--                 register, which grounds cells and does not judge claims;
+--   N8 Judge    — the verdict register (curator's correction 05.11): ZTL dispositions over
+--                 completions.  "x ⊆ x for all x" and "A is empty" (by its definition) are NOT
+--                 earned but EARNED IF STABLE; "A is empty" by the atom D∈A is OPEN — the
+--                 disposition depends on where the judge cuts comprehension.  A completion of an
+--                 infinite universe needs excluded middle: an explicit hypothesis, never an axiom.
 -- Universe: potential infinity (the CLOSED terms, an inductive type of finite records); a
 -- universal is earned by a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
 import VR.SetsNaive.Syntax
@@ -28,3 +33,4 @@ import VR.SetsNaive.Bridge
 import VR.SetsNaive.Ext
 import VR.SetsNaive.Strength
 import VR.SetsNaive.Leak
+import VR.SetsNaive.Judge
