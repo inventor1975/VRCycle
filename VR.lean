@@ -8,4 +8,5 @@ import VR.Topology
 import VR.Continuum
 import VR.SetsOp
 import VR.ZTL
+import VR.SetsNaive
 import VR.Guard

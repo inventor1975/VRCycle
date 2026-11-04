@@ -19,5 +19,6 @@ import VR.Topology
 import VR.Continuum
 import VR.SetsOp
 import VR.ZTL
+import VR.SetsNaive
 
 #assert_axiom_free_library VR tools [VR.Meta.CSRNorm, VR.Meta.DependsOn]
