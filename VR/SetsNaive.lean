@@ -15,7 +15,10 @@
 --                 extension, the mark included) are indiscernible by every formula (`val_cong`);
 --   N6 Strength — TOTAL cleanliness is trivial: the dirty probe D={x:R∈R} is the bottom of
 --                 information, so a set deciding D is ∅ or V; every nontrivial set is dirty at D.
---                 Strength must be measured relative to clean probes.
+--                 Strength must be measured relative to clean probes;
+--   N7 Leak     — …and the unbounded ∀ imports the dirt: A={x: x∈Empt ∧ ¬x∈Empt} has no member,
+--                 is clean at every decided probe, yet "A is empty" is quarantined.  The fork
+--                 (unbounded vs bounded/relativised quantifiers) is the curator's decision.
 -- Universe: potential infinity (the CLOSED terms, an inductive type of finite records); a
 -- universal is earned by a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
 import VR.SetsNaive.Syntax
@@ -24,3 +27,4 @@ import VR.SetsNaive.Passport
 import VR.SetsNaive.Bridge
 import VR.SetsNaive.Ext
 import VR.SetsNaive.Strength
+import VR.SetsNaive.Leak
