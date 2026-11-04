@@ -115,11 +115,11 @@ theorem val_cong {ρ : Tm → Tm → Prop} (hρ : Inert ρ) (H : Ext ρ) :
   | allT _ ih =>
       intro ψ hψ
       cases hψ with
-      | all h' => exact .allT (fun c => ih c (FC.subst hρ (TC.refl ρ c) 0 h'))
-  | allF c _ ih =>
+      | all h' => exact .allT (fun c hc => ih c hc (FC.subst hρ (TC.refl ρ c) 0 h'))
+  | allF c hc _ ih =>
       intro ψ hψ
       cases hψ with
-      | all h' => exact .allF c (ih (FC.subst hρ (TC.refl ρ c) 0 h'))
+      | all h' => exact .allF c hc (ih (FC.subst hρ (TC.refl ρ c) 0 h'))
 
 /-- **Indiscernibility**: substituting a ρ-partner into any context carries every verdict. -/
 theorem indiscernible {ρ : Tm → Tm → Prop} (hρ : Inert ρ) (H : Ext ρ) {s s' : Tm}

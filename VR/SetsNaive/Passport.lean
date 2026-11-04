@@ -70,8 +70,8 @@ inductive ValS (s : Bool) : Bool → Fm → Prop where
   | andT {φ ψ} : ValS s true φ → ValS s true ψ → ValS s true (.and φ ψ)
   | andFl {φ ψ} : ValS s false φ → ValS s false (.and φ ψ)
   | andFr {φ ψ} : ValS s false ψ → ValS s false (.and φ ψ)
-  | allT {φ} : (∀ c, ValS s true (φ.inst c)) → ValS s true (.all φ)
-  | allF {φ} (c : Tm) : ValS s false (φ.inst c) → ValS s false (.all φ)
+  | allT {φ} : (∀ c, Cl c → ValS s true (φ.inst c)) → ValS s true (.all φ)
+  | allF {φ} (c : Tm) : Cl c → ValS s false (φ.inst c) → ValS s false (.all φ)
 
 /-- In the seeded fixed point, S∈S can only carry the seeded value. -/
 theorem valS_SS {s : Bool} : ∀ {b φ}, ValS s b φ → φ = .mem S S → b = s := by
@@ -97,7 +97,7 @@ theorem valS_fix (s : Bool) : ∀ (b : Bool) (φ : Fm), ValS s b φ ↔ Jump (Va
     | andFl h => exact Or.inl h
     | andFr h => exact Or.inr h
     | allT h => exact h
-    | allF c h => exact ⟨c, h⟩
+    | allF c hc h => exact ⟨c, hc, h⟩
   · intro h
     cases b <;> cases φ with
     | top => first | exact False.elim h | exact .top
@@ -113,7 +113,7 @@ theorem valS_fix (s : Bool) : ∀ (b : Bool) (φ : Fm), ValS s b φ ↔ Jump (Va
     | all φ =>
         first
         | exact .allT h
-        | exact (match h with | ⟨c, hc⟩ => .allF c hc)
+        | exact (match h with | ⟨c, hc, h⟩ => .allF c hc h)
 
 theorem valS_cons (s : Bool) : ∀ {b φ}, ValS s b φ → ValS s (!b) φ → False := by
   intro b φ h
@@ -135,8 +135,8 @@ theorem valS_cons (s : Bool) : ∀ {b φ}, ValS s b φ → ValS s (!b) φ → Fa
       | andFr h'' => exact ih2 h''
   | andFl _ ih => intro h'; cases h' with | andT h'' _ => exact ih h''
   | andFr _ ih => intro h'; cases h' with | andT _ h'' => exact ih h''
-  | allT _ ih => intro h'; cases h' with | allF c h'' => exact ih c h''
-  | allF c _ ih => intro h'; cases h' with | allT h'' => exact ih (h'' c)
+  | allT _ ih => intro h'; cases h' with | allF c hc h'' => exact ih c hc h''
+  | allF c hc _ ih => intro h'; cases h' with | allT h'' => exact ih (h'' c hc)
 
 /-- The seeded fixed point as a consistent model. -/
 def FixPt.seeded (s : Bool) : FixPt :=

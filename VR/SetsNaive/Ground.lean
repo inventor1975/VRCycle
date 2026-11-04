@@ -7,7 +7,7 @@
 -- same for finite systems by iteration).  Here the universe is infinite, so the fixed point is
 -- not iterated: it is the inductive definition itself, and leastness is its induction
 -- principle.  A universal statement is earned by a RULE (`allT` takes a function covering every
--- closed term), never by a survey.  A formula grounded neither way is a quarantine cell — the
+-- closed term), never by a survey; open terms are not objects and are never instances.  A formula grounded neither way is a quarantine cell — the
 -- input mark Z.
 --
 -- Machine-checked here:
@@ -39,8 +39,8 @@ def Jump (P : Bool → Fm → Prop) : Bool → Fm → Prop
   | b, .neg φ => P (!b) φ
   | true,  .and φ ψ => P true φ ∧ P true ψ
   | false, .and φ ψ => P false φ ∨ P false ψ
-  | true,  .all φ => ∀ c, P true (φ.inst c)
-  | false, .all φ => ∃ c, P false (φ.inst c)
+  | true,  .all φ => ∀ c, Cl c → P true (φ.inst c)
+  | false, .all φ => ∃ c, Cl c ∧ P false (φ.inst c)
 
 /-- The grounded register: the least fixed point of `Jump`. -/
 inductive Val : Bool → Fm → Prop where
@@ -52,8 +52,8 @@ inductive Val : Bool → Fm → Prop where
   | andT {φ ψ} : Val true φ → Val true ψ → Val true (.and φ ψ)
   | andFl {φ ψ} : Val false φ → Val false (.and φ ψ)
   | andFr {φ ψ} : Val false ψ → Val false (.and φ ψ)
-  | allT {φ} : (∀ c, Val true (φ.inst c)) → Val true (.all φ)
-  | allF {φ} (c : Tm) : Val false (φ.inst c) → Val false (.all φ)
+  | allT {φ} : (∀ c, Cl c → Val true (φ.inst c)) → Val true (.all φ)
+  | allF {φ} (c : Tm) : Cl c → Val false (φ.inst c) → Val false (.all φ)
 
 /-- `Val` is a fixed point of the jump. -/
 theorem val_fix : ∀ (b : Bool) (φ : Fm), Val b φ ↔ Jump Val b φ := by
@@ -70,7 +70,7 @@ theorem val_fix : ∀ (b : Bool) (φ : Fm), Val b φ ↔ Jump Val b φ := by
     | andFl h => exact Or.inl h
     | andFr h => exact Or.inr h
     | allT h => exact h
-    | allF c h => exact ⟨c, h⟩
+    | allF c hc h => exact ⟨c, hc, h⟩
   · intro h
     cases b <;> cases φ with
     | top => first | exact False.elim h | exact .top
@@ -86,7 +86,7 @@ theorem val_fix : ∀ (b : Bool) (φ : Fm), Val b φ ↔ Jump Val b φ := by
     | all φ =>
         first
         | exact .allT h
-        | exact (match h with | ⟨c, hc⟩ => .allF c hc)
+        | exact (match h with | ⟨c, hc, h⟩ => .allF c hc h)
 
 /-- `Val` is the LEAST fixed point: it lies below every assignment closed under the jump. -/
 theorem val_least (P : Bool → Fm → Prop) (hP : ∀ b φ, Jump P b φ → P b φ) :
@@ -102,7 +102,7 @@ theorem val_least (P : Bool → Fm → Prop) (hP : ∀ b φ, Jump P b φ → P b
   | andFl _ ih => exact hP _ _ (Or.inl ih)
   | andFr _ ih => exact hP _ _ (Or.inr ih)
   | allT _ ih => exact hP _ _ ih
-  | allF c _ ih => exact hP _ _ ⟨c, ih⟩
+  | allF c hc _ ih => exact hP _ _ ⟨c, hc, ih⟩
 
 /-- **Consistency of the clean part**: nothing is grounded both T and F. -/
 theorem consistent : ∀ {b φ}, Val b φ → Val (!b) φ → False := by
@@ -118,8 +118,8 @@ theorem consistent : ∀ {b φ}, Val b φ → Val (!b) φ → False := by
       | andFr h'' => exact ih2 h''
   | andFl _ ih => intro h'; cases h' with | andT h'' _ => exact ih h''
   | andFr _ ih => intro h'; cases h' with | andT _ h'' => exact ih h''
-  | allT _ ih => intro h'; cases h' with | allF c h'' => exact ih c h''
-  | allF c _ ih => intro h'; cases h' with | allT h'' => exact ih (h'' c)
+  | allT _ ih => intro h'; cases h' with | allF c hc h'' => exact ih c hc h''
+  | allF c hc _ ih => intro h'; cases h' with | allT h'' => exact ih (h'' c hc)
 
 /-- **Naive comprehension is a law in every cell**: `a ∈ {x : φ}` has exactly the status of
 `φ(a)` — earned T, earned F, or quarantined together.  No restriction on `φ`. -/
@@ -184,7 +184,7 @@ theorem V_mem_V : Val true (.mem V V) := .memT .top
 theorem V_not_mem_R : Val false (.mem V R) := .memF (.negF V_mem_V)
 
 /-- "Everything is in V" — a universal over the infinite universe, earned by a rule. -/
-theorem all_in_V : Val true (.all (.mem x0 V)) := .allT (fun _ => .memT .top)
+theorem all_in_V : Val true (.all (.mem x0 V)) := .allT (fun _ _ => .memT .top)
 
 end VRCycle.SetsNaive
 

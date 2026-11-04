@@ -58,7 +58,7 @@ theorem E_equiv_D : (tGraph E).Equiv (tGraph D) := by
 
 /-- E is EARNED to be empty. -/
 theorem E_in_Empt : Val true (.mem E Empt) :=
-  .memT (.allT (fun _ => .negT (.memF (.negF .top))))
+  .memT (.allT (fun _ _ => .negT (.memF (.negF .top))))
 
 /-- D's emptiness is QUARANTINED: neither earned nor refuted. -/
 theorem D_Empt_quarantine (b : Bool) : ¬ Val b (.mem D Empt) := by
@@ -67,12 +67,12 @@ theorem D_Empt_quarantine (b : Bool) : ¬ Val b (.mem D Empt) := by
   | true =>
     cases h with
     | memT h => cases h with
-      | allT h => have := h E; cases this with
+      | allT h => have := h E rfl; cases this with
         | negT h => cases h with | memF h => exact russell_quarantine false h
   | false =>
     cases h with
     | memF h => cases h with
-      | allF c h => cases h with
+      | allF c _ h => cases h with
         | negF h => cases h with | memT h => exact russell_quarantine true h
 
 /-- **The two-valued carrier forgets the mark.**  E and D are operationally identical, yet

@@ -12,11 +12,15 @@
 --                 OpSet.Mem; and the price: the two-valued carrier FORGETS the mark
 --                 (`carrier_forgets_mark`: a clean ∅ and a dirty set are one OpSet);
 --   N5 Ext      — extensionality as a META congruence: co-extensional sets (three-valued
---                 extension, the mark included) are indiscernible by every formula (`val_cong`).
--- Universe: potential infinity (an inductive type of finite records); a universal is earned by
--- a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
+--                 extension, the mark included) are indiscernible by every formula (`val_cong`);
+--   N6 Strength — TOTAL cleanliness is trivial: the dirty probe D={x:R∈R} is the bottom of
+--                 information, so a set deciding D is ∅ or V; every nontrivial set is dirty at D.
+--                 Strength must be measured relative to clean probes.
+-- Universe: potential infinity (the CLOSED terms, an inductive type of finite records); a
+-- universal is earned by a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
 import VR.SetsNaive.Syntax
 import VR.SetsNaive.Ground
 import VR.SetsNaive.Passport
 import VR.SetsNaive.Bridge
 import VR.SetsNaive.Ext
+import VR.SetsNaive.Strength
