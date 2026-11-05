@@ -10,14 +10,17 @@
 --
 -- MEASURED HERE (Lean, the grounded register, all on `[]`):
 --   1. `cantor_witness`: if the diagonal cell `d ∈ f(d)` is decided (earned or refuted), then `D ≐ f(d)` is
---      REFUTED, with `d` as the witness — Cantor's theorem holds, as a verdict, wherever the map is clean at `d`;
+--      REFUTED, with `d` as the witness — the diagonal STEP holds, as a verdict, wherever the map is clean at `d`
+--      (a step, not Cantor's theorem on cardinality: there are no functions-as-objects and no counting here);
 --   2. `cantor_witness_silent`: if the diagonal cell is undecided, the witness `d` decides nothing — the instance
---      of the identity at `d` is neither earned nor refuted.  So the diagonal argument works EXACTLY at the clean
---      cells of the map; at a dirty cell it neither proves nor refutes;
+--      of the identity at `d` is neither earned nor refuted.  So the DIAGONAL WITNESS works exactly at the clean
+--      cells of the map; at a dirty cell that witness says nothing — which is local: another witness may still
+--      refute the identity (3b);
 --   3. `cantor_paradox`: for the identity map, `D` is Russell's set `R`, the would-be refutation `R ≐ f(R)` is
 --      `R ≐ R`, and it is never refuted — nor earned, since its instance at `R` is Russell's undecided cell.
 --      Cantor's paradox is not a contradiction here: it is Russell's PARADOX cell (`russell_paradox`), met by the
 --      diagonal through the identity map.
+--   3b. `cantor_other_witness`: f = R at d = R — dirty diagonal cell, refuted all the same by the witness V;
 --   4. `cantor_const_V`: not vacuous — the constant map `f = V` refutes `D ≐ f(R)` at Russell's own set: the
 --      argument may be dirty; only the diagonal CELL must be clean.
 -- What this does NOT show: anything about cardinalities as such (there are no functions-as-objects and no
@@ -124,6 +127,21 @@ theorem cantor_paradox :
           | andFl h1 => exact russell_quarantine false h1
           | andFr h1 => cases h1 with | negF h1 => exact russell_quarantine true h1
 
+/-- **3b. A dirty diagonal cell, refuted all the same — by another witness.** (Suggested by an outside review,
+2026-11-05.) The constant map `f(d) = R` at `d = R`: the diagonal cell `R ∈ f(R)` is Russell's cell, undecided,
+so the diagonal witness is silent (2.); yet `D ≐ f(R)` is refuted, with `V` as the witness: `V ∉ R` is earned,
+so `V ∈ D` is earned. The local silence of the diagonal witness is not a global failure of the identity. Together
+with 1. and 3., all three cases occur: refuted by the diagonal witness; refuted by another witness while the
+diagonal cell is dirty; neither refuted nor earned. Which one holds is, in general, `all_refuted_iff`: the
+identity is refuted iff SOME witness has its two cells decided opposite. -/
+theorem cantor_other_witness :
+    (∀ b, ¬ Val b (.mem R (app R R))) ∧ Val false (Eqv (diag R) (app R R)) := by
+  refine ⟨fun b => russell_quarantine b, ?_⟩
+  apply Val.allF V rfl
+  rw [Eqv_inst (a := diag R) (b := app R R) rfl rfl V]
+  apply iff_false_of_opposite
+  exact Or.inl ⟨(diag_cell R V true).2 V_not_mem_R, V_not_mem_R⟩
+
 /-- **Not vacuous: a clean map refutes even at Russell's set.** The constant map `f(d) = V`: its diagonal is
 `{y : y ∉ V}`, the cell `R ∈ V` is earned, so `D ≐ f(R)` is refuted with `R` itself as the witness — the
 argument's set need not be clean; the diagonal CELL must be. -/
@@ -138,3 +156,4 @@ end VRCycle.SetsNaive
 #print axioms VRCycle.SetsNaive.cantor_witness_silent
 #print axioms VRCycle.SetsNaive.cantor_paradox
 #print axioms VRCycle.SetsNaive.cantor_const_V
+#print axioms VRCycle.SetsNaive.cantor_other_witness

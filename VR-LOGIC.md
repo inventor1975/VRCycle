@@ -296,7 +296,7 @@ the guard enforces it; the quotient bridges `Qop`/`GaussQ`/`Real` and `not_conti
 Curator's programme: unrestricted comprehension `{x : φ}` on ZTL's ground; a paradox appears as a
 dirty cell that carries a *passport* (PARADOX: decided in no consistent fixed point; UNDERDETERMINED:
 decided both ways in two consistent fixed points). Status: every item below is a Lean theorem in
-`VR/SetsNaive/` (17 modules; 99 objects audited by `#print axioms`), `lake build VR` green, no `sorry`, every object on
+`VR/SetsNaive/` (17 modules; 100 objects audited by `#print axioms`), `lake build VR` green, no `sorry`, every object on
 `[]` — the build guard `VR/Guard.lean` fails on any axiom. "Exploratory" means the line is not
 published, not that the items are unproved.
 - **Positive.** The universe is the inductive type of closed terms (each a finite record; no
@@ -338,12 +338,18 @@ published, not that the items are unproved.
   this resembles Feferman's and Cantini's frameworks; their proof-theoretic properties are not compared.
 - **Cantor's diagonal (`Cantor.lean`, 2026-11-05).** A map is a term with one free variable; its diagonal is
   `D = {y : y ∉ f(y)}`. Where the diagonal cell `d ∈ f(d)` is decided, `D ≐ f(d)` is refuted with `d` as the
-  witness (`cantor_witness`) — Cantor's theorem holds as a verdict, even at a dirty argument such as Russell's set
-  (`cantor_const_V`). Where that cell is undecided, the witness decides nothing either way
-  (`cantor_witness_silent`). For the identity map the diagonal is `R`, the would-be refutation is `R ≐ R`, never
-  refuted and not earned, its instance at `R` being Russell's cell (`cantor_paradox`): Cantor's paradox is not a
-  contradiction here but Russell's PARADOX cell, met by the diagonal through the identity map. This is the diagonal
-  step cell by cell, not a theory of cardinality (the language has no functions-as-objects and no counting); the
+  witness (`cantor_witness`) — the diagonal step holds as a verdict, even at a dirty argument such as Russell's set
+  (`cantor_const_V`). Where that cell is undecided, that witness decides nothing either way
+  (`cantor_witness_silent`) — a local silence: for `f = R` at `d = R` the diagonal cell is Russell's, yet the
+  identity is refuted by another witness, `V` (`cantor_other_witness`). All three cases occur (refuted by the
+  diagonal witness; refuted by another; neither refuted nor earned), and which holds is `all_refuted_iff`. For the
+  identity map the diagonal is `R`, the would-be refutation is `R ≐ R`, never refuted and not earned, its instance at
+  `R` being Russell's cell (`cantor_paradox`): Cantor's paradox is not a contradiction here but Russell's PARADOX
+  cell, met by the diagonal through the identity map. Scope: the diagonal step cell by cell — not Cantor's theorem
+  on cardinality (the language has no functions-as-objects and no counting) and no claim about the hierarchy of
+  infinities; maps are only those written by a term with one free variable. The semantics is paracomplete (gaps),
+  not paraconsistent (gluts), unlike Weber's (RSL 2010, 2012), who develops cardinals and proves Cantor's theorem
+  itself. The proofs are short; what is recorded is the case split, not a new technique. The
   operational Cantor of the continuum is `Continuum/Cantor.lean`.
 - **Boundaries.** The identification is meta-level: inside the language an identity atom with a naive
   side stays Z (`realised_but_atom_silent`); feeding realisation back into it is the revocation above.
