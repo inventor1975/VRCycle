@@ -82,6 +82,88 @@ theorem A_empty_residue_verdict :
    fun h => by cases h with | allT h => exact D_in_A_residue.2 (Or.inl (h D D_closed)),
    fun h => by cases h with | allF c hc h => exact A_empty_relT c hc h⟩
 
+/-! ## "1 ∈ 2" outside the residue (the measurement asked for, 2026-11-05 02:19) -/
+
+/-- An earned or refuted cell makes `p ↔ p` earned. -/
+theorem iff_self_of_decided {p : Fm} (h : Val true p ∨ Val false p) : Val true (Fm.iff p p) := by
+  cases h with
+  | inl h => exact .andT (.negT (.andFr (.negF h))) (.negT (.andFr (.negF h)))
+  | inr h => exact .andT (.negT (.andFl h)) (.negT (.andFl h))
+
+/-- `p ↔ p` is never refuted. -/
+theorem iff_self_never_false (p : Fm) : ¬ Val false (Fm.iff p p) := by
+  intro h
+  cases h with
+  | andFl h => cases h with | negF h => cases h with | andT h1 h2 => cases h2 with | negT h2 => exact consistent h1 h2
+  | andFr h => cases h with | negF h => cases h with | andT h1 h2 => cases h2 with | negT h2 => exact consistent h1 h2
+
+/-- The body of `1 ≐ 1`. -/
+def oneSelf : Fm := Fm.iff (.mem x0 one) (.mem x0 one)
+
+/-- `1 ≐ 1` outside the residue: no decided counterexample. -/
+theorem oneSelf_relT : RelT oneSelf := by
+  intro c _ h
+  rw [show oneSelf.inst c = Fm.iff (.mem c one) (.mem c one) from Eqv_inst one_closed one_closed c] at h
+  exact iff_self_never_false _ h
+
+/-- `D ∈ 1` is quarantined (`D ≐ 0` is neither earned nor refuted). -/
+theorem D_in_one_quarantine (v : Bool) : ¬ Val v (.mem D one) := by
+  intro h
+  have h' : Val v (Eqv D zero) := by
+    cases v with
+    | true => cases h with | memT h => rw [eqBody_inst zero_closed D] at h; exact h
+    | false => cases h with | memF h => rw [eqBody_inst zero_closed D] at h; exact h
+  cases v with
+  | true =>
+    cases h' with
+    | allT h' =>
+      have hi := h' E E_closed
+      rw [Eqv_inst D_closed zero_closed E] at hi
+      cases iff_earned_decides hi with
+      | inl h => exact D_no_value E true h
+      | inr h => exact D_no_value E false h
+  | false =>
+    cases h' with
+    | allF c _ h' =>
+      rw [Eqv_inst D_closed zero_closed c] at h'
+      cases h' with
+      | andFl h' => cases h' with | negF h' => cases h' with | andT h1 _ => exact D_no_value c true h1
+      | andFr h' => cases h' with
+        | negF h' => cases h' with | andT _ h2 => cases h2 with | negT h2 => exact D_no_value c false h2
+
+/-- The residue of `1 ≐ 1` holds D… -/
+theorem D_in_oneSelf_residue : Residue oneSelf D := by
+  refine ⟨D_closed, ?_⟩
+  rw [show oneSelf.inst D = Fm.iff (.mem D one) (.mem D one) from Eqv_inst one_closed one_closed D]
+  intro h
+  cases h with
+  | inl h => cases iff_earned_decides h with
+    | inl h => exact D_in_one_quarantine true h
+    | inr h => exact D_in_one_quarantine false h
+  | inr h => exact iff_self_never_false _ h
+
+/-- …but NOT 0, V or 1 itself: the residue is not everything (the verdict is not vacuous). -/
+theorem oneSelf_residue_not_all :
+    ¬ Residue oneSelf zero ∧ ¬ Residue oneSelf V ∧ ¬ Residue oneSelf one := by
+  have hinst : ∀ c, oneSelf.inst c = Fm.iff (.mem c one) (.mem c one) :=
+    fun c => Eqv_inst one_closed one_closed c
+  have one_in_one_false : Val false (.mem one one) := by
+    apply Val.memF; rw [eqBody_inst zero_closed one]; exact one_eq_zero_refuted
+  refine ⟨fun ⟨_, h⟩ => h ?_, fun ⟨_, h⟩ => h ?_, fun ⟨_, h⟩ => h ?_⟩
+  · rw [hinst]; exact Or.inl (iff_self_of_decided (Or.inl zero_in_one))
+  · rw [hinst]; exact Or.inl (iff_self_of_decided (Or.inr V_not_in_one))
+  · rw [hinst]; exact Or.inl (iff_self_of_decided (Or.inr one_in_one_false))
+
+/-- **"1 ∈ 2" outside the residue**: its definition `1 ≐ 0 ∨ 1 ≐ 1` has `1 ≐ 0` REFUTED and
+`1 ≐ 1` true outside a residue that holds D but not 0, V, 1 — while the lazy cell `1 ∈ 2` itself is
+quarantined (`vn_two_breaks`).  The operational verdict, no excluded middle, nothing fed back. -/
+theorem one_in_two_residue :
+    Val false (Eqv one zero) ∧ RelT oneSelf ∧ Residue oneSelf D ∧
+    (¬ Residue oneSelf zero ∧ ¬ Residue oneSelf V ∧ ¬ Residue oneSelf one) ∧
+    (∀ v, ¬ Val v (.mem one two)) :=
+  ⟨one_eq_zero_refuted, oneSelf_relT, D_in_oneSelf_residue, oneSelf_residue_not_all,
+   vn_two_breaks.2⟩
+
 end VRCycle.SetsNaive
 
 #print axioms VRCycle.SetsNaive.all_refuted_iff
@@ -91,3 +173,6 @@ end VRCycle.SetsNaive
 #print axioms VRCycle.SetsNaive.A_empty_relT
 #print axioms VRCycle.SetsNaive.D_in_A_residue
 #print axioms VRCycle.SetsNaive.A_empty_residue_verdict
+#print axioms VRCycle.SetsNaive.D_in_one_quarantine
+#print axioms VRCycle.SetsNaive.oneSelf_residue_not_all
+#print axioms VRCycle.SetsNaive.one_in_two_residue
