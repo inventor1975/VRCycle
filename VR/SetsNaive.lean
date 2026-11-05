@@ -52,7 +52,14 @@
 --                 three-valued truth-functionality (and FLØ 2017 Thm 10.1 closes ZTL's own →);
 --   N15 OmegaN  — ω à la Dedekind, measured: operationally NO earned member (not even 0);
 --                 classically every numeral sᵏ0 ∈ ω (EARNED IF STABLE), but whether the dirty D is in
---                 ω is OPEN — the classical register does not exclude junk.  No standard ω.
+--                 ω is OPEN — the classical register does not exclude junk.  No standard ω;
+--   N16 Realise — the bridge completed: a naive term REALISES a carrier set when its verdicts at
+--                 every carrier probe are the carrier's.  Unique up to bisimulation; the naive
+--                 segment realises `vn n`; {x : x ≈ Ω} realises Ω; every carrier set is realised.
+--                 The identification is meta-level: the in-language atom with a naive side stays Z.
+-- ARCHITECTURE (measured, N1–N16): carrier = what a set is (SetsOp, operational arithmetic);
+-- naive layer = how sets are named (unrestricted comprehension, paradox passport); the bridge =
+-- realisation.  Naive sets do NOT replace the carrier (N10, N12, N14, N15 + FLØ 2017 Thm 10.1).
 -- Universe: potential infinity (the CLOSED terms, an inductive type of finite records); a
 -- universal is earned by a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
 import VR.SetsNaive.Syntax
@@ -70,3 +77,4 @@ import VR.SetsNaive.Levels
 import VR.SetsNaive.Residue
 import VR.SetsNaive.Curry
 import VR.SetsNaive.OmegaN
+import VR.SetsNaive.Realise

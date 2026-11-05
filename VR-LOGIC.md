@@ -291,6 +291,34 @@ the guard enforces it; the quotient bridges `Qop`/`GaussQ`/`Real` and `not_conti
   operational boundary lives on the **act**, not the object: "nothing is — all is doing" as
   a checked meta-fact.
 
+### Naive sets on ZTL's ground (`SetsNaive/`, 2026-11-05, exploratory — not a published work, no DOI)
+
+Curator's programme: unrestricted comprehension on ZTL's ground, the classical laws in every clean
+cell, a paradox as a dirty cell with a passport. Every object on `[]` (guarded by `VR/Guard.lean`).
+- **Established (positive).** Kripke's least fixed point as an inductive predicate over an infinite
+  universe of closed terms (potential infinity; a universal earned by a rule): consistent;
+  comprehension a law in every cell; the excluded middle earned exactly in the clean cells and
+  refuted in none; Russell = PARADOX (no consistent fixed point decides it), the truth-teller set =
+  UNDERDETERMINED; clean cells absolute; extensionality as a meta congruence; an earned identity is
+  substitutive; the Z of a universal is exactly the residue (`all_quarantine_iff`).
+- **Established (negative, the measured reason the carrier stays).** The two-valued carrier forgets
+  the mark (`carrier_forgets_mark`); total cleanliness is trivial (`total_trivial`); an earned
+  identity holds only between trivial sets, so `1 ∈ 2` is quarantined (`vn_two_breaks`); identity
+  read off lower levels is revoked (`revoked`); no three-valued strong conditional supports naive
+  comprehension (`no_transparent`, Curry); ω has no earned member operationally and does not
+  exclude junk classically (`omega_no_earned_member`, `D_in_omega_open`). With the literature
+  (Thomas 2014 for LP; Field–Lederman–Øgaard 2017, Thm 10.1, whose hypotheses ZTL's conditional
+  meets): naive sets do NOT replace the carrier.
+- **The architecture.** The carrier (SetsOp) is what a set is and carries the arithmetic; the naive
+  layer is how sets are named; the bridge is realisation (`Realise.lean`): a naive term realises a
+  carrier set when its verdicts at every carrier probe are the carrier's — unique up to bisimulation,
+  the naive segment realises `vn n`, `{x : x ≈ Ω}` realises Ω (the carrier supplies the stipulation
+  the naive truth-teller set lacks). The same shape as Feferman/Cantini (classes over a base).
+- **Boundaries.** The identification is meta-level (the in-language identity atom with a naive side
+  stays Z — feeding it back is the revocation); the classical-register verdicts (EARNED IF STABLE)
+  take excluded middle as an explicit hypothesis; the "total cleanliness is trivial" result is not
+  checked against the literature for novelty.
+
 ---
 
 ## 2. The leading principle: operationality (not Bishop's constructivism)
