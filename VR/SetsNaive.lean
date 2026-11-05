@@ -78,3 +78,4 @@ import VR.SetsNaive.Residue
 import VR.SetsNaive.Curry
 import VR.SetsNaive.OmegaN
 import VR.SetsNaive.Realise
+import VR.SetsNaive.Cantor

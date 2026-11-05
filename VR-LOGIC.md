@@ -296,7 +296,7 @@ the guard enforces it; the quotient bridges `Qop`/`GaussQ`/`Real` and `not_conti
 Curator's programme: unrestricted comprehension `{x : φ}` on ZTL's ground; a paradox appears as a
 dirty cell that carries a *passport* (PARADOX: decided in no consistent fixed point; UNDERDETERMINED:
 decided both ways in two consistent fixed points). Status: every item below is a Lean theorem in
-`VR/SetsNaive/` (16 modules; 93 objects audited by `#print axioms`), `lake build VR` green, no `sorry`, every object on
+`VR/SetsNaive/` (17 modules; 99 objects audited by `#print axioms`), `lake build VR` green, no `sorry`, every object on
 `[]` — the build guard `VR/Guard.lean` fails on any axiom. "Exploratory" means the line is not
 published, not that the items are unproved.
 - **Positive.** The universe is the inductive type of closed terms (each a finite record; no
@@ -336,6 +336,15 @@ published, not that the items are unproved.
   (`seg_realises`); `{x : x ≈ Ω}` realises Ω (`quine_realised`). This checks naive definitions against
   the carrier; it does not make the naive layer independent of it. In shape — classes over a base —
   this resembles Feferman's and Cantini's frameworks; their proof-theoretic properties are not compared.
+- **Cantor's diagonal (`Cantor.lean`, 2026-11-05).** A map is a term with one free variable; its diagonal is
+  `D = {y : y ∉ f(y)}`. Where the diagonal cell `d ∈ f(d)` is decided, `D ≐ f(d)` is refuted with `d` as the
+  witness (`cantor_witness`) — Cantor's theorem holds as a verdict, even at a dirty argument such as Russell's set
+  (`cantor_const_V`). Where that cell is undecided, the witness decides nothing either way
+  (`cantor_witness_silent`). For the identity map the diagonal is `R`, the would-be refutation is `R ≐ R`, never
+  refuted and not earned, its instance at `R` being Russell's cell (`cantor_paradox`): Cantor's paradox is not a
+  contradiction here but Russell's PARADOX cell, met by the diagonal through the identity map. This is the diagonal
+  step cell by cell, not a theory of cardinality (the language has no functions-as-objects and no counting); the
+  operational Cantor of the continuum is `Continuum/Cantor.lean`.
 - **Boundaries.** The identification is meta-level: inside the language an identity atom with a naive
   side stays Z (`realised_but_atom_silent`); feeding realisation back into it is the revocation above.
   Verdicts in the classical register take excluded middle as a hypothesis. Whether `total_trivial` is
