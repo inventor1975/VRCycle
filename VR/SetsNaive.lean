@@ -33,7 +33,12 @@
 --                 trivial (the ∀ inside ≐ meets D), so a nontrivial set fails even X ≐ X; the
 --                 von Neumann 1 is fine, but 1 ∈ 2 is quarantined (`vn_two_breaks`) — the lazy
 --                 register does not reach 2 (the classical one does: EARNED IF STABLE).  SetsOp
---                 has ℕ and ω natively with total identity: arithmetic lives in the CARRIER.
+--                 has ℕ and ω natively with total identity: arithmetic lives in the CARRIER;
+--   N11 Named   — the BRIDGE: naive comprehension over NAMES of carrier sets, with an identity
+--                 atom valued by the carrier (no circle).  On names the language reflects SetsOp
+--                 exactly; the naive segment {x : x≈0 ∨ … ∨ x≈n−1} decides every carrier numeral
+--                 as `vn n` does (`seg_reflects`: 1 ∈ seg 2 EARNED); Ω ∈ Ω EARNED where the
+--                 naive S∈S is underdetermined.  Open: identifying naive terms with carrier sets.
 -- Universe: potential infinity (the CLOSED terms, an inductive type of finite records); a
 -- universal is earned by a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
 import VR.SetsNaive.Syntax
@@ -46,3 +51,4 @@ import VR.SetsNaive.Leak
 import VR.SetsNaive.Judge
 import VR.SetsNaive.Identity
 import VR.SetsNaive.Numerals
+import VR.SetsNaive.Named
