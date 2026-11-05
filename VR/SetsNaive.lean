@@ -49,7 +49,10 @@
 --   N14 Curry   — path 1 ("Weber inside ZTL"), first milestone: no three-valued truth-functional
 --                 conditional that is classical on clean values and validates Z → Z supports
 --                 naive comprehension (`no_transparent`, Curry sets C₁, C₂).  Path 1 must leave
---                 three-valued truth-functionality.
+--                 three-valued truth-functionality (and FLØ 2017 Thm 10.1 closes ZTL's own →);
+--   N15 OmegaN  — ω à la Dedekind, measured: operationally NO earned member (not even 0);
+--                 classically every numeral sᵏ0 ∈ ω (EARNED IF STABLE), but whether the dirty D is in
+--                 ω is OPEN — the classical register does not exclude junk.  No standard ω.
 -- Universe: potential infinity (the CLOSED terms, an inductive type of finite records); a
 -- universal is earned by a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
 import VR.SetsNaive.Syntax
@@ -66,3 +69,4 @@ import VR.SetsNaive.Named
 import VR.SetsNaive.Levels
 import VR.SetsNaive.Residue
 import VR.SetsNaive.Curry
+import VR.SetsNaive.OmegaN
