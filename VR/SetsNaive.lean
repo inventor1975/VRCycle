@@ -41,7 +41,11 @@
 --                 naive S∈S is underdetermined.  Open: identifying naive terms with carrier sets;
 --   N12 Levels  — the levels attempt at native identity, measured: identity read off a complete
 --                 lower level (Z-against-Z as agreement, probes over all terms) is REVOKED
---                 (`revoked`: earned at level 1, refuted at level 2) — identity through the mark.
+--                 (`revoked`: earned at level 1, refuted at level 2) — identity through the mark;
+--   N13 Residue — the Z of a universal is the RESIDUE (curator's point): F iff a decided
+--                 counterexample, T iff every instance earned, Z exactly otherwise.  The residue
+--                 verdict RelT ("no decided counterexample", residue named) needs no excluded
+--                 middle; "A is empty": true outside the residue, and the residue holds D.
 -- Universe: potential infinity (the CLOSED terms, an inductive type of finite records); a
 -- universal is earned by a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
 import VR.SetsNaive.Syntax
@@ -56,3 +60,4 @@ import VR.SetsNaive.Identity
 import VR.SetsNaive.Numerals
 import VR.SetsNaive.Named
 import VR.SetsNaive.Levels
+import VR.SetsNaive.Residue
