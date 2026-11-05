@@ -38,7 +38,10 @@
 --                 atom valued by the carrier (no circle).  On names the language reflects SetsOp
 --                 exactly; the naive segment {x : x≈0 ∨ … ∨ x≈n−1} decides every carrier numeral
 --                 as `vn n` does (`seg_reflects`: 1 ∈ seg 2 EARNED); Ω ∈ Ω EARNED where the
---                 naive S∈S is underdetermined.  Open: identifying naive terms with carrier sets.
+--                 naive S∈S is underdetermined.  Open: identifying naive terms with carrier sets;
+--   N12 Levels  — the levels attempt at native identity, measured: identity read off a complete
+--                 lower level (Z-against-Z as agreement, probes over all terms) is REVOKED
+--                 (`revoked`: earned at level 1, refuted at level 2) — identity through the mark.
 -- Universe: potential infinity (the CLOSED terms, an inductive type of finite records); a
 -- universal is earned by a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
 import VR.SetsNaive.Syntax
@@ -52,3 +55,4 @@ import VR.SetsNaive.Judge
 import VR.SetsNaive.Identity
 import VR.SetsNaive.Numerals
 import VR.SetsNaive.Named
+import VR.SetsNaive.Levels
