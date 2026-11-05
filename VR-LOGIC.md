@@ -293,32 +293,53 @@ the guard enforces it; the quotient bridges `Qop`/`GaussQ`/`Real` and `not_conti
 
 ### Naive sets on ZTL's ground (`SetsNaive/`, 2026-11-05, exploratory — not a published work, no DOI)
 
-Curator's programme: unrestricted comprehension on ZTL's ground, the classical laws in every clean
-cell, a paradox as a dirty cell with a passport. Every object on `[]` (guarded by `VR/Guard.lean`).
-- **Established (positive).** Kripke's least fixed point as an inductive predicate over an infinite
-  universe of closed terms (potential infinity; a universal earned by a rule): consistent;
-  comprehension a law in every cell; the excluded middle earned exactly in the clean cells and
-  refuted in none; Russell = PARADOX (no consistent fixed point decides it), the truth-teller set =
-  UNDERDETERMINED; clean cells absolute; extensionality as a meta congruence; an earned identity is
-  substitutive; the Z of a universal is exactly the residue (`all_quarantine_iff`).
-- **Established (negative, the measured reason the carrier stays).** The two-valued carrier forgets
-  the mark (`carrier_forgets_mark`); total cleanliness is trivial (`total_trivial`); an earned
-  identity holds only between trivial sets, so `1 ∈ 2` is quarantined (`vn_two_breaks`); identity
-  read off lower levels is revoked (`revoked`); no three-valued strong conditional supports naive
-  comprehension (`no_transparent`, Curry); ω has no earned member operationally and does not
-  exclude junk classically (`omega_no_earned_member`, `D_in_omega_open`). With the literature
-  (Thomas 2014 for LP; Field–Lederman–Øgaard 2017, Thm 10.1, whose hypotheses ZTL's conditional
-  meets): naive sets do NOT replace the carrier.
+Curator's programme: unrestricted comprehension `{x : φ}` on ZTL's ground; a paradox appears as a
+dirty cell that carries a *passport* (PARADOX: decided in no consistent fixed point; UNDERDETERMINED:
+decided both ways in two consistent fixed points). Status: every item below is a Lean theorem in
+`VR/SetsNaive/` (16 modules; 93 objects audited by `#print axioms`), `lake build VR` green, no `sorry`, every object on
+`[]` — the build guard `VR/Guard.lean` fails on any axiom. "Exploratory" means the line is not
+published, not that the items are unproved.
+- **Positive.** The universe is the inductive type of closed terms (each a finite record; no
+  completed totality); a universal statement is earned by a rule (a function over all closed terms).
+  Kripke's least fixed point of the strong-Kleene jump is given as an inductive predicate `Val`.
+  It is consistent in this sense: no formula is grounded both true and false (`consistent`).
+  Comprehension holds cell by cell: `a ∈ {x : φ}` has exactly the status of `φ(a)`, for every φ
+  of this conditional-free language (`comprehension`). The formula `φ ∨ ¬φ` is earned exactly when φ
+  is grounded, and is never refuted (`em_iff`, `em_never_false`) — a theorem about the lazy register,
+  not the excluded middle as a meta-principle. Russell's cell is PARADOX and the truth-teller set's
+  cell UNDERDETERMINED (`passport_separates`); a grounded cell has the same value in every consistent
+  fixed point (`grounded_absolute`); extensionality holds as a meta-level congruence (`val_cong`); an
+  earned identity is substitutive (`earned_eq_subst`); a universal is undecided exactly when it has no
+  decided counterexample and not every instance is earned (`all_quarantine_iff`).
+- **Negative — why the carrier stays.** The two-valued carrier identifies a clean empty set with a
+  dirty one (`carrier_forgets_mark`). A set that decides the dirty probe D = {x : R∈R} is extensionally
+  ∅ or V (`total_trivial`). An earned identity forces both sides to decide D, hence to be ∅ or V; the
+  numeral 1 is neither, so `1 ≐ 1` is never earned, and since `1 ≐ 0` is refuted, `1 ∈ 2` (which unfolds
+  to `1 ≐ 0 ∨ 1 ≐ 1`) is quarantined (`vn_two_breaks`). Identity read off a lower level, counting Z
+  against Z as agreement, is revoked one level up (`revoked`). No three-valued truth-functional
+  conditional that is classical on clean values and validates Z → Z admits a valuation of
+  comprehension *with that conditional inside the bodies* (`no_transparent`, Curry) — which is why the
+  language above is conditional-free. Dedekind's ω has no earned member in the lazy register
+  (`omega_no_earned_member`); in the classical register (every completion of the dirty cells, excluded
+  middle taken as an explicit hypothesis) it contains every numeral (`num_in_omega_stable`), but whether
+  the dirty set D is in ω is open — two completions disagree (`D_in_omega_open`), so ω's extension is
+  not pinned. Context, not transfer: Thomas (2014) proves an analogous expressive limit for naive set
+  theory in LP (no singletons or pairs); Field–Lederman–Øgaard (2017, Thm 10.1) prove triviality of
+  naive class theory with extensionality for any conditional with modus ponens, weakening, prefixing,
+  suffixing and `(⊤→⊥)→⊥` — ZTL's greedy conditional meets these (checked by hand, not formalised).
+  Conclusion drawn from the theorems above: naive sets do not replace the carrier.
 - **The architecture.** The carrier (SetsOp) is what a set is and carries the arithmetic; the naive
-  layer is how sets are named; the bridge is realisation (`Realise.lean`): a naive term realises a
-  carrier set when its verdicts at every carrier probe are the carrier's — unique up to bisimulation,
-  the naive segment realises `vn n`, `{x : x ≈ Ω}` realises Ω (the carrier supplies the stipulation
-  the naive truth-teller set lacks). The same shape as Feferman/Cantini (classes over a base).
-- **Boundaries.** The identification is meta-level (the in-language identity atom with a naive side
-  stays Z — feeding it back is the revocation); the classical-register verdicts (EARNED IF STABLE)
-  take excluded middle as an explicit hypothesis; the "total cleanliness is trivial" result is not
-  checked against the literature for novelty.
-
+  layer is how sets are named; the bridge (`Named.lean`, `Realise.lean`) lets the naive language use
+  names of carrier sets, with membership and identity between names taken from the carrier. A naive
+  term *realises* a carrier set when its verdict at every carrier probe equals the carrier's
+  (`Realises`): unique up to bisimulation (`realise_unique`); the naive segment realises `vn n`
+  (`seg_realises`); `{x : x ≈ Ω}` realises Ω (`quine_realised`). This checks naive definitions against
+  the carrier; it does not make the naive layer independent of it. In shape — classes over a base —
+  this resembles Feferman's and Cantini's frameworks; their proof-theoretic properties are not compared.
+- **Boundaries.** The identification is meta-level: inside the language an identity atom with a naive
+  side stays Z (`realised_but_atom_silent`); feeding realisation back into it is the revocation above.
+  Verdicts in the classical register take excluded middle as a hypothesis. Whether `total_trivial` is
+  new has not been checked against the literature.
 ---
 
 ## 2. The leading principle: operationality (not Bishop's constructivism)
