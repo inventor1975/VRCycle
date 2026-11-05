@@ -45,7 +45,11 @@
 --   N13 Residue — the Z of a universal is the RESIDUE (curator's point): F iff a decided
 --                 counterexample, T iff every instance earned, Z exactly otherwise.  The residue
 --                 verdict RelT ("no decided counterexample", residue named) needs no excluded
---                 middle; "A is empty": true outside the residue, and the residue holds D.
+--                 middle; "A is empty": true outside the residue, and the residue holds D;
+--   N14 Curry   — path 1 ("Weber inside ZTL"), first milestone: no three-valued truth-functional
+--                 conditional that is classical on clean values and validates Z → Z supports
+--                 naive comprehension (`no_transparent`, Curry sets C₁, C₂).  Path 1 must leave
+--                 three-valued truth-functionality.
 -- Universe: potential infinity (the CLOSED terms, an inductive type of finite records); a
 -- universal is earned by a RULE, never by a survey.  Axiom profile: [] throughout (guarded by VR/Guard.lean).
 import VR.SetsNaive.Syntax
@@ -61,3 +65,4 @@ import VR.SetsNaive.Numerals
 import VR.SetsNaive.Named
 import VR.SetsNaive.Levels
 import VR.SetsNaive.Residue
+import VR.SetsNaive.Curry
